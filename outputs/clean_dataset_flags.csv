@@ -1,0 +1,6 @@
+image_id,gleason_score,mask_path,mask_derived_gleason,tissue_ratio,integrity_ok,grade_consistent,mask_complete,benign_consistent,error,known_noisy,flag_grade,flag_empty,flag_integrity,flag_benign,flag_any_qc,flag_remove
+0018ae58b01bdadc8e347995b69f99aa,4+4,,,,False,,,,missing_local_mask,False,False,False,True,False,True,True
+004dd32d9cd167d9cc31c13b704498af,3+3,,,,False,,,,missing_local_mask,False,False,False,True,False,True,True
+0068d4c7529e34fd4c9da863ce01a161,4+3,,,,False,,,,missing_local_mask,True,False,False,True,False,True,True
+006f6aa35a78965c92fffd1fbd53a058,4+3,,,,False,,,,missing_local_mask,False,False,False,True,False,True,True
+007433133235efc27a39f11df6940829,negative,,,,False,,,,missing_local_mask,False,False,False,True,False,True,True

@@ -1,0 +1,6 @@
+image_id,label_values,classes_present,class_0_pct,class_1_pct,class_2_pct,class_3_pct,class_5_pct,dominant_class,class_4_pct
+2ae016457e8ff8e21723a91b57a96d7d,"[0, 1, 2, 3, 5]","background, stroma, benign, G3, G5",67.26,32.09,0.17,0.07,0.41,background (67.3%),
+49ad3b1fca450036f56b4844f178b837,"[0, 1, 2, 3, 4]","background, stroma, benign, G3, G4",73.34,21.9,1.01,0.92,,background (73.3%),2.84
+6dfc6b0ab1aa81cb550e52ca291cbb64,"[0, 1, 2, 4]","background, stroma, benign, G4",70.92,25.46,1.94,,,background (70.9%),1.68
+85924446350920fb124b657160c966d7,"[0, 1, 2, 5]","background, stroma, benign, G5",62.35,30.11,0.19,,7.35,background (62.4%),
+b641f33ff342b590cf61baeea481716a,"[0, 1, 2]","background, stroma, benign",79.44,19.07,1.49,,,background (79.4%),

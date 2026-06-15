@@ -1,0 +1,6 @@
+image_id,gleason_score,dimensions,classes_present,class_0_pct,class_1_pct,class_2_pct,class_3_pct,class_4_pct,class_5_pct
+2ae016457e8ff8e21723a91b57a96d7d,3+5,2304x3840,"background, stroma, benign, G3, G5",67.24,32.14,0.16,0.07,0.0,0.4
+49ad3b1fca450036f56b4844f178b837,4+3,8192x15616,"background, stroma, benign, G3, G4",73.34,21.88,1.0,0.92,2.85,0.0
+6dfc6b0ab1aa81cb550e52ca291cbb64,4+3,15872x3072,"background, stroma, benign, G3, G4",70.92,25.44,1.95,0.0,1.69,0.0
+85924446350920fb124b657160c966d7,5+5,26368x4352,"background, stroma, benign, G5",62.34,30.12,0.19,0.0,0.0,7.36
+b641f33ff342b590cf61baeea481716a,negative,6400x11520,"background, stroma, benign",79.45,19.06,1.49,0.0,0.0,0.0

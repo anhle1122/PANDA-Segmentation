@@ -1,0 +1,9 @@
+﻿# PANDA-PLUS full dataset: 546 Kaggle image_ids (NOT YET PUBLIC)
+#
+# The panda-plus-bench GitHub repo does not contain this list.
+# Per Hopson et al., J Pathol Inform 2025 (PMC12858358):
+#   annotation masks are available upon request to the corresponding author.
+# The distributed package includes internal image numbers AND PANDA image_id values.
+#
+# When you receive the manifest, replace this file with one image_id per line.
+# Then run: python src/exclude_panda_plus.py
