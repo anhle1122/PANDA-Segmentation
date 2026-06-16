@@ -35,6 +35,7 @@ EXCLUDED_TXT = DATA / "excluded_slide_ids.txt"
 CLEAN_CSV = DATA / "radboud_clean.csv"
 FLAGS_CSV = OUTPUTS / "clean_dataset_flags.csv"
 CHECKPOINT_JSON = OUTPUTS / "clean_dataset_checkpoint.json"
+SELECTED_JSON = OUTPUTS / "selected_slides.json"
 
 COMPETITION = "prostate-cancer-grade-assessment"
 KAGGLE = Path(sys.executable).parent / "Scripts" / "kaggle.exe"
@@ -287,6 +288,11 @@ def main() -> None:
         help="Only process masks already in data/masks/ (no Kaggle download)",
     )
     parser.add_argument(
+        "--selected-only",
+        action="store_true",
+        help="Only process image IDs listed in outputs/selected_slides.json",
+    )
+    parser.add_argument(
         "--resume",
         action="store_true",
         help="Resume from outputs/clean_dataset_checkpoint.json",
@@ -302,6 +308,13 @@ def main() -> None:
     radboud_masks = pd.read_csv(RADBOUD_MASKS_CSV)
     metadata = pd.read_csv(TRAIN_RADBOUD_CSV)
     slides = radboud_masks.merge(metadata, on="image_id", how="left")
+
+    if args.selected_only:
+        if not SELECTED_JSON.exists():
+            raise FileNotFoundError(f"Missing {SELECTED_JSON}")
+        selected = json.loads(SELECTED_JSON.read_text(encoding="utf-8")).get("selected", [])
+        slides = slides[slides["image_id"].isin(selected)].copy()
+        print(f"Selected-only mode: {len(slides)} slides from {SELECTED_JSON.name}")
 
     if args.limit:
         slides = slides.head(args.limit)
@@ -336,19 +349,64 @@ def main() -> None:
     flags["flag_remove"] = flags["known_noisy"] | flags["flag_any_qc"]
 
     OUTPUTS.mkdir(parents=True, exist_ok=True)
-    flags.to_csv(FLAGS_CSV, index=False)
+    flags_path = FLAGS_CSV if not args.selected_only else OUTPUTS / "clean_dataset_flags_local.csv"
+    flags.to_csv(flags_path, index=False)
 
-    clean = metadata[
-        metadata["image_id"].isin(slides["image_id"])
-        & ~metadata["image_id"].isin(flags.loc[flags["flag_remove"], "image_id"])
-    ].copy()
-    clean.to_csv(CLEAN_CSV, index=False)
+    if args.selected_only:
+        passing_ids = set(flags.loc[~flags["flag_remove"], "image_id"])
+        print(f"\n(Local demo) {len(passing_ids)}/{len(flags)} selected slides pass all checks.")
+    else:
+        clean = metadata[
+            metadata["image_id"].isin(slides["image_id"])
+            & ~metadata["image_id"].isin(flags.loc[flags["flag_remove"], "image_id"])
+        ].copy()
+        clean.to_csv(CLEAN_CSV, index=False)
 
     summarize_flags(flags, excluded_ids)
-    print(f"\nSaved flag report: {FLAGS_CSV}")
-    print(f"Saved clean list:  {CLEAN_CSV}")
-    print(f"Checkpoint:        {CHECKPOINT_JSON}")
-    print(f"\n=== {len(clean)} Radboud slides remain after all exclusions ===")
+
+    passing = flags[~flags["flag_remove"]]
+    if len(passing):
+        print("\nSlides passing all checks:")
+        for _, row in passing.iterrows():
+            print(f"  PASS  {row['image_id']}  gleason={row['gleason_score']}")
+
+    failing = flags[flags["flag_remove"]]
+    if len(failing):
+        print("\nSlides failing one or more checks:")
+        for _, row in failing.iterrows():
+            reasons = []
+            if row["known_noisy"]:
+                reasons.append("known_noisy")
+            if row["flag_grade"]:
+                reasons.append("grade_mismatch")
+            if row["flag_empty"]:
+                reasons.append("empty_mask")
+            if row["flag_integrity"]:
+                reasons.append("integrity")
+            if row["flag_benign"]:
+                reasons.append("benign_mismatch")
+            if row.get("error"):
+                reasons.append(str(row["error"]))
+            print(f"  FAIL  {row['image_id']}  gleason={row['gleason_score']}  ({', '.join(reasons)})")
+
+    highlight_id = "6dfc6b0ab1aa81cb550e52ca291cbb64"
+    if highlight_id in set(flags["image_id"]):
+        row = flags.loc[flags["image_id"] == highlight_id].iloc[0]
+        print(f"\n--- 6dfc slide detail ({highlight_id}) ---")
+        print(f"  gleason_score (metadata):     {row['gleason_score']}")
+        print(f"  mask_derived_gleason:         {row['mask_derived_gleason']}")
+        print(f"  tissue_ratio:                 {row['tissue_ratio']}")
+        print(f"  grade_consistent:             {row['grade_consistent']}")
+        print(f"  mask_complete:                {row['mask_complete']}")
+        print(f"  benign_consistent:            {row['benign_consistent']}")
+        print(f"  integrity_ok:                 {row['integrity_ok']}")
+        print(f"  overall:                      {'PASS' if not row['flag_remove'] else 'FAIL'}")
+
+    print(f"\nSaved flag report: {flags_path}")
+    if not args.selected_only:
+        print(f"Saved clean list:  {CLEAN_CSV}")
+        print(f"Checkpoint:        {CHECKPOINT_JSON}")
+        print(f"\n=== {len(clean)} Radboud slides remain after all exclusions ===")
 
 
 if __name__ == "__main__":
