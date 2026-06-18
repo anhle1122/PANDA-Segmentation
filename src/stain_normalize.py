@@ -1,4 +1,4 @@
-﻿"""Vahadane stain normalization demo on sample patches (Step 3)."""
+﻿"""Stain normalization demo: one reference patch, Macenko or Vahadane (Step 3)."""
 
 from __future__ import annotations
 
@@ -13,12 +13,18 @@ from sklearn.decomposition import DictionaryLearning
 
 from patch_utils import PATCH_INDEX_CSV, PATCH_SIZE, SLIDES_DIR, OUTPUTS, read_rgb_patch
 
-TISSUE_THRESHOLD = 0.50
-WHITE_THRESHOLD = 230
+# staintools / literature defaults (see staintools stain_extraction/*.py)
+LUMINOSITY_THRESHOLD = 0.8          # tissue mask for stain matrix estimation
+MACENKO_ANGULAR_PERCENTILE = 99     # Macenko et al. 2009 via staintools
+VAHADANE_REGULARIZER = 0.1          # Vahadane et al. 2016 via staintools trainDL lambda1
+CONCENTRATION_PERCENTILE = 99       # StainNormalizer.fit/transform maxC percentile
+MIN_TISSUE_FRACTION = 0.50          # patch QC: skip transform if tissue fraction below this
+TISSUE_THRESHOLD = MIN_TISSUE_FRACTION  # alias for CLI
 PEN_MARK_MIN_R = 150
 PEN_MARK_MIN_G = 100
 PEN_MARK_MAX_B = 80
 PEN_MARK_FLAG_FRACTION = 0.0001
+SUPPORTED_METHODS = ("macenko", "vahadane")
 
 
 def _install_spams_stub() -> None:
@@ -67,28 +73,49 @@ def _install_spams_stub() -> None:
     sys.modules["spams"] = spams_mod
 
 
-def get_normalizer() -> tuple[object, str]:
-    backend = "spams"
-    try:
-        import spams  # noqa: F401
-    except ImportError:
-        _install_spams_stub()
-        backend = "sklearn_stub"
+def get_normalizer(method: str) -> tuple[object, str]:
+    method = method.lower()
+    if method not in SUPPORTED_METHODS:
+        raise ValueError(f"method must be one of {SUPPORTED_METHODS}")
+
+    backend = "none"
+    if method == "vahadane":
+        backend = "spams"
+        try:
+            import spams  # noqa: F401
+        except ImportError:
+            _install_spams_stub()
+            backend = "sklearn_stub"
+
     from staintools import StainNormalizer
 
-    return StainNormalizer(method="vahadane"), backend
+    return StainNormalizer(method=method), backend
 
 
 def tissue_content_fraction(img: np.ndarray) -> float:
-    r, g, b = img[..., 0], img[..., 1], img[..., 2]
-    tissue = (r < WHITE_THRESHOLD) & (g < WHITE_THRESHOLD) & (b < WHITE_THRESHOLD)
-    return float(tissue.mean())
+    """Tissue fraction using staintools luminosity mask (LAB L < 0.8)."""
+    import cv2
+
+    lab = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_RGB2LAB)
+    l_channel = lab[:, :, 0] / 255.0
+    return float((l_channel < LUMINOSITY_THRESHOLD).mean())
 
 
 def pen_mark_fraction(img: np.ndarray) -> float:
     r, g, b = img[..., 0], img[..., 1], img[..., 2]
     pen = (r > PEN_MARK_MIN_R) & (g > PEN_MARK_MIN_G) & (b < PEN_MARK_MAX_B)
     return float(pen.mean())
+
+
+def patch_key(image_id: str, x: int, y: int) -> tuple[str, int, int]:
+    return (image_id, int(x), int(y))
+
+
+def parse_reference(value: str) -> tuple[str, int, int]:
+    parts = value.split(",")
+    if len(parts) != 3:
+        raise argparse.ArgumentTypeError("reference must be image_id,x,y")
+    return parts[0].strip(), int(parts[1]), int(parts[2])
 
 
 def pick_example_patches(df: pd.DataFrame, per_slide: int = 3) -> pd.DataFrame:
@@ -101,12 +128,46 @@ def pick_example_patches(df: pd.DataFrame, per_slide: int = 3) -> pd.DataFrame:
     return pd.concat(picks, ignore_index=True)
 
 
+def load_reference_patch(ref: tuple[str, int, int]) -> np.ndarray:
+    image_id, x, y = ref
+    slide_path = SLIDES_DIR / f"{image_id}.tiff"
+    img = read_rgb_patch(slide_path, x, y, size=PATCH_SIZE)
+    if img.shape[0] != PATCH_SIZE or img.shape[1] != PATCH_SIZE:
+        raise ValueError(f"Expected {PATCH_SIZE}x{PATCH_SIZE} reference patch, got {img.shape[:2]}")
+    return img
+
+
+def choose_reference(
+  patch_info: list[dict],
+  tissue_threshold: float,
+  explicit: tuple[str, int, int] | None,
+) -> tuple[tuple[str, int, int], np.ndarray, float]:
+    if explicit is not None:
+        ref_img = load_reference_patch(explicit)
+        tissue_pct = tissue_content_fraction(ref_img)
+        if tissue_pct <= tissue_threshold:
+            raise ValueError(
+                f"Reference patch {explicit} has only {tissue_pct:.1%} tissue "
+                f"(need >{tissue_threshold:.0%})"
+            )
+        return explicit, ref_img, tissue_pct
+
+    tissue_rich = [p for p in patch_info if p["tissue_pct"] > tissue_threshold]
+    if not tissue_rich:
+        raise RuntimeError("No patches with sufficient tissue content for reference fit.")
+
+    best = max(tissue_rich, key=lambda p: (p["row"]["dominant_class"], p["tissue_pct"]))
+    row = best["row"]
+    ref = patch_key(row["image_id"], row["x"], row["y"])
+    return ref, best["before"], best["tissue_pct"]
+
+
 def save_before_after(
     before: np.ndarray,
     after: np.ndarray,
     out_path,
     *,
-    after_label: str = "After (Vahadane)",
+    after_label: str,
 ) -> None:
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))
     axes[0].imshow(before)
@@ -122,9 +183,28 @@ def save_before_after(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Vahadane stain normalization examples")
+    parser = argparse.ArgumentParser(
+        description="Stain normalization: fit one reference, transform tissue-rich patches"
+    )
+    parser.add_argument("--method", choices=SUPPORTED_METHODS, default="macenko")
     parser.add_argument("--patches-per-slide", type=int, default=3)
     parser.add_argument("--tissue-threshold", type=float, default=TISSUE_THRESHOLD)
+    parser.add_argument(
+        "--reference",
+        type=parse_reference,
+        default=None,
+        help="Fixed reference patch as image_id,x,y (fit once, transform all others)",
+    )
+    parser.add_argument(
+        "--tissue-only-demo",
+        action="store_true",
+        help="Only save demo PNGs for tissue-rich patches (skip low-tissue panels)",
+    )
+    parser.add_argument(
+        "--include-reference-in-demo",
+        action="store_true",
+        help="Also save before/after for the reference patch (usually looks unchanged)",
+    )
     args = parser.parse_args()
 
     if not PATCH_INDEX_CSV.exists():
@@ -132,6 +212,8 @@ def main() -> None:
 
     df = pd.read_csv(PATCH_INDEX_CSV)
     examples = pick_example_patches(df, per_slide=args.patches_per_slide)
+
+    method = args.method.lower()
     out_dir = OUTPUTS / "stain_norm_examples"
     out_dir.mkdir(parents=True, exist_ok=True)
     manifest_rows: list[dict] = []
@@ -140,8 +222,6 @@ def main() -> None:
     for _, row in examples.iterrows():
         slide_path = SLIDES_DIR / f"{row['image_id']}.tiff"
         before = read_rgb_patch(slide_path, int(row["x"]), int(row["y"]), size=PATCH_SIZE)
-        if before.shape[0] != PATCH_SIZE or before.shape[1] != PATCH_SIZE:
-            raise ValueError(f"Expected {PATCH_SIZE}x{PATCH_SIZE} patch, got {before.shape[:2]}")
         tissue_pct = tissue_content_fraction(before)
         pen_pct = pen_mark_fraction(before)
         patch_info.append(
@@ -153,26 +233,33 @@ def main() -> None:
             }
         )
 
-    tissue_rich = [p for p in patch_info if p["tissue_pct"] > args.tissue_threshold]
-    if not tissue_rich:
-        raise RuntimeError("No patches with sufficient tissue content for Vahadane reference fit.")
-
-    ref = max(tissue_rich, key=lambda p: (p["row"]["dominant_class"], p["tissue_pct"]))
-    normalizer, backend = get_normalizer()
-    print(f"Stain backend: {backend}  |  Patch size: {PATCH_SIZE}x{PATCH_SIZE}")
-    print(
-        f"Fitting Vahadane on reference patch {ref['row']['image_id'][:8]} "
-        f"(tissue={ref['tissue_pct']:.1%}, class={ref['row']['dominant_class']})..."
+    ref_key, ref_img, ref_tissue = choose_reference(
+        patch_info, args.tissue_threshold, args.reference
     )
-    normalizer.fit(ref["before"])
+    normalizer, backend = get_normalizer(method)
+    print(f"Method: {method}  |  Backend: {backend}  |  Patch size: {PATCH_SIZE}x{PATCH_SIZE}")
+    print(
+        f"Reference (fit target): {ref_key[0][:8]} x{ref_key[1]} y{ref_key[2]} "
+        f"(tissue={ref_tissue:.1%})"
+    )
+    print("Fitting normalizer on reference patch...")
+    normalizer.fit(ref_img)
 
     saved = 0
     for info in patch_info:
         row = info["row"]
+        key = patch_key(row["image_id"], row["x"], row["y"])
         before = info["before"]
         tissue_pct = info["tissue_pct"]
         pen_pct = info["pen_pct"]
         notes: list[str] = []
+
+        if not args.include_reference_in_demo and key == ref_key:
+            notes.append("reference_patch")
+            continue
+
+        if args.tissue_only_demo and tissue_pct <= args.tissue_threshold:
+            continue
 
         if pen_pct >= PEN_MARK_FLAG_FRACTION:
             notes.append("pen_marks_detected")
@@ -186,7 +273,8 @@ def main() -> None:
         else:
             try:
                 after = normalizer.transform(before)
-                after_label = "After (Vahadane, spams)" if backend == "spams" else "After (Vahadane)"
+                backend_note = f", {backend}" if method == "vahadane" and backend != "none" else ""
+                after_label = f"After ({method.title()}{backend_note})"
                 normalized = True
             except Exception as exc:
                 after = before.copy()
@@ -195,7 +283,7 @@ def main() -> None:
                 notes.append(f"norm_error:{exc}")
                 print(f"  norm failed {row['image_id'][:8]} ({exc})")
 
-        fname = f"{row['image_id'][:8]}_x{row['x']}_y{row['y']}_vahadane.png"
+        fname = f"{row['image_id'][:8]}_x{row['x']}_y{row['y']}_{method}.png"
         save_before_after(before, after, out_dir / fname, after_label=after_label)
         saved += 1
         print(f"  saved {fname}" + (" [pen marks]" if "pen_marks_detected" in notes else ""))
@@ -206,8 +294,12 @@ def main() -> None:
                 "x": int(row["x"]),
                 "y": int(row["y"]),
                 "dominant_class": int(row["dominant_class"]),
+                "method": method,
                 "patch_size": PATCH_SIZE,
                 "stain_backend": backend,
+                "reference_image_id": ref_key[0],
+                "reference_x": ref_key[1],
+                "reference_y": ref_key[2],
                 "tissue_pct": round(tissue_pct * 100, 2),
                 "pen_mark_pct": round(pen_pct * 100, 4),
                 "normalized": normalized,
@@ -216,7 +308,7 @@ def main() -> None:
             }
         )
 
-    manifest_path = OUTPUTS / "stain_norm_manifest.csv"
+    manifest_path = OUTPUTS / f"stain_norm_manifest_{method}.csv"
     pd.DataFrame(manifest_rows).to_csv(manifest_path, index=False)
     print(f"\nSaved {saved} before/after images -> {out_dir}")
     print(f"Saved manifest        -> {manifest_path}")

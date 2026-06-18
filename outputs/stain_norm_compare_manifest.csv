@@ -1,0 +1,16 @@
+image_id,x,y,dominant_class,tissue_pct_luminance,pen_mark_pct,reference_image_id,reference_x,reference_y,vahadane_normalized,macenko_normalized,vahadane_notes,macenko_notes,compare_file,luminosity_threshold,min_tissue_fraction,macenko_angular_percentile,vahadane_regularizer
+2ae016457e8ff8e21723a91b57a96d7d,0,1024,0,0.0,0.0,85924446350920fb124b657160c966d7,1536,1024,False,False,skipped_low_tissue,skipped_low_tissue,2ae01645_x0_y1024_compare.png,0.8,0.5,99,0.1
+2ae016457e8ff8e21723a91b57a96d7d,0,2048,1,29.87,0.0,85924446350920fb124b657160c966d7,1536,1024,False,False,skipped_low_tissue,skipped_low_tissue,2ae01645_x0_y2048_compare.png,0.8,0.5,99,0.1
+2ae016457e8ff8e21723a91b57a96d7d,0,1536,0,9.69,0.0,85924446350920fb124b657160c966d7,1536,1024,False,False,skipped_low_tissue,skipped_low_tissue,2ae01645_x0_y1536_compare.png,0.8,0.5,99,0.1
+49ad3b1fca450036f56b4844f178b837,0,9216,0,0.91,0.0,85924446350920fb124b657160c966d7,1536,1024,False,False,skipped_low_tissue,skipped_low_tissue,49ad3b1f_x0_y9216_compare.png,0.8,0.5,99,0.1
+49ad3b1fca450036f56b4844f178b837,512,3072,1,41.15,0.0,85924446350920fb124b657160c966d7,1536,1024,False,False,skipped_low_tissue,skipped_low_tissue,49ad3b1f_x512_y3072_compare.png,0.8,0.5,99,0.1
+49ad3b1fca450036f56b4844f178b837,5632,11776,3,71.03,0.0,85924446350920fb124b657160c966d7,1536,1024,True,True,,,49ad3b1f_x5632_y11776_compare.png,0.8,0.5,99,0.1
+6dfc6b0ab1aa81cb550e52ca291cbb64,0,1024,0,0.96,0.0,85924446350920fb124b657160c966d7,1536,1024,False,False,skipped_low_tissue,skipped_low_tissue,6dfc6b0a_x0_y1024_compare.png,0.8,0.5,99,0.1
+6dfc6b0ab1aa81cb550e52ca291cbb64,512,1536,1,36.73,0.0,85924446350920fb124b657160c966d7,1536,1024,False,False,skipped_low_tissue,skipped_low_tissue,6dfc6b0a_x512_y1536_compare.png,0.8,0.5,99,0.1
+6dfc6b0ab1aa81cb550e52ca291cbb64,3584,1536,4,87.46,0.0,85924446350920fb124b657160c966d7,1536,1024,True,True,,,6dfc6b0a_x3584_y1536_compare.png,0.8,0.5,99,0.1
+85924446350920fb124b657160c966d7,0,512,0,0.0,0.0,85924446350920fb124b657160c966d7,1536,1024,False,False,skipped_low_tissue,skipped_low_tissue,85924446_x0_y512_compare.png,0.8,0.5,99,0.1
+85924446350920fb124b657160c966d7,0,1024,1,39.17,0.0,85924446350920fb124b657160c966d7,1536,1024,False,False,skipped_low_tissue,skipped_low_tissue,85924446_x0_y1024_compare.png,0.8,0.5,99,0.1
+85924446350920fb124b657160c966d7,1536,1024,5,79.94,0.0,85924446350920fb124b657160c966d7,1536,1024,True,True,,,85924446_x1536_y1024_compare.png,0.8,0.5,99,0.1
+b641f33ff342b590cf61baeea481716a,0,2560,0,0.0,0.0,85924446350920fb124b657160c966d7,1536,1024,False,False,skipped_low_tissue,skipped_low_tissue,b641f33f_x0_y2560_compare.png,0.8,0.5,99,0.1
+b641f33ff342b590cf61baeea481716a,512,2048,1,12.46,0.0214,85924446350920fb124b657160c966d7,1536,1024,False,False,skipped_low_tissue,skipped_low_tissue,b641f33f_x512_y2048_compare.png,0.8,0.5,99,0.1
+b641f33ff342b590cf61baeea481716a,512,1536,0,0.3,0.0,85924446350920fb124b657160c966d7,1536,1024,False,False,skipped_low_tissue,skipped_low_tissue,b641f33f_x512_y1536_compare.png,0.8,0.5,99,0.1
