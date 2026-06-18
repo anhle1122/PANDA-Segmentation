@@ -1,15 +1,17 @@
-﻿"""Shared helpers for patch extraction and preprocessing demos."""
+"""Shared helpers for patch extraction and preprocessing demos."""
 
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import numpy as np
 import openslide
 
 PROJECT = Path(__file__).resolve().parent.parent
-DATA = PROJECT / "data"
+# Local: project/data. HPC: export PANDA_DATA_ROOT=/common/omarmlab/lea14/panda_data
+DATA = Path(os.environ.get("PANDA_DATA_ROOT", PROJECT / "data"))
 SLIDES_DIR = DATA / "slides"
 MASKS_DIR = DATA / "masks"
 OUTPUTS = PROJECT / "outputs"
