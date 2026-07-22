@@ -45,6 +45,16 @@ def read_rgb_patch(slide_path: Path, x: int, y: int, size: int = PATCH_SIZE) -> 
     return patch.astype(np.uint8)
 
 
+def read_label_patch(mask_path: Path, x: int, y: int, size: int = PATCH_SIZE) -> np.ndarray:
+    slide = openslide.OpenSlide(str(mask_path))
+    try:
+        patch = np.array(slide.read_region((x, y), 0, (size, size)))
+    finally:
+        slide.close()
+    labels = patch[:, :, 0] if patch.ndim == 3 else patch
+    return labels.astype(np.uint8)
+
+
 def pixel_counts(mask_patch: np.ndarray) -> list[int]:
     return [int((mask_patch == label).sum()) for label in range(NUM_CLASSES)]
 

@@ -1,4 +1,4 @@
-﻿"""Side-by-side Macenko vs Vahadane on the same patches as the original demo.
+"""Side-by-side Macenko vs Vahadane on the same patches as the original demo.
 
 Uses staintools library defaults (Macenko/Vahadane papers via staintools):
   - luminosity_threshold = 0.8
@@ -17,12 +17,12 @@ import numpy as np
 import pandas as pd
 
 from patch_utils import OUTPUTS, PATCH_SIZE, SLIDES_DIR, read_rgb_patch
+from qc_utils import pen_mark_fractions
 from stain_normalize import (
     SUPPORTED_METHODS,
     get_normalizer,
     load_reference_patch,
     patch_key,
-    pen_mark_fraction,
 )
 
 # staintools defaults (see staintools/stain_extraction/*.py, stain_normalizer.py)
@@ -137,7 +137,7 @@ def main() -> None:
         x, y = int(item["x"]), int(item["y"])
         before = read_rgb_patch(SLIDES_DIR / f"{image_id}.tiff", x, y, PATCH_SIZE)
         tissue_pct = tissue_fraction_luminance(before)
-        pen_pct = pen_mark_fraction(before)
+        pen_pct = pen_mark_fractions(before)["total"]
 
         v_after, v_ok, v_note = normalize_patch(vahadane_norm, before, tissue_pct)
         m_after, m_ok, m_note = normalize_patch(macenko_norm, before, tissue_pct)

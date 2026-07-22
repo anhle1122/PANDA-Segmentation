@@ -71,13 +71,40 @@ def get_dimensions_and_levels(handle) -> tuple[tuple[int, int], int]:
     return (arr.shape[1], arr.shape[0]), 1
 
 
-def read_mask_labels_full(mask) -> np.ndarray:
-    if hasattr(mask, "level_count"):
-        w, h = mask.level_dimensions[0]
-        arr = np.array(mask.read_region((0, 0), 0, (w, h)))
-        return arr[:, :, 0] if arr.ndim == 3 else arr
+def _resize_labels_nearest(labels: np.ndarray, max_edge: int) -> np.ndarray:
+    """Fit label array inside a max_edge box without blending class IDs."""
+    from PIL import Image
+
+    h, w = labels.shape[:2]
+    scale = min(max_edge / w, max_edge / h, 1.0)
+    new_w, new_h = max(1, int(w * scale)), max(1, int(h * scale))
+    if (new_w, new_h) == (w, h):
+        return labels
+    return np.array(Image.fromarray(labels).resize((new_w, new_h), Image.Resampling.NEAREST))
+
+
+def read_mask_labels_nearest(mask, max_edge: int = 2048) -> np.ndarray:
+    """Read mask labels downsampled with nearest-neighbor only (preserves class IDs)."""
+    if hasattr(mask, "level_dimensions"):
+        level = mask.level_count - 1
+        for i in range(mask.level_count):
+            w, h = mask.level_dimensions[i]
+            if max(w, h) <= max_edge:
+                level = i
+                break
+        w, h = mask.level_dimensions[level]
+        arr = np.array(mask.read_region((0, 0), level, (w, h)))
+        labels = arr[:, :, 0] if arr.ndim == 3 else arr
+        return _resize_labels_nearest(labels.astype(np.uint8), max_edge)
+
     arr = np.asarray(mask)
-    return arr[:, :, 0] if arr.ndim == 3 else arr
+    labels = arr[:, :, 0] if arr.ndim == 3 else arr
+    return _resize_labels_nearest(labels.astype(np.uint8), max_edge)
+
+
+def read_mask_labels_for_stats(mask, max_edge: int = 2048) -> np.ndarray:
+    """Downsampled mask for class stats — nearest-neighbor only."""
+    return read_mask_labels_nearest(mask, max_edge=max_edge)
 
 
 def get_slide_thumbnail(slide, size=(512, 512)) -> np.ndarray:
@@ -97,13 +124,8 @@ def get_slide_thumbnail(slide, size=(512, 512)) -> np.ndarray:
 
 
 def get_mask_thumbnail_labels(mask, size=(512, 512)) -> np.ndarray:
-    if hasattr(mask, "get_thumbnail"):
-        thumb = np.array(mask.get_thumbnail(size))
-        return thumb[:, :, 0] if thumb.ndim == 3 else thumb
-    labels = read_mask_labels_full(mask)
-    from PIL import Image
-
-    return np.array(Image.fromarray(labels).resize(size, Image.Resampling.NEAREST))
+    """Colored-mask panel: nearest-neighbor downsample only (never get_thumbnail)."""
+    return read_mask_labels_nearest(mask, max_edge=max(size))
 
 
 def analyze_labels(labels: np.ndarray) -> pd.DataFrame:
@@ -175,7 +197,7 @@ def main() -> None:
         print(f"  Dimensions: {width} x {height}")
         print(f"  Zoom levels: {levels}")
 
-        stats_labels = read_mask_labels_full(mask)
+        stats_labels = read_mask_labels_for_stats(mask)
         stats_df = analyze_labels(stats_labels)
         classes_present = [int(v) for v in sorted(stats_df["label"].tolist())]
 
@@ -207,7 +229,7 @@ def main() -> None:
         axes[0].axis("off")
 
         axes[1].imshow(mask_colored)
-        axes[1].set_title("Colored mask")
+        axes[1].set_title("Colored mask (nearest-neighbor)")
         axes[1].axis("off")
 
         legend_labels = sorted(set(int(v) for v in np.unique(mask_labels) if int(v) in CLASS_NAMES))

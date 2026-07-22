@@ -1,4 +1,4 @@
-﻿"""Stain normalization demo: one reference patch, Macenko or Vahadane (Step 3)."""
+"""Stain normalization: reference fit, slide-level source stains, tissue-only transform."""
 
 from __future__ import annotations
 
@@ -135,6 +135,196 @@ def load_reference_patch(ref: tuple[str, int, int]) -> np.ndarray:
     if img.shape[0] != PATCH_SIZE or img.shape[1] != PATCH_SIZE:
         raise ValueError(f"Expected {PATCH_SIZE}x{PATCH_SIZE} reference patch, got {img.shape[:2]}")
     return img
+
+
+MIN_SOURCE_TISSUE_PIXELS = 1000
+
+
+class StainNormInsufficientTissueError(RuntimeError):
+    """Slide has too much artifact for reliable per-slide source stain estimation."""
+
+
+def _dilate_mask(mask: np.ndarray, px: int) -> np.ndarray:
+    if px <= 0 or not mask.any():
+        return mask
+    from scipy.ndimage import binary_dilation
+
+    return binary_dilation(mask, iterations=px)
+
+
+def stain_artifact_mask(
+    img: np.ndarray,
+    *,
+    mask_artifacts: bool = True,
+    mask_glass: bool = True,
+    artifact_dilate_px: int = 0,
+) -> np.ndarray:
+    """Combined ink/glass mask — True where pixels are excluded from stain estimation."""
+    from patch_filter_rules import artifact_pixel_mask, glass_pixel_mask
+
+    img = np.asarray(img, dtype=np.uint8)
+    glass = glass_pixel_mask(img) if mask_glass else np.zeros(img.shape[:2], dtype=bool)
+    art = artifact_pixel_mask(img) if mask_artifacts else np.zeros(img.shape[:2], dtype=bool)
+    if artifact_dilate_px > 0:
+        art = _dilate_mask(art, artifact_dilate_px)
+    return glass | art
+
+
+def detect_artifacts(
+    img: np.ndarray,
+    *,
+    mask_artifacts: bool = True,
+    mask_glass: bool = True,
+    artifact_dilate_px: int = 0,
+) -> np.ndarray:
+    """Alias for stain_artifact_mask — True = ink / glass / artifact pixel."""
+    return stain_artifact_mask(
+        img,
+        mask_artifacts=mask_artifacts,
+        mask_glass=mask_glass,
+        artifact_dilate_px=artifact_dilate_px,
+    )
+
+
+def remove_artifacts_from_patch(
+    img: np.ndarray,
+    *,
+    mask_artifacts: bool = True,
+    mask_glass: bool = True,
+    artifact_dilate_px: int = 0,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Replace artifact pixels with white; return (cleaned, artifact_mask)."""
+    img = np.asarray(img, dtype=np.uint8)
+    artifact_mask = stain_artifact_mask(
+        img,
+        mask_artifacts=mask_artifacts,
+        mask_glass=mask_glass,
+        artifact_dilate_px=artifact_dilate_px,
+    )
+    cleaned = img.copy()
+    if artifact_mask.any():
+        cleaned[artifact_mask] = 255
+    return cleaned, artifact_mask
+
+
+def get_concentrations(I, stain_matrix, regularizer=0.01):
+    from staintools.miscellaneous.get_concentrations import get_concentrations as _gc
+
+    return _gc(I, stain_matrix, regularizer=regularizer)
+
+
+def estimate_stain_stats(
+    normalizer,
+    img: np.ndarray,
+    *,
+    mask_artifacts: bool = True,
+    mask_glass: bool = True,
+    artifact_dilate_px: int = 0,
+    min_tissue_pixels: int = MIN_SOURCE_TISSUE_PIXELS,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Slide-level source stain matrix + max concentrations from tissue pixels only.
+
+    1. detect_artifacts(thumbnail) → artifact mask
+    2. tissue_pixels = img[~artifact_mask]
+    3. if len(tissue_pixels) < min_tissue_pixels → raise (skip slide)
+    4. fit source stain from tissue_pixels.reshape(1, N, 3) only
+    """
+    img = np.asarray(img, dtype=np.uint8)
+    artifact_mask = detect_artifacts(
+        img,
+        mask_artifacts=mask_artifacts,
+        mask_glass=mask_glass,
+        artifact_dilate_px=artifact_dilate_px,
+    )
+    tissue_mask = ~artifact_mask
+    n_tissue = int(tissue_mask.sum())
+    if n_tissue < min_tissue_pixels:
+        raise StainNormInsufficientTissueError(
+            f"too much artifact for reliable normalization "
+            f"({n_tissue} tissue pixels < {min_tissue_pixels})"
+        )
+
+    tissue_pixels = img[tissue_mask]
+    fake_img = tissue_pixels.reshape(1, -1, 3)
+    stain_matrix = normalizer.extractor.get_stain_matrix(fake_img)
+    concentrations = get_concentrations(fake_img, stain_matrix)
+    max_c = np.percentile(concentrations, 99, axis=0).reshape((1, 2))
+    return stain_matrix, max_c
+
+
+def transform_tissue_only(
+    normalizer,
+    raw_patch: np.ndarray,
+    stain_matrix_source: np.ndarray,
+    max_c_source: np.ndarray,
+    artifact_mask: np.ndarray,
+) -> np.ndarray:
+    """Normalize only tissue pixels; artifact pixels stay as raw scanner RGB."""
+    raw_patch = np.asarray(raw_patch, dtype=np.uint8)
+    out = raw_patch.copy()
+    tissue_mask = ~artifact_mask
+
+    if not tissue_mask.any():
+        return out
+
+    tissue_pixels = raw_patch[tissue_mask]
+    fake_img = tissue_pixels.reshape(1, -1, 3).astype(np.uint8)
+
+    concentrations = get_concentrations(fake_img, stain_matrix_source)
+    concentrations *= normalizer.maxC_target / max_c_source
+    tmp = 255 * np.exp(-1 * np.dot(concentrations, normalizer.stain_matrix_target))
+    normalized_pixels = tmp.reshape(-1, 3).astype(np.uint8)
+    out[tissue_mask] = normalized_pixels
+    return out
+
+
+def transform_with_fixed_stain(
+    normalizer,
+    img: np.ndarray,
+    stain_matrix_source: np.ndarray,
+    max_c_source: np.ndarray,
+    *,
+    mask_artifacts: bool = True,
+    mask_glass: bool = True,
+    artifact_dilate_px: int = 0,
+) -> np.ndarray:
+    """Tissue-only Vahadane: normalize real tissue; ink/glass stay raw."""
+    img = np.asarray(img, dtype=np.uint8)
+    artifact_mask = stain_artifact_mask(
+        img,
+        mask_artifacts=mask_artifacts,
+        mask_glass=mask_glass,
+        artifact_dilate_px=artifact_dilate_px,
+    )
+    return transform_tissue_only(
+        normalizer, img, stain_matrix_source, max_c_source, artifact_mask,
+    )
+
+
+def transform_with_fixed_stain_white_then_norm(
+    normalizer,
+    img: np.ndarray,
+    stain_matrix_source: np.ndarray,
+    max_c_source: np.ndarray,
+    *,
+    mask_artifacts: bool = True,
+    mask_glass: bool = True,
+    artifact_dilate_px: int = 0,
+) -> np.ndarray:
+    """Previous Model B: white-out artifacts, normalize full patch, keep blanks white."""
+    cleaned, artifact_mask = remove_artifacts_from_patch(
+        img,
+        mask_artifacts=mask_artifacts,
+        mask_glass=mask_glass,
+        artifact_dilate_px=artifact_dilate_px,
+    )
+    concentrations = get_concentrations(cleaned, stain_matrix_source)
+    concentrations *= normalizer.maxC_target / max_c_source
+    tmp = 255 * np.exp(-1 * np.dot(concentrations, normalizer.stain_matrix_target))
+    out = tmp.reshape(cleaned.shape).astype(np.uint8)
+    if artifact_mask.any():
+        out[artifact_mask] = 255
+    return out
 
 
 def choose_reference(

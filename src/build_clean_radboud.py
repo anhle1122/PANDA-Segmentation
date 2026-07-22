@@ -1,4 +1,9 @@
-"""Build clean Radboud training set using 6th place noisy label exclusion list.
+"""Download 6th-place reference metadata for post-hoc noise overlap analysis.
+
+This script does NOT filter training data. The noise_ratio_10 flags encode
+another team's model opinion (their architecture, tiling, preprocessing) and
+are kept strictly as a cross-reference for src/check_noise_overlap.py after
+our own model is trained.
 
 Source: analokmaus/kaggle-panda-challenge-public (PANDA 6th place, team BarelyBears)
 Discussion: https://www.kaggle.com/competitions/prostate-cancer-grade-assessment/discussion/169230
@@ -20,35 +25,44 @@ TRAIN_URL = (
 def main() -> None:
     train = pd.read_csv(TRAIN_URL)
 
-    excluded = train.loc[train["noise_ratio_10"] == 0, "image_id"].sort_values()
-    excluded_path = DATA / "excluded_slide_ids.txt"
-    excluded_path.write_text("\n".join(excluded) + "\n", encoding="utf-8")
-    print(f"Saved {len(excluded)} excluded slide IDs to {excluded_path}")
-    print("  (noise_ratio_10 == 0 from 6th place solution train.csv)")
+    sixth_place_path = DATA / "sixth_place_train.csv"
+    train.to_csv(sixth_place_path, index=False)
+    print(f"Saved reference train.csv ({len(train)} rows) -> {sixth_place_path}")
+    print("  Columns: loss_rank, noise_ratio_5/10/15/20, data_provider, ...")
 
-    clean_total = (train["noise_ratio_10"] == 1).sum()
-    print(f"  Full PANDA clean slides: {clean_total} / {len(train)}")
+    flagged = train.loc[train["noise_ratio_10"] == 0, "image_id"].sort_values()
+    flagged_path = DATA / "sixth_place_noise_flagged_ids.txt"
+    flagged_path.write_text("\n".join(flagged) + "\n", encoding="utf-8")
+    print(f"Saved {len(flagged)} reference-flagged IDs -> {flagged_path}")
+    print("  (noise_ratio_10 == 0; REFERENCE ONLY — not used to filter training)")
 
-    radboud_masks = pd.read_csv(OUTPUTS / "radboud_slides_with_masks.csv")
-    radboud_masks.to_csv(DATA / "radboud_slides_with_masks.csv", index=False)
+    # Legacy filename kept for backward compatibility with older scripts/docs.
+    legacy_path = DATA / "excluded_slide_ids.txt"
+    legacy_path.write_text(flagged_path.read_text(encoding="utf-8"), encoding="utf-8")
+    print(f"  (also mirrored to {legacy_path.name} for compatibility)")
 
-    excluded_set = set(excluded)
-    radboud_excluded = radboud_masks[radboud_masks["image_id"].isin(excluded_set)]
-    radboud_clean = radboud_masks[~radboud_masks["image_id"].isin(excluded_set)].copy()
+    by_provider = (
+        train.loc[train["noise_ratio_10"] == 0]
+        .groupby("data_provider")["image_id"]
+        .count()
+        .sort_index()
+    )
+    print("\n6th-place noise_ratio_10 == 0 counts by data_provider:")
+    for provider, count in by_provider.items():
+        print(f"  {provider}: {count}")
 
-    meta = pd.read_csv(DATA / "train_radboud.csv")
-    radboud_clean = radboud_clean.merge(meta, on="image_id", how="left")
-
-    clean_path = DATA / "radboud_clean.csv"
-    radboud_clean.to_csv(clean_path, index=False)
+    if (OUTPUTS / "radboud_slides_with_masks.csv").exists():
+        radboud_masks = pd.read_csv(OUTPUTS / "radboud_slides_with_masks.csv")
+        radboud_masks.to_csv(DATA / "radboud_slides_with_masks.csv", index=False)
+        flagged_set = set(flagged)
+        radboud_flagged = radboud_masks["image_id"].isin(flagged_set).sum()
+        print()
+        print(f"Radboud slides with masks: {len(radboud_masks)}")
+        print(f"  overlap with 6th-place flags: {radboud_flagged} (reference only)")
 
     print()
-    print(f"Radboud slides with masks (before): {len(radboud_masks)}")
-    print(f"Excluded from Radboud (noisy):    {len(radboud_excluded)}")
-    print(f"Radboud clean (after exclusion):    {len(radboud_clean)}")
-    print(f"Saved clean list to {clean_path}")
-    print()
-    print(f"=== {len(radboud_clean)} Radboud slides remain after exclusion ===")
+    print("Training data is filtered by src/clean_dataset.py (QC checks only).")
+    print("After training, run: python src/check_noise_overlap.py --top-pct 10")
 
 
 if __name__ == "__main__":

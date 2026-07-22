@@ -1,0 +1,43 @@
+---
+description: Auto-update daily progress + experiment log after every run/decision
+alwaysApply: true
+---
+
+# Daily progress tracking (Cursor)
+
+For this project (`/common/omarmlab/members/anh/panda_project`):
+
+## Files (always keep current)
+
+| File | Purpose |
+|------|---------|
+| `outputs/DAILY_PROGRESS.md` | Day-by-day what / why / result with **date + time** — user checks this each day |
+| `outputs/EXPERIMENT_LOG.md` | Technical run log (Why→What→Result→Decision). **Never** put resume bullets or presentation copy here |
+
+## When to update (mandatory)
+
+After **any** of these, update **both** files in the same turn (do not wait to be asked):
+
+1. Submit, cancel, resume, or finish a Slurm train/eval/QC job
+2. New best checkpoint or important metric (val or PANDA+)
+3. Protocol decision (threshold, loss, skip ISUP-0, etc.)
+4. Phase start/finish (Phase 1 / 2 / 3, patch extract, QC)
+
+## How to write `DAILY_PROGRESS.md`
+
+- Newest **date section at the top** (`## YYYY-MM-DD`)
+- Each bullet: `- **HH:MM TZ** | What | Why | Result (numbers + job id + key path)`
+- Use real local time from the cluster (`date` or log timestamps)
+- Keep bullets short; link to ckpt/CSV paths, not long dumps
+- Update the day’s “Open tonight / tomorrow” checklist when priorities change
+
+## How to write `EXPERIMENT_LOG.md`
+
+- Append/update the matching **R# / analysis** block with Why → What → Result → Decision
+- Refresh **Checkpoint leaderboard** / **Active defaults** when a new teacher or protocol wins
+- No resume wording, no presentation outline text
+
+## Presentation outline
+
+- Living slide outline: `outputs/PRESENTATION_OUTLINE.md`
+- Only update when a **major phase result** changes the story (e.g. new best PANDA+ teacher, Phase 3 done)

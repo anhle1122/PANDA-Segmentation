@@ -1,9 +1,51 @@
-﻿# PANDA-PLUS full dataset: 546 Kaggle image_ids (NOT YET PUBLIC)
-#
-# The panda-plus-bench GitHub repo does not contain this list.
-# Per Hopson et al., J Pathol Inform 2025 (PMC12858358):
-#   annotation masks are available upon request to the corresponding author.
-# The distributed package includes internal image numbers AND PANDA image_id values.
-#
-# When you receive the manifest, replace this file with one image_id per line.
-# Then run: python src/exclude_panda_plus.py
+# PANDA+ geojson export (50 slides) — Kaggle image_ids matched via openslide quickhash
+# Source: outputs/panda_plus_geojson_export-2 (1)/panda_plus_geojson_export/MANIFEST.json
+# Matched 48/50 in radboud_clean; indices 4 and 400 not in clean set (already absent)
+00f6ea010b008e7b3635910a13b165a5
+010670e9572e67e5a7e00fb791a343ef
+010dea54bfd0a4a1eb1c0719949bb4a4
+01227af585a47c16680f927d21a7f06a
+01571191abf6e8e209111e819823759b
+018eabc8f4503ab89d0725b430e4808f
+01ad256f991cc99f46f8065cdf0bda01
+01afe81220f729cf1c5b4d99f3abe559
+01e5bb47fb34f075f87cbfbc8d630124
+022544d1446c2c44f8ca8ff53262dc5b
+022a0bb891701b0161a7d4518415d0f4
+0240270d611683829ea5bee2a8c52eb0
+026dcf3b549e8fb23143ea82023f58be
+09aa67c5eb010454e88598c6ac50c695
+09f734438a9b2f3cf78c72eef5c45b30
+0a336d5bc71e1f83d453297413f11e9b
+0a5b11fe9c149f5e2e41a5d16dc5f314
+0a93d9a674e358ba32e4e2ec320aefc5
+0a94d55951bd4caebf2712e455decc6e
+0aa144fb4a6597dd19b3e0de25151e11
+0b73719f81c77051bb4b0ece8647a48e
+0ba540dcef7c6a994c4e0634cbff4af2
+0f374b1b7edab897de6d3dcfecd1aac1
+0f38ed2800802b352271d4384e9e4654
+0f871f7b53fefec938ee7569319f74e2
+0fbd680b68f4245a539b628563484f28
+0fcc5673242af956da6637881d14c414
+10218e6dc6a4fb9af7879333c11af510
+102457e538762e4082f7ee8a4d1a9e16
+5554bf43ed8256dff3a716d9811a7afb
+56e6cfc2a0ae0f493cf1a98689ca2afe
+586eb142ad433841c18b748e580ab771
+58c9ebcb84cf500f25352367f27fba56
+58d439e1cf180a952bd059b6be710665
+591da133fabcfdfa629d09729d356cda
+599648926096c44487968b630f9b4fb9
+59a0932027596ac986f52a74d30217bd
+59aa903a1ceb3e9793bedda411a4a2cd
+59df439b2cd91c2cd68f3a0917ab470d
+76b8865c3acb3c9ac2d796f523bd2da7
+7e059274c3afb96b3a33191c804d5a0f
+8f4389cc541dbe6eb4bcd793d0626891
+9362ecc68839f01d586019a2782f3552
+93757b4ce72684dad26c5e68b49829f7
+93c61a53aab1f24ced17419d1992bdf6
+94f7caa8da3e5c1d5507ddde7b6d6c24
+d997bd54e6a545c95817a62b77fb43df
+d9a927bfb26b22cde6b52515c9adda7b
