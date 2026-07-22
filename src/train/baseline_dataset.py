@@ -41,6 +41,8 @@ class BaselinePatchDataset(Dataset):
         slide_dir: str | Path = SLIDES_DIR,
         mask_dir: str | Path = MASKS_DIR,
         allow_missing_h5: bool = False,
+        mask_suffix: str = "_mask.tiff",
+        prefer_h5_masks: bool = True,
     ) -> None:
         if mode not in TRAIN_MODES:
             raise ValueError(f"Unknown mode: {mode}")
@@ -49,6 +51,8 @@ class BaselinePatchDataset(Dataset):
         self.slide_dir = Path(slide_dir)
         self.mask_dir = Path(mask_dir)
         self.allow_missing_h5 = allow_missing_h5
+        self.mask_suffix = mask_suffix
+        self.prefer_h5_masks = prefer_h5_masks
         mode_cfg = TRAIN_MODES[mode]
         self.h5_dir = Path(h5_dir) if h5_dir is not None else mode_cfg["h5_dir"]
         self.h5_stem = h5_stem or mode_cfg["h5_stem"]
@@ -58,6 +62,7 @@ class BaselinePatchDataset(Dataset):
         self._h5_handles: dict[str, h5py.File] = {}
         self._h5_index: dict[str, dict[tuple[int, int], int]] = {}
         self._mask_cache: dict[str, openslide.OpenSlide] = {}
+        self._png_mask_cache: dict[str, np.ndarray] = {}
 
     def __len__(self) -> int:
         return len(self.df)
@@ -90,17 +95,24 @@ class BaselinePatchDataset(Dataset):
         idx = self._h5_index[h5_path][(x, y)]
         return self._h5_handles[h5_path][H5_IMAGE_KEY][idx]
 
+    def _read_slide_patch(self, image_id: str, x: int, y: int) -> np.ndarray:
+        if image_id not in self._slide_cache:
+            self._slide_cache[image_id] = openslide.OpenSlide(str(self.slide_dir / f"{image_id}.tiff"))
+        slide = self._slide_cache[image_id]
+        return np.array(slide.read_region((x, y), 0, (PATCH_SIZE, PATCH_SIZE)))[:, :, :3]
+
     def _read_image(self, image_id: str, x: int, y: int) -> np.ndarray:
         h5_path = self._h5_path(image_id)
-        if not h5_path.exists():
-            if self.allow_missing_h5:
-                slide = openslide.OpenSlide(str(self.slide_dir / f"{image_id}.tiff"))
-                try:
-                    return np.array(slide.read_region((x, y), 0, (PATCH_SIZE, PATCH_SIZE)))[:, :, :3]
-                finally:
-                    slide.close()
-            raise FileNotFoundError(f"Missing H5 for mode={self.mode}: {h5_path}")
-        return self._read_h5_patch(image_id, x, y, h5_dir=self.h5_dir, h5_stem=self.h5_stem)
+        if h5_path.exists():
+            try:
+                return self._read_h5_patch(image_id, x, y, h5_dir=self.h5_dir, h5_stem=self.h5_stem)
+            except KeyError:
+                if not self.allow_missing_h5:
+                    raise
+                return self._read_slide_patch(image_id, x, y)
+        if self.allow_missing_h5:
+            return self._read_slide_patch(image_id, x, y)
+        raise FileNotFoundError(f"Missing H5 for mode={self.mode}: {h5_path}")
 
     def _artifact_weight_map(self, image_id: str, x: int, y: int) -> np.ndarray:
         weight = np.ones((PATCH_SIZE, PATCH_SIZE), dtype=np.float32)
@@ -123,9 +135,32 @@ class BaselinePatchDataset(Dataset):
         weight[artifact] = 0.0
         return weight
 
+    def _mask_file(self, image_id: str) -> Path:
+        return self.mask_dir / f"{image_id}{self.mask_suffix}"
+
+    def _read_png_mask_patch(self, image_id: str, x: int, y: int) -> np.ndarray:
+        import cv2
+
+        if image_id not in self._png_mask_cache:
+            path = self._mask_file(image_id)
+            mask = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
+            if mask is None:
+                raise FileNotFoundError(f"Missing mask: {path}")
+            self._png_mask_cache[image_id] = mask
+        full = self._png_mask_cache[image_id]
+        patch = full[y : y + PATCH_SIZE, x : x + PATCH_SIZE]
+        if patch.shape != (PATCH_SIZE, PATCH_SIZE):
+            raise ValueError(
+                f"Mask crop OOB for {image_id} @ ({x},{y}): got {patch.shape}, "
+                f"mask={full.shape}"
+            )
+        return np.clip(patch, 0, 5).astype(np.int64)
+
     def _read_mask(self, image_id: str, x: int, y: int) -> np.ndarray:
+        if self.mask_suffix.lower().endswith(".png"):
+            return self._read_png_mask_patch(image_id, x, y)
         if image_id not in self._mask_cache:
-            mask_path = str(self.mask_dir / f"{image_id}_mask.tiff")
+            mask_path = str(self._mask_file(image_id))
             self._mask_cache[image_id] = openslide.OpenSlide(mask_path)
         mask_slide = self._mask_cache[image_id]
         mask = np.array(mask_slide.read_region((x, y), 0, (PATCH_SIZE, PATCH_SIZE)))
@@ -177,13 +212,21 @@ class BaselinePatchDataset(Dataset):
         print("Sanity check PASSED")
 
     def __del__(self) -> None:
-        for h in self._h5_handles.values():
+        for h in getattr(self, "_h5_handles", {}).values():
             try:
                 h.close()
             except Exception:
                 pass
-        for slide in self._mask_cache.values():
+        for slide in getattr(self, "_mask_cache", {}).values():
             try:
                 slide.close()
             except Exception:
                 pass
+        if hasattr(self, "_png_mask_cache"):
+            self._png_mask_cache.clear()
+        for slide in self._slide_cache.values():
+            try:
+                slide.close()
+            except Exception:
+                pass
+        self._png_mask_cache.clear()
