@@ -1,0 +1,13 @@
+image_id,gleason_score,category,G3,G4,G5
+02f35b793b4fe3032ad6d91f181e391c,4+5,primary_present_secondary_absent,0,9849,0
+7d300ac8ceabc7e29843d849dc54c474,4+5,primary_present_secondary_absent,0,9616,0
+fefe14a66d64bff9fa7d05ae8651adb7,4+5,primary_present_secondary_absent,0,3210,0
+0068d4c7529e34fd4c9da863ce01a161,4+3,primary_absent_secondary_present,1,0,0
+75a60b119d3a12f697976603962372e3,4+3,primary_absent_secondary_present,3185,0,0
+ff1626f6c8a293bfde7583dcafde5d2c,5+4,primary_absent_secondary_present,0,16978,0
+004dd32d9cd167d9cc31c13b704498af,3+3,sole_grade_absent,0,0,0
+84da53ac6f8828a494a0a8c52a6cd158,4+4,sole_grade_absent,0,0,0
+fe79209ab178c89a9be62bc05b63f083,4+4,sole_grade_absent,0,0,0
+00d8a8c04886379e266406fdeff81c45,4+5,both_grades_absent,0,0,0
+8d9e28e97edc6598da7df0b5b7c098d6,4+5,both_grades_absent,0,0,0
+ffc70bf605de30aaa936533397a29d9c,4+5,both_grades_absent,0,0,0

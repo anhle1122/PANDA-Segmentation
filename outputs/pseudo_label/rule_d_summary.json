@@ -1,0 +1,16 @@
+{
+  "rule": "D",
+  "definition": "Missing-class mismatches (metadata Gleason has a grade absent from model-derived Gleason). Leave original mask untouched; audit only.",
+  "n_slides": 568,
+  "by_reason": {
+    "formula_threshold": 388,
+    "model_capability_gap": 180
+  },
+  "pct_formula_threshold": 68.30985915492957,
+  "pct_model_capability_gap": 31.690140845070424,
+  "gate": 0.05,
+  "source_report": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/diagnostic_report.csv",
+  "manifest": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/rule_d_manifest.csv",
+  "blocks_model2": false,
+  "label_pixels_changed": 0
+}

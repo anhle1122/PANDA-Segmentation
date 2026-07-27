@@ -1,0 +1,22 @@
+{
+  "policy": "Write soft+flagmask .npy only when num_pixels_flagged>0; manifest covers all train patches; missing file => one_hot(original)+all-False flag",
+  "disk_note": "Full soft write for all ~440k patches would be ~2.5TB; flagmask-only full write ~0.1TB. Sparse write used instead.",
+  "total_slides_processed": 3746,
+  "matched_slides": 2018,
+  "rule_a_slides": 623,
+  "rule_b_slides": 249,
+  "rule_c_slides": 0,
+  "rule_d_slides": 568,
+  "rule_d_manifest": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/rule_d_manifest.csv",
+  "pixels_rule_b": 1351411824,
+  "pixels_rule_c": 0,
+  "patches_total": 440371,
+  "patches_written_npy": 19579,
+  "patches_manifest_only_no_npy": 420792,
+  "patches_flagged": 19579,
+  "existing_soft_npy_on_disk": 19579,
+  "existing_flagmask_npy_on_disk": 19579,
+  "prior_incomplete_soft_npy_before_rerun": 11993,
+  "manifest": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/correction_manifest.csv",
+  "corrected_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/corrected_labels"
+}

@@ -1,0 +1,2 @@
+reference_count,candidate_count,overlap_count,reference_only_count,candidate_only_count,union_count,jaccard,recall_vs_reference,precision_vs_candidates,scope,reference_source,candidate_source,candidate_mode
+579,4,0,579,4,583,0.0,0.0,0.0,radboud_with_masks,/common/omarmlab/members/anh/panda_project/data/sixth_place_train.csv,outputs/clean_dataset_flags.csv,qc_flag_any_qc_excluding_known_noisy

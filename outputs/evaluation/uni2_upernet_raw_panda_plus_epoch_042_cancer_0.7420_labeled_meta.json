@@ -1,0 +1,28 @@
+{
+  "checkpoint": "outputs/checkpoints/uni2_upernet_raw_h200x4/epoch_042_cancer_0.7420.pth",
+  "arch": "uni2_upernet",
+  "split": "panda_plus_patches",
+  "split_csv": "/common/omarmlab/members/anh/panda_project/outputs/panda_plus/panda_plus_patches.csv",
+  "mode": "raw",
+  "n_patches": 4688,
+  "epoch": 42,
+  "val_mean_dice_at_save": 0.6547593544343551,
+  "val_cancer_dice_at_save": 0.7420028076224393,
+  "mask_dir": "/common/omarmlab/members/anh/panda_project/outputs/panda_plus/masks",
+  "mask_suffix": "_pandaplus_mask.png",
+  "allow_missing_h5": true,
+  "panda_plus_eval": true,
+  "min_target_class": 2,
+  "report_classes": [
+    "benign",
+    "G3",
+    "G4",
+    "G5"
+  ],
+  "world_size": 1,
+  "mean_dice": 0.5700127845586176,
+  "mean_dice_over": "benign+G3+G4+G5",
+  "cancer_dice": 0.5539917666831714,
+  "cancer_recall": 0.46359763430639533,
+  "g5_recall": 0.410793886733281
+}

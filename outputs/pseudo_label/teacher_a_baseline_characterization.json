@@ -1,0 +1,60 @@
+{
+  "teacher_a_checkpoint": "outputs/checkpoints/uni2_upernet_raw_h200x4/epoch_042_cancer_0.7420.pth",
+  "dice": {
+    "val_cancer": 0.742,
+    "panda_plus_cancer": 0.554,
+    "source": "ablation table, TECH_NARRATIVE.md"
+  },
+  "gleason_pattern_mismatch_panda_plus": {
+    "n_slides": 48,
+    "primary_match_rate": 0.604,
+    "secondary_match_rate": 0.479,
+    "full_pattern_match_rate": 0.438,
+    "isup_match_rate": 0.5,
+    "g34_only_mismatch_share": 0.72
+  },
+  "gleason_pattern_mismatch_panda_train_vs_clinical_label": {
+    "n_slides_cancer": 2988,
+    "primary_match_rate": 0.816,
+    "secondary_match_rate": 0.6,
+    "full_pattern_match_rate": 0.56,
+    "isup_match_rate": 0.63,
+    "g34_only_mismatch_share": 0.6494296577946768,
+    "caveat": "compares model to clinical Gleason label, not pixel mask; noisier reference than PANDA+ column"
+  },
+  "pixel_level_confusion_mask_vs_model": {
+    "radboud_test_in_domain": {
+      "true_G3_to_pred_G4_rate": 0.09548233070580148,
+      "true_G4_to_pred_G3_rate": 0.04957985219977866,
+      "bias_ratio_favor_g4": 1.93
+    },
+    "panda_plus_external_labeled_only": {
+      "true_G3_to_pred_G4_rate": 0.18915945427821262,
+      "true_G4_to_pred_G3_rate": 0.09202774927098832,
+      "bias_ratio_favor_g4": 2.0554610514401115
+    }
+  },
+  "reconciliation_pixel_vs_slide_level": {
+    "aggregate_cancer_share_panda_plus": {
+      "mask_g3_g4_g5_pct": [
+        44.8,
+        45.4,
+        9.8
+      ],
+      "model_g3_g4_g5_pct": [
+        34.0,
+        61.9,
+        4.1
+      ],
+      "aggregate_g4_share_delta_pt": 16.5
+    },
+    "predicted_g4_pool_source_breakdown": {
+      "from_true_G4_correct_pct": 65.5,
+      "from_true_G3_leak_pct": 26.0,
+      "from_true_G5_leak_pct": 2.5,
+      "from_true_benign_leak_pct": 6.1
+    },
+    "g5_to_g4_vs_g5_to_g3_asymmetry_ratio": 17.2,
+    "conclusion": "The 25-slide per-slide secondary-mismatch deltas (mask area% vs model area% at the mask's called grade) are the per-slide expression of this same pixel-level bias, not a separate effect. The dominant driver matches almost exactly: true_G3-to-G4 leakage alone supplies 26.0% of the model's entire predicted-G4 pool at a 2.06x rate vs the reverse (G4-to-G3), consistent with the 1.93x seen in-domain. A secondary, steeper contributor compounds it: true_G5 pixels leak into pred_G4 far more than into pred_G3 (17.3x asymmetry), which is why deltas on G5-adjacent slides (5+4/4+5 patterns) can run larger than a naive G3<->G4-only estimate would predict. Both mechanisms point the same direction (toward more predicted G4), so this is one coherent bias observed at two resolutions, not two separate phenomena."
+  }
+}

@@ -1,0 +1,8 @@
+2026-07-15 15:50:54 | waiting for new job after 5225116
+2026-07-15 15:51:25 | waiting for new job after 5225116
+2026-07-15 15:51:55 | waiting for new job after 5225116
+2026-07-15 15:52:25 | waiting for new job after 5225116
+2026-07-15 15:52:55 | waiting for new job after 5225116
+2026-07-15 15:53:25 | DETECTED new job 5225252
+2026-07-15 15:56:25 | job 5225252 | DEAD | age=181s | DDP backend=gloo | UNI2_CKPT=/common/omarmlab/members/anh/panda_project/assets/ckpts/uni2-h/pytorch_model.bin | last=[Select best by: cancer_dice ] fail=[torch.distributed.elastic.multiprocessing.errors.ChildFailedError:  src/train_uni2_upernet.py FAILED ]
+Wed Jul 15 15:56:38 PDT 2026 | 5225252 DEAD: gloo OK but CUDNN_STATUS_NOT_INITIALIZED. Fixed via TORCH_CUDNN_ENABLED=0. Resubmit.

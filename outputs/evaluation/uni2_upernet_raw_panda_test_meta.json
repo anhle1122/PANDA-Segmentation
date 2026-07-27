@@ -1,0 +1,19 @@
+{
+  "checkpoint": "outputs/checkpoints/uni2_upernet_raw_h200x4/best.pth",
+  "arch": "uni2_upernet",
+  "split": "panda_test",
+  "split_csv": "/common/omarmlab/members/anh/panda_project/outputs/splits/panda_test.csv",
+  "mode": "raw",
+  "n_patches": 54222,
+  "epoch": 18,
+  "val_mean_dice_at_save": 0.6170670530217038,
+  "val_cancer_dice_at_save": 0.6782324370511251,
+  "mask_dir": null,
+  "mask_suffix": "_mask.tiff",
+  "allow_missing_h5": false,
+  "world_size": 1,
+  "mean_dice": 0.6240256136381332,
+  "cancer_dice": 0.6898072053698856,
+  "cancer_recall": 0.7977185298445774,
+  "g5_recall": 0.6996172495845608
+}

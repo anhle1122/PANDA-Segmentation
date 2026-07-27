@@ -1,0 +1,14 @@
+{
+  "checkpoint": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/baseline_raw_h200x3/epoch_050_dice_0.6358.pth",
+  "split": "panda_val",
+  "split_csv": "/common/omarmlab/members/anh/panda_project/outputs/splits/panda_val.csv",
+  "mode": "raw",
+  "n_patches": 55555,
+  "epoch": 50,
+  "val_mean_dice_at_save": 0.6358463307065737,
+  "world_size": 3,
+  "mean_dice": 0.6355721872454747,
+  "cancer_dice": 0.7028242934970242,
+  "cancer_recall": 0.7932665960337709,
+  "g5_recall": 0.7315727559842683
+}

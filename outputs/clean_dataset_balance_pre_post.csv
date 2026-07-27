@@ -1,0 +1,17 @@
+column,value,count_pre,count_post,pct_pre,removed,pct_removed,overall_pct_removed,bias_flag,rare_class_watch,rare_bias_red_flag
+gleason_score,3+3,802,776,15.85,26,3.24,6.5,False,False,False
+gleason_score,3+4,673,624,13.3,49,7.28,6.5,False,False,False
+gleason_score,3+5,67,63,1.32,4,5.97,6.5,False,True,True
+gleason_score,4+3,909,828,17.96,81,8.91,6.5,False,False,False
+gleason_score,4+4,656,635,12.96,21,3.2,6.5,False,False,False
+gleason_score,4+5,634,521,12.53,113,17.82,6.5,True,True,True
+gleason_score,5+3,41,37,0.81,4,9.76,6.5,False,True,True
+gleason_score,5+4,221,194,4.37,27,12.22,6.5,False,True,True
+gleason_score,5+5,109,106,2.15,3,2.75,6.5,False,True,True
+gleason_score,negative,948,947,18.74,1,0.11,6.5,False,False,False
+isup_grade,0,948,947,18.74,1,0.11,6.5,False,False,False
+isup_grade,1,802,776,15.85,26,3.24,6.5,False,False,False
+isup_grade,2,673,624,13.3,49,7.28,6.5,False,False,False
+isup_grade,3,909,828,17.96,81,8.91,6.5,False,False,False
+isup_grade,4,764,735,15.1,29,3.8,6.5,False,True,True
+isup_grade,5,964,821,19.05,143,14.83,6.5,False,True,True

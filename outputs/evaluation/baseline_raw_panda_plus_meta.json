@@ -1,0 +1,17 @@
+{
+  "checkpoint": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/baseline_raw_h200x3/epoch_050_dice_0.6358.pth",
+  "split": "panda_plus_patches",
+  "split_csv": "/common/omarmlab/members/anh/panda_project/outputs/panda_plus/panda_plus_patches.csv",
+  "mode": "raw",
+  "n_patches": 4688,
+  "epoch": 50,
+  "val_mean_dice_at_save": 0.6358463307065737,
+  "mask_dir": "/common/omarmlab/members/anh/panda_project/outputs/panda_plus/masks",
+  "mask_suffix": "_pandaplus_mask.png",
+  "allow_missing_h5": true,
+  "world_size": 1,
+  "mean_dice": 0.3192065612544767,
+  "cancer_dice": 0.4592568824156306,
+  "cancer_recall": 0.4230895853253893,
+  "g5_recall": 0.3501272900236811
+}

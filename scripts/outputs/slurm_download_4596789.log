@@ -1,0 +1,715 @@
+=== PANDA download — Radboud only (masks-only) ===
+  Data root: /common/omarmlab/members/anh/panda_data
+nfs.researchhpc.storage:/ifs/esserislcl01/common  4.7P  3.0P  1.8P  64% /common
+Radboud masks: 5060 total, 4645 to download
+Downloading masks:   0%|          | 0/4645 [00:00<?, ?it/s]  FAIL train_label_masks/15d988a363c6d81572a8ed9ccc3f46f6_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 1/4645 [00:02<3:08:12,  2.43s/it]  FAIL train_label_masks/15ea2d5d326ff73f1f5b25bf7721232a_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 2/4645 [00:03<2:04:14,  1.61s/it]  FAIL train_label_masks/15ee33d8a2845dd72a240f17db87000b_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 3/4645 [00:04<1:41:56,  1.32s/it]  FAIL train_label_masks/160a477ebf1063575de0657e87aee1c2_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 4/4645 [00:05<1:29:24,  1.16s/it]  FAIL train_label_masks/160a724e4f6c877d8175fdf7d07a0a67_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 5/4645 [00:06<1:20:46,  1.04s/it]  FAIL train_label_masks/161e2fc76e242f0b8861888cf41d0e18_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 6/4645 [00:07<1:17:07,  1.00it/s]  FAIL train_label_masks/16245569965bf8a154f6bd2defc8df7e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 7/4645 [00:07<1:14:45,  1.03it/s]  FAIL train_label_masks/16272df65f00bdc126b5ca32de2b3a6b_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 8/4645 [00:08<1:11:49,  1.08it/s]  FAIL train_label_masks/162cd4fc05480042f1429d3eaed599d8_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 9/4645 [00:09<1:09:59,  1.10it/s]  FAIL train_label_masks/163fabe883fcd17de4f899ca8ede45a8_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 10/4645 [00:10<1:09:10,  1.12it/s]  FAIL train_label_masks/1665277114b8f7349da97f801a0e8061_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 11/4645 [00:11<1:09:48,  1.11it/s]  FAIL train_label_masks/166631bd73e53e8ebb1ab844dcd6d3dd_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 12/4645 [00:12<1:17:19,  1.00s/it]  FAIL train_label_masks/166f7618e2d9e5c9b05e4dd358f7659e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 13/4645 [00:13<1:13:03,  1.06it/s]  FAIL train_label_masks/167ff6e9aa4e03593520c277f4071557_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 14/4645 [00:14<1:09:26,  1.11it/s]  FAIL train_label_masks/169d9147cecd82694d89707040728d5a_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 15/4645 [00:15<1:06:58,  1.15it/s]  FAIL train_label_masks/16a9e8227156e2d8598cd22e633610be_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 16/4645 [00:15<1:05:54,  1.17it/s]  FAIL train_label_masks/16ad51c0a769aa6dd7d09671faca0b4e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 17/4645 [00:16<1:04:53,  1.19it/s]  FAIL train_label_masks/16cc34b16c0b30e43e8c33f572440ae6_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 18/4645 [00:17<1:04:23,  1.20it/s]  FAIL train_label_masks/16d60f4cf354e55767cd9ad2b7ccc4bb_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 19/4645 [00:18<1:03:26,  1.22it/s]  FAIL train_label_masks/16d80dbe6d4b3bf22ecf54833b17f3ec_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 20/4645 [00:19<1:08:51,  1.12it/s]  FAIL train_label_masks/170c91c206648c545cfe69c718c059f2_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 21/4645 [00:20<1:08:37,  1.12it/s]  FAIL train_label_masks/171f7bcb6ead41478ece0bc757ea7e09_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 22/4645 [00:21<1:10:20,  1.10it/s]  FAIL train_label_masks/17234e71a8ef40303017a71da8988a9e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   0%|          | 23/4645 [00:22<1:08:33,  1.12it/s]  FAIL train_label_masks/17364682bc0141eab397828f49642a60_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 24/4645 [00:22<1:07:17,  1.14it/s]  FAIL train_label_masks/173b49fe81aff971168dc5d7ef4124d8_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 25/4645 [00:23<1:08:10,  1.13it/s]  FAIL train_label_masks/173f4e37ce1592690c9bb78b99eafb1c_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 26/4645 [00:24<1:08:05,  1.13it/s]  FAIL train_label_masks/1748c4d7cfd4014f04809b6371935286_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 27/4645 [00:26<1:21:04,  1.05s/it]  FAIL train_label_masks/17537cf7df9f40a7ffb523b4d2a2bb8e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 28/4645 [00:27<1:15:32,  1.02it/s]  FAIL train_label_masks/177832eff75d0ffb22520e6c8a052e6f_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 29/4645 [00:27<1:12:31,  1.06it/s]  FAIL train_label_masks/1784ab09ff0d41a78a89e36226bf3eb5_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 30/4645 [00:28<1:09:23,  1.11it/s]  FAIL train_label_masks/1796a7081ed86d83fddf677904d3843f_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 31/4645 [00:29<1:07:48,  1.13it/s]  FAIL train_label_masks/17a486c9252622e27c2714de7e7695b7_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 32/4645 [00:30<1:10:21,  1.09it/s]  FAIL train_label_masks/17ae9e54799a59930cca9015e503ac07_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 33/4645 [00:31<1:08:19,  1.12it/s]  FAIL train_label_masks/17b83466a22a8a96ccf3a7cccd83068f_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 34/4645 [00:32<1:08:06,  1.13it/s]  FAIL train_label_masks/17bf343efd84faecfcdbfcd7eda18280_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 35/4645 [00:33<1:08:17,  1.13it/s]  FAIL train_label_masks/17ce197283f339f4ab406de74d03f6b2_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 36/4645 [00:33<1:06:33,  1.15it/s]  FAIL train_label_masks/17ceaa3198ace548e0fd65b95c800a32_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 37/4645 [00:34<1:06:04,  1.16it/s]  FAIL train_label_masks/17e1f862d37507d9b5a73208ef30ccc6_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 38/4645 [00:35<1:05:48,  1.17it/s]  FAIL train_label_masks/17e370eedaa11c265e5cabb3601a2fd2_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 39/4645 [00:36<1:04:20,  1.19it/s]  FAIL train_label_masks/17f368585f7e3bd1a82bdfa88b85e5e1_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 40/4645 [00:37<1:07:53,  1.13it/s]  FAIL train_label_masks/1806b2c1ff66377269ffc9a26ffde9d7_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 41/4645 [00:38<1:06:06,  1.16it/s]  FAIL train_label_masks/180e2320aefbf3dfecab785446bc555b_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 42/4645 [00:38<1:04:01,  1.20it/s]  FAIL train_label_masks/18157fa5a744739d34a3c498e4aa8dab_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 43/4645 [00:39<1:04:18,  1.19it/s]  FAIL train_label_masks/1836f6539ccc9e37d426603cc4526f8b_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 44/4645 [00:40<1:03:31,  1.21it/s]  FAIL train_label_masks/1844a09c66e370d856cefb21f5e82be4_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 45/4645 [00:41<1:04:29,  1.19it/s]  FAIL train_label_masks/184a184ac82d72d499f99b67d6a1c631_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 46/4645 [00:42<1:08:14,  1.12it/s]  FAIL train_label_masks/184ade4deb68e6299183b68f1289ca5b_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 47/4645 [00:43<1:07:54,  1.13it/s]  FAIL train_label_masks/18533bc08197fa92ff063ad89ceddc89_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 48/4645 [00:44<1:05:15,  1.17it/s]  FAIL train_label_masks/18566c8e26d5b14f599fc92acec008e0_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 49/4645 [00:45<1:09:27,  1.10it/s]  FAIL train_label_masks/1866ab99cc028bbb8ed656f1181215f1_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 50/4645 [00:46<1:07:20,  1.14it/s]  FAIL train_label_masks/1879de2690c241fab002235b2d6e0d6a_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 51/4645 [00:47<1:14:06,  1.03it/s]  FAIL train_label_masks/1894dd1e67ddfc62a309e78ef7ffc5e3_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 52/4645 [00:48<1:12:53,  1.05it/s]  FAIL train_label_masks/1896b63650679d190184e973cb3f2be6_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 53/4645 [00:49<1:13:43,  1.04it/s]  FAIL train_label_masks/18a3bb8a5a0e5449d25195eb10804e39_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 54/4645 [00:49<1:10:50,  1.08it/s]  FAIL train_label_masks/18e8d0f069454b4492f5502f15883589_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 55/4645 [00:50<1:13:08,  1.05it/s]  FAIL train_label_masks/18eb49f9b5f5b45b3a93717ec10bfd7e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 56/4645 [00:51<1:11:20,  1.07it/s]  FAIL train_label_masks/192ef6b5c13cb775f8a1d3047c627d99_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 57/4645 [00:52<1:10:00,  1.09it/s]  FAIL train_label_masks/1932ff2c873d7b98914c8bf50a32f263_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|          | 58/4645 [00:53<1:08:01,  1.12it/s]  FAIL train_label_masks/1955abe61aaf0edc0a62aed6d25f00e5_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|▏         | 59/4645 [00:54<1:08:05,  1.12it/s]  FAIL train_label_masks/19638106770d8d0494e4d1ccf64e1662_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|▏         | 60/4645 [00:55<1:06:52,  1.14it/s]  FAIL train_label_masks/196f3b66be713d67db88cd412ed8768d_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|▏         | 61/4645 [00:56<1:05:17,  1.17it/s]  FAIL train_label_masks/198fa06f052feedc1684e42829c137fc_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|▏         | 62/4645 [00:56<1:05:25,  1.17it/s]  FAIL train_label_masks/19963a5a3c42675307056e0be36851cf_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|▏         | 63/4645 [00:57<1:04:46,  1.18it/s]  FAIL train_label_masks/19cd8d1657528f7d4895398a6fd093ec_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|▏         | 64/4645 [00:58<1:07:53,  1.12it/s]  FAIL train_label_masks/19f3f3265bd80f1ee68cff968541639a_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|▏         | 65/4645 [00:59<1:06:48,  1.14it/s]  FAIL train_label_masks/1a09038fa60de37d48cdec28144cf98e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|▏         | 66/4645 [01:00<1:09:52,  1.09it/s]  FAIL train_label_masks/1a0f9b33bff0a3649d79b7bf01203e04_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|▏         | 67/4645 [01:01<1:08:18,  1.12it/s]  FAIL train_label_masks/1a1229aa03a98248db658d6c2ae18478_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|▏         | 68/4645 [01:02<1:09:51,  1.09it/s]  FAIL train_label_masks/1a2aac625091eebb572f8b74bb8d1ce2_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   1%|▏         | 69/4645 [01:03<1:11:22,  1.07it/s]  FAIL train_label_masks/1a33d8ea1893170a972d67e493d59396_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 70/4645 [01:04<1:08:20,  1.12it/s]  FAIL train_label_masks/1a3d0f31cb39106c08c2ee02c36f0348_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 71/4645 [01:04<1:05:52,  1.16it/s]  FAIL train_label_masks/1a4aaf5d3dbf7898979d11578955e780_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 72/4645 [01:05<1:05:05,  1.17it/s]  FAIL train_label_masks/1a4ca4766f17d9244e867783c042fb53_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 73/4645 [01:06<1:04:47,  1.18it/s]  FAIL train_label_masks/1a60c75983db9d7a7d8acada5151700e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 74/4645 [01:07<1:07:48,  1.12it/s]  FAIL train_label_masks/1a66b4d3dbb1089891835d2698c6deec_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 75/4645 [01:08<1:06:21,  1.15it/s]  FAIL train_label_masks/1a789c6c69c689629ac6e8c11eb0f5fa_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 76/4645 [01:09<1:04:58,  1.17it/s]  FAIL train_label_masks/1a9dc3df5b76c7c4968530cdc05df1ec_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 77/4645 [01:10<1:08:33,  1.11it/s]  FAIL train_label_masks/1aa5ff56e243cbc8ed0e140a7148f3fd_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 78/4645 [01:11<1:06:15,  1.15it/s]  FAIL train_label_masks/1aaa3e8a1b4a738cb9a2d358dd45dbc5_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 79/4645 [01:11<1:05:42,  1.16it/s]  FAIL train_label_masks/1ab5733eafcd0a2baede5e06d4195915_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 80/4645 [01:12<1:04:35,  1.18it/s]  FAIL train_label_masks/1abb6882a5cba3d9c166736825bbe101_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 81/4645 [01:13<1:03:35,  1.20it/s]  FAIL train_label_masks/1ac5fed19cf6f44db9a4dfa85aefce4a_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 82/4645 [01:14<1:02:48,  1.21it/s]  FAIL train_label_masks/1ad3541a3fe674e74dba9b3507eea0d7_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 83/4645 [01:15<1:03:35,  1.20it/s]  FAIL train_label_masks/1ad725c53a59666f85d84dbea616000f_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 84/4645 [01:16<1:03:38,  1.19it/s]  FAIL train_label_masks/1ae5bb38e69e00f22cb087a4d2237b43_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 85/4645 [01:16<1:04:38,  1.18it/s]  FAIL train_label_masks/1afb7eb814308f8491a88398a6068422_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 86/4645 [01:17<1:05:07,  1.17it/s]  FAIL train_label_masks/1b04602fffd6117606d1a05efa96daaf_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 87/4645 [01:18<1:09:31,  1.09it/s]  FAIL train_label_masks/1b0ad4aabcc4be89e9134534ac554a19_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 88/4645 [01:20<1:16:13,  1.00s/it]  FAIL train_label_masks/1b117dcc119ec9a258eccc88bd419b0f_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 89/4645 [01:20<1:12:28,  1.05it/s]  FAIL train_label_masks/1b176c9049260a8843b97349ccdd3eb7_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 90/4645 [01:21<1:10:08,  1.08it/s]  FAIL train_label_masks/1b1d9451010fce1234639d728e25f3ec_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 91/4645 [01:22<1:07:17,  1.13it/s]  FAIL train_label_masks/1b323176137e2d3b0fa66c691af7168e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 92/4645 [01:23<1:06:58,  1.13it/s]  FAIL train_label_masks/1b395ce8fd3eee21b0feb260e477a197_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 93/4645 [01:24<1:06:10,  1.15it/s]  FAIL train_label_masks/1b4e035a6233cc3d80ececed44532129_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 94/4645 [01:25<1:05:24,  1.16it/s]  FAIL train_label_masks/1b6ada2e6a396b9fc86ec1905b3c017d_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 95/4645 [01:26<1:10:14,  1.08it/s]  FAIL train_label_masks/1b86a85640e5832e6b27d89c8f99adf9_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 96/4645 [01:26<1:07:11,  1.13it/s]  FAIL train_label_masks/1b95a0c32503e4549326e820a57127fd_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 97/4645 [01:27<1:05:22,  1.16it/s]  FAIL train_label_masks/1bc342d4ebef1660782a5a477f916083_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 98/4645 [01:28<1:03:34,  1.19it/s]  FAIL train_label_masks/1bd161a24fc63eed0e1bc3742e0dc7fd_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 99/4645 [01:29<1:03:05,  1.20it/s]  FAIL train_label_masks/1bd7ebd175fec439e449bb17786dd824_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 100/4645 [01:30<1:03:25,  1.19it/s]  FAIL train_label_masks/1bdf2c81b6b6aad6aae2818a844957f0_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 101/4645 [01:31<1:02:54,  1.20it/s]  FAIL train_label_masks/1be5a513d61c97663d45df55e8d62d8b_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 102/4645 [01:31<1:03:59,  1.18it/s]  FAIL train_label_masks/1bf0cb1e3f0b2ce35b9b0a406cd225c5_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 103/4645 [01:32<1:03:53,  1.18it/s]  FAIL train_label_masks/1c0fbb1d600f761847294c4b8019edfe_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 104/4645 [01:33<1:04:41,  1.17it/s]  FAIL train_label_masks/1c239449d7f8707211a0e6821848a1c1_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 105/4645 [01:34<1:03:59,  1.18it/s]  FAIL train_label_masks/1c3080e8967bbcebcec87dd2041db7de_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 106/4645 [01:35<1:03:48,  1.19it/s]  FAIL train_label_masks/1c36c6b2d051fd1952232efb2613808d_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 107/4645 [01:36<1:05:10,  1.16it/s]  FAIL train_label_masks/1c3cb1efbcd042da9d3f1939f4c8418d_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 108/4645 [01:37<1:05:07,  1.16it/s]  FAIL train_label_masks/1c4653246dc78308252d47160786ad15_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 109/4645 [01:38<1:08:50,  1.10it/s]  FAIL train_label_masks/1c6073151697059354f3b8b03d9c4c8e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 110/4645 [01:38<1:06:39,  1.13it/s]  FAIL train_label_masks/1c63335d177c12cab2b3baa2ccf4c328_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 111/4645 [01:39<1:05:03,  1.16it/s]  FAIL train_label_masks/1c6e04c29601f73eed22bd7b6381b8e1_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 112/4645 [01:40<1:03:33,  1.19it/s]  FAIL train_label_masks/1c8a65cafba1a82092bf5ff231205f71_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 113/4645 [01:41<1:06:43,  1.13it/s]  FAIL train_label_masks/1c96795fe1c10e5bdd3911731edfc623_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 114/4645 [01:42<1:09:26,  1.09it/s]  FAIL train_label_masks/1c9bf14436cc28f6281f44f73d6fddc8_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 115/4645 [01:43<1:07:17,  1.12it/s]  FAIL train_label_masks/1cb4a7d3594586b84849e63b828de968_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   2%|▏         | 116/4645 [01:44<1:04:45,  1.17it/s]  FAIL train_label_masks/1cb56f571749e201e1e37e166d32b0bf_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 117/4645 [01:45<1:08:06,  1.11it/s]  FAIL train_label_masks/1cdd6def1e3099a9763938457cf0b4be_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 118/4645 [01:45<1:05:08,  1.16it/s]  FAIL train_label_masks/1cf5843c2a55f70a2e93c6107424b545_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 119/4645 [01:46<1:05:41,  1.15it/s]  FAIL train_label_masks/1d05f36a330dd277b194f98a84a08ee8_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 120/4645 [01:47<1:05:10,  1.16it/s]  FAIL train_label_masks/1d09b5fc1bf2482cdb2e3eb93b94226f_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 121/4645 [01:48<1:04:07,  1.18it/s]  FAIL train_label_masks/1d0aa0b565ed9bdbc6c1f4a00bbc4f3d_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 122/4645 [01:49<1:04:43,  1.16it/s]  FAIL train_label_masks/1d1163f720942d79ca68721d8f634914_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 123/4645 [01:50<1:04:28,  1.17it/s]  FAIL train_label_masks/1d2e39029f1d50a22bd157b3fc4f6b16_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 124/4645 [01:51<1:03:41,  1.18it/s]  FAIL train_label_masks/1d2f6f79ee18460e6b18e3710c87e8a2_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 125/4645 [01:51<1:02:44,  1.20it/s]  FAIL train_label_masks/1d311ab3363fde90bede7d9f3919f5d8_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 126/4645 [01:52<1:03:01,  1.19it/s]  FAIL train_label_masks/1d33889037497d32695ac48a786af6d5_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 127/4645 [01:53<1:06:57,  1.12it/s]  FAIL train_label_masks/1d363430fe95e7bf857cd20b5759a9cb_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 128/4645 [01:54<1:06:05,  1.14it/s]  FAIL train_label_masks/1d3b91cb4283e31af1436b4f55396623_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 129/4645 [01:55<1:05:24,  1.15it/s]  FAIL train_label_masks/1d3d8045a44963e4367b437fdf361dc5_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 130/4645 [01:56<1:04:02,  1.18it/s]  FAIL train_label_masks/1d432fcf31474114a1f5f12268b9a1ab_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 131/4645 [01:57<1:04:11,  1.17it/s]  FAIL train_label_masks/1d435035f56a641e0fa2c9eea34bd8f2_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 132/4645 [01:57<1:03:31,  1.18it/s]  FAIL train_label_masks/1d46f4df1dfdf3fa0a06b21e9f9ae99a_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 133/4645 [01:58<1:03:29,  1.18it/s]  FAIL train_label_masks/1d4fe16db48e399d3967a6c07f4cf8b1_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 134/4645 [01:59<1:03:38,  1.18it/s]  FAIL train_label_masks/1d5d638e25521b927dd533db4fadbd46_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 135/4645 [02:00<1:07:48,  1.11it/s]  FAIL train_label_masks/1d735506b1d8339520792d6e8ccb2194_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 136/4645 [02:01<1:06:49,  1.12it/s]  FAIL train_label_masks/1d7d62aa2c349f831a43aa023412bd1c_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 137/4645 [02:02<1:05:32,  1.15it/s]  FAIL train_label_masks/1d8de93e7c638323a0572bbc7e3c927e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 138/4645 [02:03<1:09:24,  1.08it/s]  FAIL train_label_masks/1d93f2db56a439730528e78b5a8c6c65_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 139/4645 [02:04<1:07:29,  1.11it/s]  FAIL train_label_masks/1da6dabc916a5258e4bf7b9eb425cbda_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 140/4645 [02:04<1:05:03,  1.15it/s]  FAIL train_label_masks/1dbfecc5bf240a1989bcb423693c7109_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 141/4645 [02:05<1:04:55,  1.16it/s]  FAIL train_label_masks/1dd5326b67781543971d89e31d32ab9b_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 142/4645 [02:06<1:03:45,  1.18it/s]  FAIL train_label_masks/1dd5d88d1e936e032ebb4840b46546f3_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 143/4645 [02:07<1:02:55,  1.19it/s]  FAIL train_label_masks/1dd805b0572515c3eac56564cddf181c_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 144/4645 [02:08<1:02:57,  1.19it/s]  FAIL train_label_masks/1dd96a0c9793cac8d8900c57c3e8a7bf_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 145/4645 [02:09<1:03:28,  1.18it/s]  FAIL train_label_masks/1dda4dfc7a97b5f37085727da5852db2_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 146/4645 [02:10<1:03:55,  1.17it/s]  FAIL train_label_masks/1df32b02eaa3cfad5d8c51a3e289cfc1_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 147/4645 [02:11<1:11:44,  1.04it/s]  FAIL train_label_masks/1df63c491243a9f5c0ad727672be2763_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 148/4645 [02:12<1:08:40,  1.09it/s]  FAIL train_label_masks/1df857f30247a04b2a529e8addb5f3d1_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 149/4645 [02:12<1:06:54,  1.12it/s]  FAIL train_label_masks/1e0379988bc494245913cc4bb10fb8c1_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 150/4645 [02:13<1:05:58,  1.14it/s]  FAIL train_label_masks/1e0ad5923738c6350a87ba9bac5ffeea_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 151/4645 [02:14<1:05:34,  1.14it/s]  FAIL train_label_masks/1e150406bd29518c7c0bd1e8efd28705_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 152/4645 [02:15<1:04:32,  1.16it/s]  FAIL train_label_masks/1e1862f8927813cacf7391cc55848ba4_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 153/4645 [02:16<1:04:05,  1.17it/s]  FAIL train_label_masks/1e1abceed2668f2c40f13039733f6d0f_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 154/4645 [02:17<1:06:55,  1.12it/s]  FAIL train_label_masks/1e1f00a9410f29e4d4c9920530d883c0_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 155/4645 [02:18<1:09:47,  1.07it/s]  FAIL train_label_masks/1e23449104568325e9c5a032351dfdc6_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 156/4645 [02:19<1:07:37,  1.11it/s]  FAIL train_label_masks/1e3397833ac1ae92d092f0662f9cb259_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 157/4645 [02:19<1:06:04,  1.13it/s]  FAIL train_label_masks/1e4a12af1b4c664a5f7c2b4460a1aead_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 158/4645 [02:20<1:05:00,  1.15it/s]  FAIL train_label_masks/1e5b35728a6af734a4723f480bafafa9_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 159/4645 [02:21<1:03:32,  1.18it/s]  FAIL train_label_masks/1e644a98460e4f7ea50717720a001efd_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 160/4645 [02:22<1:03:34,  1.18it/s]  FAIL train_label_masks/1e73a4d3e89de944a6c309defde99839_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 161/4645 [02:23<1:03:50,  1.17it/s]  FAIL train_label_masks/1e781756a0e97724ca9592a7a9d8623d_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   3%|▎         | 162/4645 [02:24<1:07:23,  1.11it/s]  FAIL train_label_masks/1e820904c1e4c84e7e11162145c5bc2c_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▎         | 163/4645 [02:25<1:06:03,  1.13it/s]  FAIL train_label_masks/1e840659f5bfc1b50403eb1f2743c632_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▎         | 164/4645 [02:25<1:03:45,  1.17it/s]  FAIL train_label_masks/1eab1d74f5c90e353ce5f4440b502bc3_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▎         | 165/4645 [02:26<1:07:11,  1.11it/s]  FAIL train_label_masks/1eac3c664f2d65ed9aa575797fa5a682_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▎         | 166/4645 [02:27<1:10:26,  1.06it/s]  FAIL train_label_masks/1ebba2e4d644831ac586b7bda5eda313_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▎         | 167/4645 [02:28<1:08:18,  1.09it/s]  FAIL train_label_masks/1ebc8e2c122b49ce263fdd8d7839b029_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▎         | 168/4645 [02:29<1:05:44,  1.13it/s]  FAIL train_label_masks/1ec31c0ef1a94feed5942cfb9643f077_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▎         | 169/4645 [02:30<1:04:15,  1.16it/s]  FAIL train_label_masks/1ec4cf5fe065308a0fc66057b6043020_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▎         | 170/4645 [02:31<1:04:06,  1.16it/s]  FAIL train_label_masks/1ed6debd60ccda239c0f6eb93306ee26_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▎         | 171/4645 [02:32<1:05:03,  1.15it/s]  FAIL train_label_masks/1ee1681eddf2ebd32e9207c583db4d09_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▎         | 172/4645 [02:33<1:04:56,  1.15it/s]  FAIL train_label_masks/1f060ebd06b1a771a40c42acf064f694_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▎         | 173/4645 [02:33<1:05:34,  1.14it/s]  FAIL train_label_masks/1f1440204eba45ff4f999795c7d52040_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▎         | 174/4645 [02:34<1:04:05,  1.16it/s]  FAIL train_label_masks/1f16f094f5488694af5785d517bda17b_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 175/4645 [02:35<1:07:01,  1.11it/s]  FAIL train_label_masks/1f43e244b01c44b24a7086ed2dee7bff_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 176/4645 [02:36<1:06:53,  1.11it/s]  FAIL train_label_masks/1f60da87c3550bcd5f66be5f76416113_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 177/4645 [02:37<1:05:08,  1.14it/s]  FAIL train_label_masks/1f6da112dfe5edad33a992c7906ef1cc_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 178/4645 [02:38<1:04:20,  1.16it/s]  FAIL train_label_masks/1f722fff98986499a0aea339cd05a75d_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 179/4645 [02:39<1:07:28,  1.10it/s]  FAIL train_label_masks/1f73af67719cfb51ccbe7673118cacf4_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 180/4645 [02:40<1:06:08,  1.12it/s]  FAIL train_label_masks/1f7819845dfc427b9fb10a3420deaba4_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 181/4645 [02:41<1:08:44,  1.08it/s]  FAIL train_label_masks/1f80aa9a268b5ba64292bd4f7d88fe33_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 182/4645 [02:42<1:14:37,  1.00s/it]  FAIL train_label_masks/1f86b6a526481bc5d2ca18d94f94f062_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 183/4645 [02:43<1:10:57,  1.05it/s]  FAIL train_label_masks/1f8b5cd484f0cb5965d03ca696ad0171_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 184/4645 [02:44<1:08:49,  1.08it/s]  FAIL train_label_masks/1f8c98a43c6e755c2b3a785db72520e1_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 185/4645 [02:44<1:05:41,  1.13it/s]  FAIL train_label_masks/1fa5537c8bba02102cbd68fe9b4abd27_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 186/4645 [02:45<1:03:50,  1.16it/s]  FAIL train_label_masks/1fc02c67c10dae06aa3f259d8374a31a_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 187/4645 [02:46<1:03:50,  1.16it/s]  FAIL train_label_masks/1fc2550b52a90b15a9b20484c012b6dc_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 188/4645 [02:47<1:07:38,  1.10it/s]  FAIL train_label_masks/1febe89c017446eadebd0fce9a68b537_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 189/4645 [02:48<1:09:21,  1.07it/s]  FAIL train_label_masks/1ff3c2c6abd78e3c115939d98644f15e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 190/4645 [02:49<1:14:51,  1.01s/it]  FAIL train_label_masks/2009aa01bb165a3c8a6b3d5a633ca9ce_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 191/4645 [02:50<1:11:05,  1.04it/s]  FAIL train_label_masks/20295d0f4917e297c4827296397fbec1_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 192/4645 [02:51<1:13:05,  1.02it/s]  FAIL train_label_masks/203256da67cb1aab601d3af3f13d5db5_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 193/4645 [02:52<1:09:43,  1.06it/s]  FAIL train_label_masks/20340e3ee5bd16fdb06dabb63079c835_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 194/4645 [02:53<1:07:48,  1.09it/s]  FAIL train_label_masks/203c6d9817fc00d1b1fdcc6eae2118b4_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 195/4645 [02:54<1:06:04,  1.12it/s]  FAIL train_label_masks/204a1ddef1580e571872b2d4e424b4fe_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 196/4645 [02:54<1:04:11,  1.16it/s]  FAIL train_label_masks/20546599b4a51afc9eb43344f42df611_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 197/4645 [02:55<1:03:41,  1.16it/s]  FAIL train_label_masks/205afeef1c18c6455b3a99703cdfb8df_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 198/4645 [02:56<1:03:31,  1.17it/s]  FAIL train_label_masks/2071295e7aaa84c087939f5017e7f7b3_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 199/4645 [02:57<1:10:32,  1.05it/s]  FAIL train_label_masks/208025030fedd3a2e858890eff150f36_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 200/4645 [02:58<1:07:05,  1.10it/s]  FAIL train_label_masks/20a39638af25bbc0fd5ee384b9af48a0_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 201/4645 [02:59<1:05:49,  1.13it/s]  FAIL train_label_masks/20a8699c8e439631be7e4bcf6242598d_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 202/4645 [03:00<1:08:35,  1.08it/s]  FAIL train_label_masks/20be7c34058e2f24ef3bb0cda3c376d5_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 203/4645 [03:01<1:06:25,  1.11it/s]  FAIL train_label_masks/20c05ea5426b6c50b857057ad0ef7126_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 204/4645 [03:02<1:05:01,  1.14it/s]  FAIL train_label_masks/20ec7cf1e184baab03dad85a1a601532_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 205/4645 [03:03<1:04:32,  1.15it/s]  FAIL train_label_masks/20f97907e71dbc8c945a87ecbe31a781_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 206/4645 [03:03<1:03:47,  1.16it/s]  FAIL train_label_masks/20fe45e5ea3022602775d0aa86e8ef94_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 207/4645 [03:04<1:09:07,  1.07it/s]  FAIL train_label_masks/2102cdaee1284c7da24effe67551ee87_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 208/4645 [03:05<1:07:13,  1.10it/s]  FAIL train_label_masks/210411ec362d79a5e34b8b0fdbd60745_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   4%|▍         | 209/4645 [03:06<1:09:35,  1.06it/s]  FAIL train_label_masks/211a6f165958a7c3f77b5a9b83cb111e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 210/4645 [03:07<1:07:17,  1.10it/s]  FAIL train_label_masks/2131ddffffd2ccdc49b3c50edecf9d6e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 211/4645 [03:08<1:06:26,  1.11it/s]  FAIL train_label_masks/213e65c07731d28dae53ba58fbb85889_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 212/4645 [03:09<1:09:08,  1.07it/s]  FAIL train_label_masks/214461bdbd0837e1188244d0cad99460_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 213/4645 [03:10<1:07:14,  1.10it/s]  FAIL train_label_masks/214c897059e8c37741b74163b21ef4c9_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 214/4645 [03:11<1:05:42,  1.12it/s]  FAIL train_label_masks/216f065ac7c14bff00b1b64208a7c5ad_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 215/4645 [03:12<1:04:03,  1.15it/s]  FAIL train_label_masks/21707f5853f0d1d7f0cdd6cf4c49a704_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 216/4645 [03:13<1:07:22,  1.10it/s]  FAIL train_label_masks/21708bb4798bdebb4bffb7414bce44cd_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 217/4645 [03:13<1:05:21,  1.13it/s]  FAIL train_label_masks/21842d9a9ebb1e4efb6527fa04163452_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 218/4645 [03:14<1:07:58,  1.09it/s]  FAIL train_label_masks/21d307db700f7fc8904081fe0894c81d_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 219/4645 [03:15<1:06:26,  1.11it/s]  FAIL train_label_masks/21d90fcd566bcc6dc30b056ba7675a32_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 220/4645 [03:16<1:03:43,  1.16it/s]  FAIL train_label_masks/21da367ab5b9d2b74882cbd626042608_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 221/4645 [03:17<1:04:24,  1.14it/s]  FAIL train_label_masks/21dcd35e0e0aaa2e5453c871874a8ae1_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 222/4645 [03:18<1:03:48,  1.16it/s]  FAIL train_label_masks/21e2ecf1c1b82030c3096263fef8b927_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 223/4645 [03:19<1:03:05,  1.17it/s]  FAIL train_label_masks/21e4e2533162dc9eea4b2508b0d3df46_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 224/4645 [03:19<1:03:42,  1.16it/s]  FAIL train_label_masks/21e9ed95b0e48b751b987794aa9cfd8d_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 225/4645 [03:21<1:07:02,  1.10it/s]  FAIL train_label_masks/21f3767f9a827e5b9f64d2a47594ad27_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 226/4645 [03:22<1:09:04,  1.07it/s]  FAIL train_label_masks/2203dab5343f7f0da21b7fce128232db_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 227/4645 [03:22<1:06:32,  1.11it/s]  FAIL train_label_masks/2230a7655194054d5b1d2b52998d1585_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 228/4645 [03:23<1:04:22,  1.14it/s]  FAIL train_label_masks/223a54a99ae228f5ff2dd37df24889c4_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 229/4645 [03:24<1:04:21,  1.14it/s]  FAIL train_label_masks/223e1179a9dcf7c13871234edc99fc1b_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 230/4645 [03:25<1:03:20,  1.16it/s]  FAIL train_label_masks/224103c42d4b1a3ae6407993940b1e52_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 231/4645 [03:26<1:02:40,  1.17it/s]  FAIL train_label_masks/226301ee1193716a8079c58d8669b4f9_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▍         | 232/4645 [03:27<1:15:22,  1.02s/it]  FAIL train_label_masks/226579a577a7a7487e97cb9c9a2c3886_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 233/4645 [03:28<1:14:02,  1.01s/it]  FAIL train_label_masks/2268c3174c1c0890af7ae1bae4c8cd74_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 234/4645 [03:30<1:24:20,  1.15s/it]  FAIL train_label_masks/22929b2cf2dd413c3a4f6f737d02a74c_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 235/4645 [03:30<1:17:55,  1.06s/it]  FAIL train_label_masks/22aa8069a9ed5dd4884ae19dd73ad716_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 236/4645 [03:31<1:12:21,  1.02it/s]  FAIL train_label_masks/22bd68be2b5e83226add4783a892a467_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 237/4645 [03:32<1:10:06,  1.05it/s]  FAIL train_label_masks/22c2e58ea58b90066e98d86bfb8a0baf_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 238/4645 [03:33<1:08:00,  1.08it/s]  FAIL train_label_masks/22d0fa89e2f644d9c6ef77735619d760_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 239/4645 [03:34<1:06:50,  1.10it/s]  FAIL train_label_masks/2309b313ab206df1adf09d970478f4c0_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 240/4645 [03:35<1:04:56,  1.13it/s]  FAIL train_label_masks/2314634bf328b5e24bc7a5a3d82c08ee_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 241/4645 [03:35<1:03:19,  1.16it/s]  FAIL train_label_masks/231c7be81560497b2015a0b9a9a04d32_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 242/4645 [03:36<1:06:21,  1.11it/s]  FAIL train_label_masks/232539a9ca7dcc82d7a5577e394305f3_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 243/4645 [03:37<1:05:43,  1.12it/s]  FAIL train_label_masks/2325cbe32251cf6efe75a15e756493af_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 244/4645 [03:38<1:05:00,  1.13it/s]  FAIL train_label_masks/23414fe2aed7c291d2036527c761874e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 245/4645 [03:39<1:03:31,  1.15it/s]  FAIL train_label_masks/234fc34638b5b9a3a3ba25e514fd47f5_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 246/4645 [03:40<1:03:33,  1.15it/s]  FAIL train_label_masks/2362d93816e6dff7db5f3de85b660777_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 247/4645 [03:41<1:06:09,  1.11it/s]  FAIL train_label_masks/2364e13161b373f7d463220e68eea803_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 248/4645 [03:42<1:04:32,  1.14it/s]  FAIL train_label_masks/236bc413143580332dbb51863d097b4f_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 249/4645 [03:43<1:03:50,  1.15it/s]  FAIL train_label_masks/237d42417a3621368cfb0a3280d3f252_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 250/4645 [03:43<1:02:15,  1.18it/s]  FAIL train_label_masks/237f5ce41bb73c120e10024a66602ea7_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 251/4645 [03:45<1:09:12,  1.06it/s]  FAIL train_label_masks/239660e9bd9561c6167ab5b46105b035_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 252/4645 [03:45<1:07:49,  1.08it/s]  FAIL train_label_masks/239e61368d2da4c31752f3d7a9173f6f_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 253/4645 [03:46<1:05:43,  1.11it/s]  FAIL train_label_masks/23a5352a05eb718d38fc0e2e8e22e9b5_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 254/4645 [03:47<1:05:04,  1.12it/s]  FAIL train_label_masks/23c27ba471cabbfa0732dd9029c68ad5_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   5%|▌         | 255/4645 [03:48<1:04:42,  1.13it/s]  FAIL train_label_masks/23c7e23b418a44db2d86d9cde9b7ba3f_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 256/4645 [03:49<1:04:00,  1.14it/s]  FAIL train_label_masks/23da95939f6c2de791206800db861c1c_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 257/4645 [03:50<1:08:08,  1.07it/s]  FAIL train_label_masks/24018895d65de3eab9c2f29b071bf2e8_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 258/4645 [03:51<1:06:34,  1.10it/s]  FAIL train_label_masks/24059c009e9ce9f671be3182eb6e24e3_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 259/4645 [03:52<1:04:50,  1.13it/s]  FAIL train_label_masks/2409b82676fa73d6a71cde9839222b4b_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 260/4645 [03:53<1:08:31,  1.07it/s]  FAIL train_label_masks/24307a99905df0ceeb4e945c0b876d16_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 261/4645 [03:54<1:06:40,  1.10it/s]  FAIL train_label_masks/243111debafd72d448a03ca22a0be2d7_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 262/4645 [03:54<1:06:00,  1.11it/s]  FAIL train_label_masks/243d8c9814f5982607fd7297137bc801_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 263/4645 [03:55<1:04:40,  1.13it/s]  FAIL train_label_masks/2442cc58025c02b3d153183bb0f65bd4_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 264/4645 [03:56<1:07:27,  1.08it/s]  FAIL train_label_masks/244d9617bd58fa1db73ab4c1f40d298e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 265/4645 [03:57<1:04:54,  1.12it/s]  FAIL train_label_masks/2464608febcd797682b2392b5badbc2d_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 266/4645 [03:58<1:03:58,  1.14it/s]  FAIL train_label_masks/2470531626032d9f836359f11fd4fdf7_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 267/4645 [03:59<1:02:36,  1.17it/s]  FAIL train_label_masks/248849ede6c19a5b38182908836cb666_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 268/4645 [04:00<1:05:46,  1.11it/s]  FAIL train_label_masks/248fc842149898be28b346ce1fb15ab1_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 269/4645 [04:01<1:03:21,  1.15it/s]  FAIL train_label_masks/24b0dda87e02e90f4bdc747a8a1964a6_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 270/4645 [04:02<1:06:59,  1.09it/s]  FAIL train_label_masks/24b5ae892c0ba535fc16f5cddcbf8dcd_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 271/4645 [04:02<1:05:11,  1.12it/s]  FAIL train_label_masks/24c0f0bf150365059c0e8a4e1fef058b_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 272/4645 [04:03<1:04:05,  1.14it/s]  FAIL train_label_masks/24c1e1cef9fbcbd82978ebe7d14334cb_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 273/4645 [04:04<1:02:45,  1.16it/s]  FAIL train_label_masks/24c62d554f43181518499236941d6163_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 274/4645 [04:05<1:02:39,  1.16it/s]  FAIL train_label_masks/24c94ed90d7bc1ea0353ebf23c887536_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 275/4645 [04:06<1:05:59,  1.10it/s]  FAIL train_label_masks/24cbc57ba378971a02cf24479cd7933d_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 276/4645 [04:07<1:04:16,  1.13it/s]  FAIL train_label_masks/24ccdd39791fcac60d157701cb18c200_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 277/4645 [04:08<1:03:14,  1.15it/s]  FAIL train_label_masks/24e915870a8fcdc0277c197e2eb80934_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 278/4645 [04:09<1:06:31,  1.09it/s]  FAIL train_label_masks/24ecf26ce811ea7f0116d7ea5388bc4a_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 279/4645 [04:10<1:07:48,  1.07it/s]  FAIL train_label_masks/24f81c84fd8d2d14490060c548f7d9c1_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 280/4645 [04:11<1:09:59,  1.04it/s]  FAIL train_label_masks/250e91349b32a3a0a04153a94c9c5844_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 281/4645 [04:12<1:09:49,  1.04it/s]  FAIL train_label_masks/2516fcb7500ad40ce411cdca7a7d9873_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 282/4645 [04:13<1:11:13,  1.02it/s]  FAIL train_label_masks/25193f2e5eb320bb11ac639eb5dc11c3_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 283/4645 [04:14<1:18:43,  1.08s/it]  FAIL train_label_masks/251e12eeb15fcbbd0a39cd7928c74345_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 284/4645 [04:15<1:17:13,  1.06s/it]  FAIL train_label_masks/254fbd7f21925ba7732800213af7ed47_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 285/4645 [04:16<1:12:50,  1.00s/it]  FAIL train_label_masks/25637fe69d28ce0cb944c631222a6b52_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 286/4645 [04:17<1:08:20,  1.06it/s]  FAIL train_label_masks/2577c90f6ee46adf9d3f7c16ba8db9c3_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 287/4645 [04:18<1:10:01,  1.04it/s]  FAIL train_label_masks/257d6a1beca738d4411347c728f5bf7b_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 288/4645 [04:19<1:11:32,  1.02it/s]  FAIL train_label_masks/259178ac6e1413c067aa7b0f01a13f7a_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 289/4645 [04:20<1:08:51,  1.05it/s]  FAIL train_label_masks/2592cfd1d3e053e519598bab9423d279_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▌         | 290/4645 [04:21<1:11:08,  1.02it/s]  FAIL train_label_masks/25961aea3db8652eeb0bbce7b0b539e0_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▋         | 291/4645 [04:21<1:07:54,  1.07it/s]  FAIL train_label_masks/25a213edbcc763a0b37c60d060c028a6_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▋         | 292/4645 [04:22<1:06:17,  1.09it/s]  FAIL train_label_masks/25a27922edaf3f338e8693ededcbe1c2_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▋         | 293/4645 [04:23<1:05:19,  1.11it/s]  FAIL train_label_masks/25c0f98758c3fb09bc2070d1dca0a299_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▋         | 294/4645 [04:24<1:08:15,  1.06it/s]  FAIL train_label_masks/25c2e6b1c5a915c24df1732d4de8e435_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▋         | 295/4645 [04:25<1:06:16,  1.09it/s]  FAIL train_label_masks/25c5c31bc182f9c26fb4c084e1fa2df4_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▋         | 296/4645 [04:26<1:04:47,  1.12it/s]  FAIL train_label_masks/25caa73d08a34c0bedd8034cb4a623b5_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▋         | 297/4645 [04:27<1:07:31,  1.07it/s]  FAIL train_label_masks/25d8ff4fcd3f85d69a672b69d29b6339_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▋         | 298/4645 [04:28<1:04:12,  1.13it/s]  FAIL train_label_masks/25e85593a9a51bbe10d9a2821cb096d9_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▋         | 299/4645 [04:28<1:03:14,  1.15it/s]  FAIL train_label_masks/25f05be992338d0229bf3a5cd110143c_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▋         | 300/4645 [04:29<1:02:34,  1.16it/s]  FAIL train_label_masks/25f8b4140df3fcadc642f18b4279582d_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   6%|▋         | 301/4645 [04:30<1:05:38,  1.10it/s]  FAIL train_label_masks/260f6b664eeb6504635f86287f781e4c_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 302/4645 [04:31<1:03:32,  1.14it/s]  FAIL train_label_masks/26149968f810b690fca81375c1d74373_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 303/4645 [04:32<1:03:05,  1.15it/s]  FAIL train_label_masks/2626d578899ee91a14a09bab13ae8b07_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 304/4645 [04:33<1:01:33,  1.18it/s]  FAIL train_label_masks/2627c765b74591958e7ba12fd857f80e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 305/4645 [04:34<1:01:36,  1.17it/s]  FAIL train_label_masks/26346b4e789c4f7c871f5f0e689b41d5_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 306/4645 [04:35<1:01:33,  1.17it/s]  FAIL train_label_masks/264e5e8732450598190acec51da65cdc_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 307/4645 [04:35<1:02:00,  1.17it/s]  FAIL train_label_masks/265e7f265773d27e1770a3cd3ce05677_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 308/4645 [04:36<1:05:19,  1.11it/s]  FAIL train_label_masks/2673584f9398ce0acb21a86a1a711088_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 309/4645 [04:37<1:03:30,  1.14it/s]  FAIL train_label_masks/267f0ec89d4c07f0a113e4ebceca7d54_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 310/4645 [04:38<1:05:58,  1.10it/s]  FAIL train_label_masks/268dcbd78318c0108974c5f99e1dca78_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 311/4645 [04:39<1:08:18,  1.06it/s]  FAIL train_label_masks/26a271cd2fdd034304566deb6bcfdafe_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 312/4645 [04:40<1:10:28,  1.02it/s]  FAIL train_label_masks/26b5257856e96a2a3d3d3e681ae13aa1_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 313/4645 [04:41<1:08:45,  1.05it/s]  FAIL train_label_masks/26bc992079d504e172e50fb565915bf7_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 314/4645 [04:42<1:06:56,  1.08it/s]  FAIL train_label_masks/26db031a2a246f6525d08296fad489f6_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 315/4645 [04:43<1:04:48,  1.11it/s]  FAIL train_label_masks/26f57dc441fe3aeb40c8ab299e49137e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 316/4645 [04:44<1:05:51,  1.10it/s]  FAIL train_label_masks/26f717c6128d8e5d0854376f01893c8a_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 317/4645 [04:45<1:04:16,  1.12it/s]  FAIL train_label_masks/272500bbbd8c3ee4e2769a0e2ecf51d0_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 318/4645 [04:46<1:03:07,  1.14it/s]  FAIL train_label_masks/273aca7c9745bca16dcfb07930f0fc52_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 319/4645 [04:46<1:05:11,  1.11it/s]  FAIL train_label_masks/275322852b2d7d5cff8a19cc5e72ff4e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 320/4645 [04:47<1:03:23,  1.14it/s]  FAIL train_label_masks/27556fdb820073abe367089a67ab87d3_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 321/4645 [04:48<1:02:45,  1.15it/s]  FAIL train_label_masks/275adc34d57f1e6ce223e7a462569fbe_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 322/4645 [04:49<1:02:09,  1.16it/s]  FAIL train_label_masks/275d8bdfde4df9a23274d06788c7ec38_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 323/4645 [04:50<1:01:26,  1.17it/s]  FAIL train_label_masks/276ed80762773462f05abc10da5228c8_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 324/4645 [04:51<1:00:44,  1.19it/s]  FAIL train_label_masks/276fe273713496862d1e614288e3f670_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 325/4645 [04:52<1:00:58,  1.18it/s]  FAIL train_label_masks/2794fc86e8d4ab7388b0d6b198559572_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 326/4645 [04:52<1:00:54,  1.18it/s]  FAIL train_label_masks/279a99068552ce9002067ae78064169c_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 327/4645 [04:53<59:35,  1.21it/s]    FAIL train_label_masks/27a0805c02fc2d0fa9baff39ab5f36d6_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 328/4645 [04:54<59:48,  1.20it/s]  FAIL train_label_masks/27a17fc7cc2919bb39ac51dae3c377a5_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 329/4645 [04:55<1:00:30,  1.19it/s]  FAIL train_label_masks/27b0d570a40d5c3679f508e9bc181e8c_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 330/4645 [04:56<1:00:38,  1.19it/s]  FAIL train_label_masks/27b29f95c9715edd273ed25920611a63_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 331/4645 [04:57<1:04:44,  1.11it/s]  FAIL train_label_masks/27e9213748b0ca86fc5c49d1279102ee_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 332/4645 [04:58<1:04:17,  1.12it/s]  FAIL train_label_masks/27edf875a1201b124fd11124451dad4e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 333/4645 [04:58<1:04:11,  1.12it/s]  FAIL train_label_masks/27f3dbbf2b9a5e59f508dc6b0c23d5cb_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 334/4645 [04:59<1:03:48,  1.13it/s]  FAIL train_label_masks/27fd3bb44c76fb86e26ca77b4e92f7a0_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 335/4645 [05:00<1:06:16,  1.08it/s]  FAIL train_label_masks/280220720b546eacfa223edf513ec94e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 336/4645 [05:01<1:04:16,  1.12it/s]  FAIL train_label_masks/2819283411c64ee7b3c4885044bcaa0a_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 337/4645 [05:02<1:03:18,  1.13it/s]  FAIL train_label_masks/281fcc161aa1fe329f1ab8d9ae73636b_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 338/4645 [05:03<1:02:30,  1.15it/s]  FAIL train_label_masks/2823c18cde8d2c294a0f8d1cdc4c1a1e_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 339/4645 [05:04<1:02:11,  1.15it/s]  FAIL train_label_masks/282661ce17b00e09fff141cc827d6849_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 340/4645 [05:05<1:06:28,  1.08it/s]  FAIL train_label_masks/282cb9398d53504c4fdae1e18d2dbfbf_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 341/4645 [05:06<1:05:03,  1.10it/s]  FAIL train_label_masks/283624a201d08d9abc72c51af1da7923_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 342/4645 [05:07<1:03:32,  1.13it/s]  FAIL train_label_masks/284dcd2d3d6d09fab242477dce6b69d1_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 343/4645 [05:08<1:07:05,  1.07it/s]  FAIL train_label_masks/285186bdcabfd05a4d4fe4be52983a59_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 344/4645 [05:08<1:04:58,  1.10it/s]  FAIL train_label_masks/285e28ef159dc6a54e18cc1962136596_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 345/4645 [05:09<1:02:50,  1.14it/s]  FAIL train_label_masks/287288c13cab7312a9ced8268cad03ef_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 346/4645 [05:10<1:02:02,  1.15it/s]  FAIL train_label_masks/28794c06886c4abf3946538620e3e36d_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 347/4645 [05:11<1:04:57,  1.10it/s]  FAIL train_label_masks/287954ebec5531c31c41010a31ca23b8_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   7%|▋         | 348/4645 [05:12<1:03:44,  1.12it/s]  FAIL train_label_masks/287de3ae1fa63dec27e7b5f42cfe7c66_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   8%|▊         | 349/4645 [05:13<1:02:26,  1.15it/s]  FAIL train_label_masks/288a512bf5affa970a81d9c553feef40_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   8%|▊         | 350/4645 [05:14<1:05:10,  1.10it/s]  FAIL train_label_masks/289b6b44f1e8014f82a8eaf8dd9e480d_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   8%|▊         | 351/4645 [05:15<1:03:15,  1.13it/s]  FAIL train_label_masks/28c2858a4d611799f6748464e1eb825d_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   8%|▊         | 352/4645 [05:15<1:02:10,  1.15it/s]  FAIL train_label_masks/28ca3539cc4b25b0a3d571c1fe108aba_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   8%|▊         | 353/4645 [05:16<1:01:40,  1.16it/s]  FAIL train_label_masks/28ca63263be7194fbefbfaedd0637469_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   8%|▊         | 354/4645 [05:17<1:01:23,  1.16it/s]  FAIL train_label_masks/28d2e92f40bdd98d7cd5275fa448fe2d_mask.tiff: 429 Client Error: Too Many Requests for url: https://api.kaggle.com/v1/competitions.CompetitionApiService/DownloadDataFile
+
+Downloading masks:   8%|▊         | 355/4645 [05:18<1:05:18,  1.09it/s]slurmstepd: error: *** JOB 4596789 ON esplhpc-cp021 CANCELLED AT 2026-06-18T14:17:35 ***

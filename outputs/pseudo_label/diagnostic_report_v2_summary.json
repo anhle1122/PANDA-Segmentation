@@ -1,0 +1,50 @@
+{
+  "source": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/diagnostic_report.csv",
+  "min_area_pct": 0.03,
+  "note": "Re-derived from stored pred_pixels (no re-inference); identical to rerunning Phase 2 at min_area_pct=0.03",
+  "checkpoint": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_h200x4/epoch_042_cancer_0.7420.pth",
+  "total_slides": 3746,
+  "matches": 2018,
+  "mismatches": 1728,
+  "match_rate": 0.5387079551521623,
+  "isup0_mismatches": 623,
+  "isup0_mismatches_v1_at_0p05": 623,
+  "by_metadata_isup": {
+    "0": {
+      "count": 758,
+      "matches": 135,
+      "match_rate": 0.17810026385224276,
+      "mismatches": 623
+    },
+    "1": {
+      "count": 615,
+      "matches": 440,
+      "match_rate": 0.7154471544715447,
+      "mismatches": 175
+    },
+    "2": {
+      "count": 490,
+      "matches": 280,
+      "match_rate": 0.5714285714285714,
+      "mismatches": 210
+    },
+    "3": {
+      "count": 650,
+      "matches": 344,
+      "match_rate": 0.5292307692307693,
+      "mismatches": 306
+    },
+    "4": {
+      "count": 583,
+      "matches": 341,
+      "match_rate": 0.5849056603773585,
+      "mismatches": 242
+    },
+    "5": {
+      "count": 650,
+      "matches": 478,
+      "match_rate": 0.7353846153846154,
+      "mismatches": 172
+    }
+  }
+}

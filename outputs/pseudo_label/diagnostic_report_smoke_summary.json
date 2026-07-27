@@ -1,0 +1,45 @@
+{
+  "checkpoint": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_h200x4/epoch_042_cancer_0.7420.pth",
+  "checkpoint_epoch": 42,
+  "checkpoint_val_cancer_dice": 0.7420028076224393,
+  "split": "/common/omarmlab/members/anh/panda_project/outputs/splits/panda_train.csv",
+  "total_slides": 6,
+  "total_patches": 348,
+  "matches": 2,
+  "mismatches": 4,
+  "match_rate": 0.3333333333333333,
+  "min_area_pct": 0.05,
+  "smoke_test": true,
+  "by_metadata_isup": {
+    "0": {
+      "count": 1,
+      "matches": 0,
+      "match_rate": 0.0
+    },
+    "1": {
+      "count": 1,
+      "matches": 1,
+      "match_rate": 1.0
+    },
+    "2": {
+      "count": 1,
+      "matches": 0,
+      "match_rate": 0.0
+    },
+    "3": {
+      "count": 1,
+      "matches": 0,
+      "match_rate": 0.0
+    },
+    "4": {
+      "count": 1,
+      "matches": 0,
+      "match_rate": 0.0
+    },
+    "5": {
+      "count": 1,
+      "matches": 1,
+      "match_rate": 1.0
+    }
+  }
+}
