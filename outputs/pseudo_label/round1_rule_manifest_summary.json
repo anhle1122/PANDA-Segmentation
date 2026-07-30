@@ -1,0 +1,28 @@
+{
+  "source_diagnostic": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/diagnostic_report.csv",
+  "margin_threshold": 0.15,
+  "rule2_cushion": [
+    0.95,
+    0.05
+  ],
+  "total_slides": 3746,
+  "counts": {
+    "match": 2018,
+    "none": 1099,
+    "rule3_invented_default": 371,
+    "wide_margin_unresolved": 187,
+    "rule1_soft_tie": 62,
+    "rule2_adjacent_invented": 9
+  },
+  "correcting_rules": [
+    "rule1_soft_tie",
+    "rule2_adjacent_invented",
+    "rule3_invented_default"
+  ],
+  "no_correction_rules": [
+    "match",
+    "none",
+    "rule1_wide_margin",
+    "wide_margin_unresolved"
+  ]
+}

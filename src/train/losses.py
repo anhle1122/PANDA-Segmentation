@@ -251,33 +251,31 @@ def segmentation_loss(
     label_smoothing: float = 0.0,
     adjacent_soft_alpha: float = 0.0,
     g45_soft_alpha: float | None = None,
+    soft_targets: Tensor | None = None,
 ) -> Tensor:
-    """Combined weighted CE (with per-pixel weight map) + custom soft Dice."""
+    """Combined weighted CE (with per-pixel weight map) + custom soft Dice.
+
+    If ``soft_targets`` is provided (B, C, H, W), it is used directly for both
+    CE and Dice. Otherwise soft targets are derived from the hard ``targets``
+    via label smoothing / adjacent soft.
+    """
     targets = targets.long()
     valid = targets != ignore_index
     targets_safe = targets.clone()
     targets_safe[~valid] = 0
-    soft_targets = _resolve_soft_targets(
-        targets_safe,
-        num_classes,
-        label_smoothing=label_smoothing,
-        adjacent_soft_alpha=adjacent_soft_alpha,
-        g45_soft_alpha=g45_soft_alpha,
-    )
+    if soft_targets is None:
+        soft_targets = _resolve_soft_targets(
+            targets_safe,
+            num_classes,
+            label_smoothing=label_smoothing,
+            adjacent_soft_alpha=adjacent_soft_alpha,
+            g45_soft_alpha=g45_soft_alpha,
+        )
 
     cw = class_weights.to(device=logits.device, dtype=logits.dtype)
-    if adjacent_soft_alpha > 0.0 or label_smoothing > 0.0:
-        log_probs = F.log_softmax(logits, dim=1)
-        w = cw.view(1, -1, 1, 1)
-        per_pixel_ce = -(soft_targets * log_probs * w).sum(dim=1)
-    else:
-        per_pixel_ce = F.cross_entropy(
-            logits,
-            targets,
-            weight=cw,
-            ignore_index=ignore_index,
-            reduction="none",
-        )
+    log_probs = F.log_softmax(logits, dim=1)
+    w = cw.view(1, -1, 1, 1)
+    per_pixel_ce = -(soft_targets * log_probs * w).sum(dim=1)
     masked_ce = per_pixel_ce * weight_map
     ce_loss = masked_ce.sum() / (weight_map.sum() + 1e-8)
 
@@ -290,3 +288,223 @@ def segmentation_loss(
     ).mean()
 
     return ce_weight * ce_loss + dice_weight * dice_loss
+
+
+def oeem_weight_map_global(per_pixel_loss: Tensor, *, ignore_mask: Tensor | None = None) -> Tensor:
+    """Published OEEM \(W_{l\_norm}\) (Li et al. MICCAI 2022) — global over H×W.
+
+    From ``vendor/OEEM/.../cross_entropy_loss.py``:
+
+        metric = -loss.detach().reshape(B, H*W)
+        weight = softmax(metric, dim=1)
+        weight = weight / weight.mean(dim=1, keepdim=True)
+
+    **Do not use on this dataset as-is.** Global normalization compares rare
+    hard classes (G5) against easy stroma/background and systematically
+    down-weights them. Prefer :func:`oeem_weight_map_per_class`.
+    """
+    loss = per_pixel_loss.detach()
+    B, H, W = loss.shape
+    metric = -loss.reshape(B, H * W)
+    weight = F.softmax(metric, dim=1)
+    weight = weight / weight.mean(dim=1, keepdim=True).clamp(min=1e-8)
+    weight = weight.reshape(B, H, W)
+    if ignore_mask is not None:
+        weight = weight.masked_fill(ignore_mask, 1.0)
+    return weight
+
+
+def oeem_weight_map_per_class(
+    per_pixel_loss: Tensor,
+    seg_target_classes: Tensor,
+    *,
+    ignore_index: int = 0,
+    min_pixels: int = 8,
+) -> Tensor:
+    """Per-class OEEM easy-example weights (project-specific modification).
+
+    Same normalized-loss idea as OEEM Eq.6, but the softmax / mean
+    renormalization runs **inside each class** so a G5 pixel is only judged
+    against other G5 pixels' losses — not against easy background/stroma.
+    Pixels of a class with fewer than ``min_pixels`` keep weight 1.0
+    (default 8 — real 512² batches almost never have 2–7 G5 pixels when G5
+    is present, but tiny sets make within-class softmax unstable / near-one-hot).
+    Ignore-index pixels keep weight 1.0.
+    """
+    loss = per_pixel_loss.detach()
+    target = seg_target_classes.long()
+    weight = torch.ones_like(loss)
+    B = loss.shape[0]
+    for b in range(B):
+        classes = target[b].unique()
+        for c in classes.tolist():
+            if int(c) == ignore_index:
+                continue
+            class_mask = target[b] == c
+            n = int(class_mask.sum().item())
+            if n < min_pixels:
+                continue
+            class_loss = loss[b][class_mask]
+            sm = F.softmax(-class_loss, dim=0)
+            weight[b][class_mask] = sm / sm.mean().clamp(min=1e-8)
+    return weight
+
+
+def oeem_weight_map_for_unflagged(
+    per_pixel_loss: Tensor,
+    seg_target_classes: Tensor,
+    flag_mask: Tensor,
+    *,
+    ignore_index: int = 0,
+    per_class: bool = True,
+) -> Tensor:
+    """OEEM weights with Rules 1-3 flagged pixels forced to weight 1.0.
+
+    Reasoning (not incidental): Rules 1-3 already made an evidence-based,
+    full-weight decision about the *target* on flagged pixels. OEEM is a second,
+    independent mechanism that reweights loss by how "easy/credible" a pixel
+    looks under the current prediction. If OEEM were also allowed to down-weight
+    those same pixels, the two corrections would fight: ISUP says "learn this
+    corrected label hard," OEEM says "this high-CE pixel is probably noise —
+    ignore it." Forcing weight=1.0 on ``flag_mask`` keeps the division of labor
+    clean — OEEM only handles UNFLAGGED pixels, where no explicit ISUP edit was
+    made.
+    """
+    if per_class:
+        weight = oeem_weight_map_per_class(
+            per_pixel_loss, seg_target_classes, ignore_index=ignore_index
+        )
+    else:
+        ignore = seg_target_classes.long() == ignore_index
+        weight = oeem_weight_map_global(per_pixel_loss, ignore_mask=ignore)
+    weight = torch.where(flag_mask.bool(), torch.ones_like(weight), weight)
+    return weight
+
+
+def mean_oeem_weight_by_class(
+    weight_map: Tensor,
+    seg_target_classes: Tensor,
+    *,
+    num_classes: int = 6,
+    ignore_index: int = 0,
+) -> dict[int, float]:
+    """Average OEEM weight per class — smoke-test / monitoring helper."""
+    target = seg_target_classes.long()
+    out: dict[int, float] = {}
+    for c in range(num_classes):
+        if c == ignore_index:
+            continue
+        mask = target == c
+        if mask.any():
+            out[c] = float(weight_map[mask].mean().item())
+        else:
+            out[c] = float("nan")
+    return out
+
+
+def isup_informed_segmentation_loss(
+    pred: Tensor,
+    base_seg_target: Tensor,
+    corrected_target: Tensor,
+    flag_mask: Tensor,
+    class_weights: Tensor,
+    loss_weight_map: Tensor,
+    *,
+    adjacent_soft_alpha: float = 0.15,
+    g45_soft_alpha: float | None = None,
+    label_smoothing: float = 0.0,
+    ce_weight: float = 0.5,
+    dice_weight: float = 0.5,
+    num_classes: int = 6,
+    ignore_index: int = 0,
+) -> tuple[Tensor, dict[str, float]]:
+    """Single segmentation loss whose targets have been edited by Rules 1-3.
+
+    On pixels ``flag_mask`` marks, the soft target is the rule correction
+    (hard one-hot or soft blend). Everywhere else it is the usual soft target
+    derived from ``base_seg_target`` (Round 1: original PANDA mask). There is
+    no second fighting loss -- ISUP informs segmentation by rewriting the
+    area that caused the grade mismatch.
+    """
+    base = base_seg_target.long()
+    valid = base != ignore_index
+    base_safe = base.clone()
+    base_safe[~valid] = 0
+    soft = _resolve_soft_targets(
+        base_safe,
+        num_classes,
+        label_smoothing=label_smoothing,
+        adjacent_soft_alpha=adjacent_soft_alpha,
+        g45_soft_alpha=g45_soft_alpha,
+    )
+    flag = flag_mask.to(dtype=soft.dtype).unsqueeze(1)
+    soft = soft * (1.0 - flag) + corrected_target.to(dtype=soft.dtype) * flag
+
+    loss = segmentation_loss(
+        pred,
+        base,
+        loss_weight_map,
+        class_weights,
+        ce_weight=ce_weight,
+        dice_weight=dice_weight,
+        num_classes=num_classes,
+        ignore_index=ignore_index,
+        soft_targets=soft,
+    )
+    flagged = int(flag_mask.float().sum().item())
+    metrics = {
+        "seg": float(loss.item()),
+        "pseudo": 0.0,  # no separate term; kept for log schema compatibility
+        "pseudo_pixels_flagged": flagged,
+        "total": float(loss.item()),
+    }
+    return loss, metrics
+
+
+def combined_loss(
+    pred: Tensor,
+    seg_target: Tensor,
+    corrected_target: Tensor,
+    flag_mask: Tensor,
+    class_weights: Tensor,
+    loss_weight_map: Tensor,
+    *,
+    w_seg: float = 0.70,
+    w_pseudo: float = 0.30,
+    adjacent_soft_alpha: float = 0.15,
+    ce_weight: float = 0.5,
+    dice_weight: float = 0.5,
+    num_classes: int = 6,
+    ignore_index: int = 0,
+) -> tuple[Tensor, dict[str, float]]:
+    """Deprecated dual-loss path (seg + pseudo fight). Prefer
+    :func:`isup_informed_segmentation_loss`.
+
+    Kept for smoke-test / archive comparison only.
+    """
+    seg_loss = segmentation_loss(
+        pred,
+        seg_target,
+        loss_weight_map,
+        class_weights,
+        ce_weight=ce_weight,
+        dice_weight=dice_weight,
+        num_classes=num_classes,
+        ignore_index=ignore_index,
+        adjacent_soft_alpha=adjacent_soft_alpha,
+    )
+
+    log_probs = F.log_softmax(pred, dim=1)
+    per_pixel_pseudo_ce = -(corrected_target * log_probs).sum(dim=1)
+    flag_mask_f = flag_mask.float()
+    flagged_pixels = flag_mask_f.sum()
+    pseudo_loss = (per_pixel_pseudo_ce * flag_mask_f).sum() / (flagged_pixels + 1e-8)
+
+    total = w_seg * seg_loss + w_pseudo * pseudo_loss
+    metrics = {
+        "seg": float(seg_loss.item()),
+        "pseudo": float(pseudo_loss.item()),
+        "pseudo_pixels_flagged": int(flagged_pixels.item()),
+        "total": float(total.item()),
+    }
+    return total, metrics

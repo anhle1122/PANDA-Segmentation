@@ -56,6 +56,18 @@ def mean_foreground_dice(
     return scores.mean()
 
 
+def _dice_from_counts(intersection: Tensor | float, union: Tensor | float, *, eps: float = 1e-6) -> float:
+    """Hard Dice for one class, 0.0 when the class is absent from both sides.
+
+    Empty → 0.0 (not the eps ratio, which would read as 1.0). Class 0 is
+    ignore_index so it never accumulates; its logged dice_bg stays 0.0 and is
+    excluded from mean_dice.
+    """
+    if float(union) <= 0.0:
+        return 0.0
+    return float((2.0 * float(intersection) + eps) / (float(union) + eps))
+
+
 class PerClassDiceAccumulator:
     """Accumulate hard Dice intersection/union across a full validation epoch."""
 
@@ -94,3 +106,37 @@ class PerClassDiceAccumulator:
                 fg_scores.append(dice)
         out["mean"] = float(sum(fg_scores) / len(fg_scores)) if fg_scores else float("nan")
         return out
+
+    def to_baseline_metrics(self) -> dict[str, float]:
+        """Metrics in the schema both training scripts log and select on.
+
+        ``mean_dice`` averages **foreground** classes 1..5 only. Class 0 is
+        ignore_index, so its Dice is never a real score (always logged as 0.0);
+        folding that zero into the mean just deflates every run by ~1/6 and is
+        not fair. ``cancer_dice`` stays mean(G3, G4, G5) and is what UNI2
+        selects checkpoints on.
+        """
+        per_class = [
+            _dice_from_counts(self.intersection[c], self.union[c])
+            for c in range(self.num_classes)
+        ]
+        out: dict[str, float] = {f"dice_{c}": per_class[c] for c in range(self.num_classes)}
+        foreground = [per_class[c] for c in range(self.num_classes) if c != self.ignore_index]
+        out["mean_dice"] = float(sum(foreground) / len(foreground)) if foreground else 0.0
+        cancer = [per_class[c] for c in (3, 4, 5) if c < self.num_classes]
+        out["cancer_dice"] = float(sum(cancer) / len(cancer)) if cancer else 0.0
+        return out
+
+
+def compute_per_class_dice(
+    logits: Tensor,
+    targets: Tensor,
+    *,
+    num_classes: int = 6,
+    ignore_index: int = 0,
+) -> dict[str, float]:
+    """Baseline-schema Dice metrics from logits (B, C, H, W) or a hard (B, H, W) map."""
+    preds = logits.argmax(dim=1) if logits.dim() == targets.dim() + 1 else logits
+    accumulator = PerClassDiceAccumulator(num_classes=num_classes, ignore_index=ignore_index)
+    accumulator.update(preds, targets)
+    return accumulator.to_baseline_metrics()

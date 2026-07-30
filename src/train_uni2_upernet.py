@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import math
 import os
 import shutil
 import sys
@@ -30,7 +31,13 @@ if str(SRC) not in sys.path:
 from patch_utils import OUTPUTS  # noqa: E402
 from train.baseline_dataset import BaselinePatchDataset  # noqa: E402
 from train.class_weights import format_weight_table, get_or_compute_class_weights  # noqa: E402
-from train.losses import segmentation_loss  # noqa: E402
+from train.losses import isup_informed_segmentation_loss, segmentation_loss  # noqa: E402
+from train.pseudo_label_dataset import (  # noqa: E402
+    DEFAULT_MANIFEST,
+    DEFAULT_PRED_DIR,
+    PseudoLabelPatchDataset,
+    build_corrected_target,
+)
 from train.metrics import PerClassDiceAccumulator  # noqa: E402
 from train.uni2_upernet import build_uni2_upernet  # noqa: E402
 from train_baseline import (  # noqa: E402
@@ -87,13 +94,35 @@ def train(args: argparse.Namespace) -> None:
     if args.max_patches:
         train_csv = subsample_split_csv(train_csv, args.max_patches, args.seed)
         val_csv = subsample_split_csv(val_csv, max(20, args.max_patches // 5), args.seed)
+    elif args.max_val_patches:
+        # Deterministic (seeded) subsample, so the val set is identical across
+        # epochs, ranks and rounds -- otherwise checkpoint selection and the
+        # round-over-round comparison would be measuring different things.
+        val_csv = subsample_split_csv(val_csv, args.max_val_patches, args.seed)
 
-    train_ds = BaselinePatchDataset(
-        train_csv,
-        mode=args.mode,
-        allow_missing_h5=args.allow_missing_h5,
-        ink_loss_mask=False,
-    )
+    # Pseudo-label mode swaps the train dataset (adds per-pixel corrections and
+    # the round's seg_target) and the train loss. Validation deliberately stays
+    # on the ORIGINAL mask with the plain segmentation loss in every round, so
+    # val metrics remain comparable across rounds.
+    use_pseudo = args.pseudo_label
+    if use_pseudo:
+        train_ds = PseudoLabelPatchDataset(
+            train_csv,
+            manifest_csv=args.pseudo_manifest,
+            pred_dir=args.pseudo_pred_dir,
+            seg_target_dir=args.seg_target_dir,
+            allow_missing_cache=args.allow_missing_cache,
+            mode=args.mode,
+            allow_missing_h5=args.allow_missing_h5,
+            ink_loss_mask=False,
+        )
+    else:
+        train_ds = BaselinePatchDataset(
+            train_csv,
+            mode=args.mode,
+            allow_missing_h5=args.allow_missing_h5,
+            ink_loss_mask=False,
+        )
     val_ds = BaselinePatchDataset(
         val_csv,
         mode=args.mode,
@@ -101,17 +130,31 @@ def train(args: argparse.Namespace) -> None:
         ink_loss_mask=False,
     )
     if is_main_process(rank):
-        train_ds.run_sanity_check(n=5)
+        (train_ds.base if use_pseudo else train_ds).run_sanity_check(n=5)
+        if use_pseudo:
+            print(f"Pseudo-label mode ON | seg_target={train_ds.seg_target_mode}")
+            print(f"  manifest:  {args.pseudo_manifest}")
+            print(f"  pred cache: {args.pseudo_pred_dir}")
+            print(
+                "  loss: ISUP-informed segmentation "
+                "(Rules 1-3 rewrite flagged pixels in the seg target; no fighting dual loss)"
+            )
+            counts = train_ds.rule_counts()
+            for rule, count in sorted(counts.items(), key=lambda kv: -kv[1]):
+                print(f"  {rule:26s} {count:7d} patches")
 
     val_workers = 0 if world_size > 1 else args.num_workers
     val_sampler = DistributedSampler(val_ds, shuffle=False) if world_size > 1 else None
     val_loader_kwargs: dict = {
-        "batch_size": args.batch_size,
+        "batch_size": args.val_batch_size,
         "shuffle": val_sampler is None,
         "sampler": val_sampler,
         "num_workers": val_workers,
         "pin_memory": device.type == "cuda",
         "persistent_workers": False,
+        # Batch-stats BN (no running mean) cannot forward a size-1 batch through
+        # the PPM's 1x1 pooled branch; drop a partial last batch rather than crash.
+        "drop_last": True,
     }
     if val_workers > 0:
         val_loader_kwargs["prefetch_factor"] = args.prefetch_factor
@@ -253,25 +296,50 @@ def train(args: argparse.Namespace) -> None:
             epoch=epoch,
             rank=rank,
             world_size=world_size,
+            drop_last=True,
         )
         model.train()
         train_losses = []
-        for images, masks, weights in train_loader:
+        seg_losses: list[float] = []
+        pixels_rewritten = 0
+        for batch in train_loader:
+            if use_pseudo:
+                images, masks, weights, flag_masks, target_params = batch
+                flag_masks = flag_masks.to(device, non_blocking=True)
+                target_params = target_params.to(device, non_blocking=True)
+            else:
+                images, masks, weights = batch
             images = images.to(device, non_blocking=True)
             masks = masks.to(device, non_blocking=True)
             weights = weights.to(device, non_blocking=True)
             optimizer.zero_grad(set_to_none=True)
             with torch.autocast(device_type=device.type, enabled=use_amp):
                 logits = model(images)
-                loss = segmentation_loss(
-                    logits,
-                    masks,
-                    weights,
-                    class_weights,
-                    label_smoothing=args.label_smoothing,
-                    adjacent_soft_alpha=args.adjacent_soft_alpha,
-                    g45_soft_alpha=args.g45_soft_alpha,
-                )
+                if use_pseudo:
+                    corrected_target = build_corrected_target(flag_masks, target_params)
+                    loss, loss_parts = isup_informed_segmentation_loss(
+                        logits,
+                        masks,
+                        corrected_target,
+                        flag_masks,
+                        class_weights,
+                        weights,
+                        adjacent_soft_alpha=args.adjacent_soft_alpha,
+                        g45_soft_alpha=args.g45_soft_alpha,
+                        label_smoothing=args.label_smoothing,
+                    )
+                    seg_losses.append(loss_parts["seg"])
+                    pixels_rewritten += loss_parts["pseudo_pixels_flagged"]
+                else:
+                    loss = segmentation_loss(
+                        logits,
+                        masks,
+                        weights,
+                        class_weights,
+                        label_smoothing=args.label_smoothing,
+                        adjacent_soft_alpha=args.adjacent_soft_alpha,
+                        g45_soft_alpha=args.g45_soft_alpha,
+                    )
             scaler.scale(loss).backward()
             if args.grad_clip and args.grad_clip > 0:
                 scaler.unscale_(optimizer)
@@ -326,6 +394,15 @@ def train(args: argparse.Namespace) -> None:
         val_loss = val_loss_sum / max(val_n, 1)
         metrics = dice_acc.to_baseline_metrics()
 
+        # All ranks see the same reduced val_loss; stop together so DDP does not hang.
+        if not math.isfinite(val_loss):
+            if is_main_process(rank):
+                print(
+                    f"ERROR: non-finite val_loss={val_loss} at epoch {epoch} — "
+                    "stopping before writing a corrupted best checkpoint."
+                )
+            break
+
         if is_main_process(rank):
             lr = optimizer.param_groups[0]["lr"]
             elapsed = time.time() - t0
@@ -345,6 +422,11 @@ def train(args: argparse.Namespace) -> None:
             print(
                 f"  mean_dice: {metrics['mean_dice']:.3f}  cancer_dice: {metrics['cancer_dice']:.3f}"
             )
+            if use_pseudo and seg_losses:
+                print(
+                    f"  train_seg_loss={np.mean(seg_losses):.4f}  "
+                    f"pixels_rewritten_by_isup={pixels_rewritten}"
+                )
 
             row = {
                 "epoch": epoch,
@@ -361,6 +443,9 @@ def train(args: argparse.Namespace) -> None:
                 "lr": lr,
                 "backbone_frozen": int(not backbone_unfrozen),
             }
+            if use_pseudo:
+                row["seg_loss"] = round(float(np.mean(seg_losses)), 6) if seg_losses else 0.0
+                row["pixels_rewritten"] = pixels_rewritten
             log_epoch_csv(log_path, row, write_header=write_header)
             write_header = False
 
@@ -479,6 +564,36 @@ def main() -> None:
     parser.add_argument("--val-every", type=int, default=1)
     parser.add_argument("--val-batch-size", type=int, default=8)
     parser.add_argument("--save-every", type=int, default=5)
+
+    pseudo = parser.add_argument_group("iterative pseudo-label self-training")
+    pseudo.add_argument(
+        "--pseudo-label",
+        action="store_true",
+        help=(
+            "ISUP-informed segmentation: Rules 1-3 rewrite flagged pixels in the "
+            "training seg target (single loss; no dual-term fight)"
+        ),
+    )
+    pseudo.add_argument("--pseudo-manifest", type=Path, default=DEFAULT_MANIFEST)
+    pseudo.add_argument("--pseudo-pred-dir", type=Path, default=DEFAULT_PRED_DIR)
+    pseudo.add_argument(
+        "--seg-target-dir",
+        type=Path,
+        default=None,
+        help=(
+            "Round 2+: directory of cached previous-round predictions to use as "
+            "the base seg target (before ISUP rewrites). Omit for Round 1 to use "
+            "the original PANDA mask as the base."
+        ),
+    )
+    pseudo.add_argument(
+        "--allow-missing-cache",
+        action="store_true",
+        help="Skip corrections for slides with no cached prediction instead of failing",
+    )
+    # Kept for CLI compatibility with older scripts; ignored by the new loss path.
+    pseudo.add_argument("--w-seg", type=float, default=0.70)
+    pseudo.add_argument("--w-pseudo", type=float, default=0.30)
     args = parser.parse_args()
     if args.patches_per_epoch == 0:
         args.patches_per_epoch = None

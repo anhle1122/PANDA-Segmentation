@@ -36,6 +36,58 @@ def _uni2_timm_kwargs(*, img_size: int) -> dict:
     }
 
 
+def _resample_pos_embed(state: dict, model: nn.Module) -> dict:
+    """Interpolate a checkpoint's pos_embed onto this model's token grid.
+
+    The released UNI2-h weights are for a 224px input (a 16x16 = 256 token
+    grid), but we build the backbone at 518px (37x37 = 1369) so 512px patches
+    divide evenly by patch_size=14. A plain load_state_dict would fail on the
+    shape mismatch, so resample first -- the same thing timm's own pretrained
+    loader does when a ViT is instantiated at a new resolution.
+
+    ``no_embed_class=True`` in our timm kwargs means pos_embed covers only
+    spatial tokens, so there are no prefix tokens to hold out.
+    """
+    key = "pos_embed"
+    if key not in state or not hasattr(model, key):
+        return state
+    src = state[key]
+    dst = getattr(model, key)
+    if src.shape == dst.shape:
+        return state
+
+    from timm.layers import resample_abs_pos_embed
+
+    old_tokens = src.shape[1]
+    old_side = int(round(old_tokens**0.5))
+    if old_side * old_side != old_tokens:
+        raise ValueError(f"pos_embed has {old_tokens} tokens, not a square grid")
+    new_grid = list(model.patch_embed.grid_size)
+    state = dict(state)
+    state[key] = resample_abs_pos_embed(
+        src,
+        new_size=new_grid,
+        old_size=[old_side, old_side],
+        num_prefix_tokens=0,
+    )
+    print(
+        f"Resampled pos_embed {old_side}x{old_side} -> {new_grid[0]}x{new_grid[1]} "
+        f"({tuple(src.shape)} -> {tuple(state[key].shape)})"
+    )
+    return state
+
+
+def _decode_bn(channels: int) -> nn.BatchNorm2d:
+    """Decode-head BN matching the project's UNI2+UPerNet training recipe.
+
+    Teacher A and every working checkpoint in this repo were trained with
+    ``track_running_stats=False``: batch statistics in both train and eval.
+    Default BatchNorm (running stats) causes the train-flat / val-explode
+    pattern seen when the backbone unfreezes under small per-GPU batches.
+    """
+    return nn.BatchNorm2d(channels, track_running_stats=False)
+
+
 class PPM(nn.Module):
     """Pyramid Pooling Module (UPerNet)."""
 
@@ -51,7 +103,7 @@ class PPM(nn.Module):
                 nn.Sequential(
                     nn.AdaptiveAvgPool2d(scale),
                     nn.Conv2d(in_channels, channels, kernel_size=1, bias=False),
-                    nn.BatchNorm2d(channels),
+                    _decode_bn(channels),
                     nn.ReLU(inplace=True),
                 )
                 for scale in pool_scales
@@ -65,7 +117,7 @@ class PPM(nn.Module):
                 padding=1,
                 bias=False,
             ),
-            nn.BatchNorm2d(channels),
+            _decode_bn(channels),
             nn.ReLU(inplace=True),
         )
 
@@ -95,7 +147,7 @@ class UPerNetHead(nn.Module):
             [
                 nn.Sequential(
                     nn.Conv2d(c, channels, kernel_size=1, bias=False),
-                    nn.BatchNorm2d(channels),
+                    _decode_bn(channels),
                     nn.ReLU(inplace=True),
                 )
                 for c in in_channels[:-1]
@@ -105,7 +157,7 @@ class UPerNetHead(nn.Module):
             [
                 nn.Sequential(
                     nn.Conv2d(channels, channels, kernel_size=3, padding=1, bias=False),
-                    nn.BatchNorm2d(channels),
+                    _decode_bn(channels),
                     nn.ReLU(inplace=True),
                 )
                 for _ in in_channels[:-1]
@@ -113,7 +165,7 @@ class UPerNetHead(nn.Module):
         )
         self.fpn_bottleneck = nn.Sequential(
             nn.Conv2d(len(in_channels) * channels, channels, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm2d(channels),
+            _decode_bn(channels),
             nn.ReLU(inplace=True),
         )
         self.cls_seg = nn.Conv2d(channels, num_classes, kernel_size=1)
@@ -208,6 +260,7 @@ class UNI2UPerNet(nn.Module):
                 state = state["model"]
             if isinstance(state, dict) and "state_dict" in state:
                 state = state["state_dict"]
+            state = _resample_pos_embed(state, model)
             model.load_state_dict(state, strict=True)
             return model
 
@@ -322,6 +375,38 @@ class UNI2UPerNet(nn.Module):
         return logits
 
 
+def disable_bn_running_stats(model: nn.Module) -> int:
+    """Switch every BatchNorm in ``model`` to batch-statistics-only mode.
+
+    The UNI2+UPerNet checkpoints in this project were trained with
+    ``track_running_stats=False``, so their decode-head BatchNorms saved only
+    weight/bias -- no running_mean/running_var/num_batches_tracked. Rebuilding
+    with today's default BatchNorm and strict-loading such a checkpoint fails
+    on the missing buffers; loading non-strictly is worse, because eval() would
+    then normalize with freshly-initialized mean=0/var=1 and emit garbage.
+
+    Dropping the buffers restores the trained behaviour exactly: with
+    ``track_running_stats=False`` BatchNorm uses the current batch's statistics
+    in BOTH train and eval mode. Note the consequence -- these models' outputs
+    depend slightly on how patches are grouped into batches.
+
+    Returns the number of BatchNorm modules converted.
+    """
+    converted = 0
+    for module in model.modules():
+        if isinstance(module, nn.modules.batchnorm._BatchNorm):
+            module.track_running_stats = False
+            module.running_mean = None
+            module.running_var = None
+            module.num_batches_tracked = None
+            converted += 1
+    return converted
+
+
+def checkpoint_has_bn_running_stats(state_dict: dict) -> bool:
+    return any("running_mean" in key for key in state_dict)
+
+
 def build_uni2_upernet(
     num_classes: int = 6,
     *,
@@ -337,10 +422,13 @@ def build_uni2_upernet(
         freeze_backbone=freeze_backbone,
         checkpoint_path=checkpoint_path,
     )
+    # Belt-and-suspenders: any BN that slipped through still matches the recipe.
+    n_bn = disable_bn_running_stats(model)
     n_train = sum(p.numel() for p in model.parameters() if p.requires_grad)
     n_all = sum(p.numel() for p in model.parameters())
     print(
         f"Model: UNI2-h + UPerNet | params trainable={n_train:,} / total={n_all:,} "
-        f"| freeze_backbone={freeze_backbone} | model_size={model_size}"
+        f"| freeze_backbone={freeze_backbone} | model_size={model_size} "
+        f"| decode_bn_batch_stats={n_bn}"
     )
     return model
