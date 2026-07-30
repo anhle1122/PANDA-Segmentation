@@ -79,3 +79,34 @@ Gate first, then swap — so Rules only touch confident pixels.
 ## Option 3 chosen (2026-07-30)
 
 Implementing **Option 3**: seg CE+Dice + derived-ISUP-from-seg slide loss **and** separate feature grade head (λ=0.3/0.3). Slide-bag loader over existing patches; train job `5322322` / tag `pseudo_r1_opt3_slidebag`.
+
+### Soft ISUP proxy vs `derive_grade()` (important)
+
+**Loss path (`L_slide`) does NOT use `derive_grade()`.** That formula (5% min-area cutoff + hard sort primary/secondary) is non-differentiable. Instead `derived_isup_ce_from_seg_probs` builds soft ISUP logits from mean cancer fractions \((f_3,f_4,f_5)\):
+
+\[
+\begin{align*}
+\ell_0 &= 4(1 - t),\quad t=f_3+f_4+f_5\\
+\ell_1 &= 3f_3 - f_4 - f_5\\
+\ell_2 &= 2f_3 + 1.5f_4 - f_5\\
+\ell_3 &= 2f_4 + f_3 - 0.5f_5\\
+\ell_4 &= 2f_4 + 1.5f_5 + 0.5f_3\\
+\ell_5 &= 3f_5 + f_4
+\end{align*}
+\]
+
+then \(\mathrm{CE}(\ell, \mathrm{ISUP}_\mathrm{clinician})\).
+
+- **No** 5% soft-threshold, **no** soft-sort of primary/secondary.
+- `derive_grade()` is still called on **detached** probs only for logging the hard ISUP.
+- So \(L_\mathrm{slide}\) teaches a **related but different** signal than the validated diagnostic. Treat PANDA+ results with that caveat; a future iteration can replace this with a closer differentiable surrogate if needed.
+
+### Backbone / sampling
+
+- Backbone: **UNI2 pretrained** (`pretrained=True`); freeze 5 ep then LR×0.05 — schedule matches.
+- 256 slides/epoch: `DistributedSampler(shuffle=True)` + early stop at 256; **without replacement within an epoch**; reshuffled each epoch (`set_epoch`) so coverage rotates (~15 ep to see ~all 3746 once). Not a fixed 256-slide subset.
+
+### Decision framework vs Rules Round 1 (`wmfix`)
+
+Keep **isolated comparison** first (a): pick winner on PANDA+ (cancer / g5 / leak).  
+Only if Option 3 helps **and** Rules still look useful: consider (b) combine later (Rules-edited targets + dual ISUP losses). Do not merge designs before both report.
