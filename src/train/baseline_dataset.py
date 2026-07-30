@@ -63,6 +63,7 @@ class BaselinePatchDataset(Dataset):
         self._h5_index: dict[str, dict[tuple[int, int], int]] = {}
         self._mask_cache: dict[str, openslide.OpenSlide] = {}
         self._png_mask_cache: dict[str, np.ndarray] = {}
+        self._slide_cache: dict[str, openslide.OpenSlide] = {}
 
     def __len__(self) -> int:
         return len(self.df)
