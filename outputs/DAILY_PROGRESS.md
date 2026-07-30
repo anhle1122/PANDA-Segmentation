@@ -7,6 +7,50 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-07-30
+
+- **12:35 PDT** | Recovered wiped pseudo-label stack from Cursor local history + **committed** `e9add14` | Files were never in git and got deleted from disk | Restored `pseudo_label_rules/dataset`, `round_control`, ISUP-informed `losses`, `train_uni2_upernet`, Slurm/smoke/cache, Omar protocol docs. Stubs deleted. **Option 3 still blocked until smoke re-check; commit early going forward**
+
+### Open / next
+- [ ] Re-run `scripts/smoke_test_pseudo_label.py` to re-validate recovered code
+- [ ] PANDA+ eval on `pseudo_r1_isup_wmfix/best.pth`
+- [ ] Only then Option 3 slide-bag work
+- [ ] `git push` when ready
+
+---
+
+
+## 2026-07-29
+
+- **16:32 PDT** | Drafted Omar clarifying Q on grade vs seg slide loss | Disambiguate A/B/C before implement | Options: grade=derived-from-seg vs own classifier vs both (seg gets derived-ISUP loss + grade gets feature classifier)
+- **16:10 PDT** | Omar loss split clarified | Seg vs grade supervision | **Seg head:** CE+Dice **+ slide-level loss**; **Grade head:** grade loss only. Still not dual pixel-pseudo. Updated `OMAR_ROUND_PROTOCOL.md`
+- **14:10 PDT** | Omar protocol clarification recorded | Correct round-based A; reject mid-run B | Mask regenerates 1×/round; live honesty = **grade head/loss** every batch; one cleaned seg target (gate→ISUP swap); no fighting dual pixel loss; ≤2 rounds. Docs: `OMAR_ROUND_PROTOCOL.md`; EMA design marked **REJECTED**
+- **11:58 PDT** | Documented EMA + ISUP within-run design | Future path to refresh targets mid-run without discrete rounds | Later **rejected by Omar** — see 14:10; archived at `EMA_ISUP_WITHIN_RUN_DESIGN.md`
+- **11:52 PDT** | Confirmed `5307779` protocol isolation | Avoid confusing with buggy `5307347` | **Clean Round 1 baseline:** `seg_target=original_mask` only; ISUP direct target edit on **442** slides (`soft_tie` 62 + R2 9 + R3 371); **187** `wide_margin_unresolved` = no rewrite; **OEEM not wired**. Tag `pseudo_r1_isup_wmfix` ≠ `pseudo_r1_isup_seg` (5307347, cancelled @ ep12, used hard wide-margin rewrite)
+- **11:22 PDT** | Wide-margin Rule 1 → `wide_margin_unresolved` (no pixel rewrite) | No reliable pixel signal for real vs over-extended G3/G4; hard-correct erased true secondary | Cancelled `5307347` @ **ep12** (best cancer **0.570**); regen manifest **442** correcting / **187** unresolved; resubmit **`5307779`** tag `pseudo_r1_isup_wmfix`
+- **10:42 PDT** | Confirmed flagged→weight=1.0 rationale in code | Avoid Rules 1–3 vs OEEM fighting on same pixel | Comments on `oeem_weight_map_for_unflagged` updated. Real pixel-count probe (320 patches): when G5 present, n≥1024 always in sample (0% with n<32); raised default `min_pixels` **2→8**. Real OEEM *weight* means still need GPU (QOS-blocked behind `5307347`)
+- **10:28 PDT** | Researched OEEM exact formula from `vendor/OEEM` | Candidate within-round noise downweight vs `bias_too_heavy` | Real formula is \(\mathrm{softmax}(-\mathrm{CE})/\mathrm{mean}\) (Eq.6), **not** max-confidence. Notes: `outputs/pseudo_label/OEEM_FORMULA_NOTES.md`
+- **10:12 PDT** | Tightened `G3_G4_LEAK_TOLERANCE` 1.10 → **1.05** | Full-weight ISUP edits make uncaught bias more consequential than under 0.70/0.30 | cancer/g5 still trip on any decline; docstring states full-weight (not diluted) explicitly
+- **10:02 PDT** | Confirmed bias-fallback survives single-loss redesign | Full-weight ISUP edits | `apply_bias_fallback` kept; eval reports `g5_dice` + leak
+- **09:09 PDT** | BN-fix resubmit `5307259` | Failed run BN mismatch | Got to ep5 cancer **0.396**, unfreeze ep6 val finite — better than NaN run, superseded by loss redesign
+- **08:55 PDT** | Cancel `5305879` | val_loss NaN / cancer collapse | Architecture BN issue confirmed
+
+### Open / next
+- [ ] Let `5307779` finish as Round 1 mask-start Rules baseline (no grade head yet)
+- [ ] Fresh `--panda-plus-eval` on best; compare teacher A; `bias_too_heavy` gate
+- [ ] **Next design (Omar):** add live ISUP **grade head/loss**; Round 2 cleaned-target builder (agree→keep; low-conf disagree→ignore; conf disagree→ISUP referee); one seg loss; ≤2 rounds
+- [ ] Do **not** build EMA mid-run relabel (B) or fighting dual pixel losses
+
+---
+
+## 2026-07-28
+
+- **23:17 PDT** | Submit Round 1 pseudo-label train | Rules 1–3 + cache ready | Job **`5305879`** 2×H200; peak **0.411 @ ep3**; failed after unfreeze (see Jul 29)
+- **~22:30 PDT** | Source-pred cache + PART 8 smoke | Needed before Round 1 | 629 slides / 1.2G; 6/6 smoke PASSED
+- **Rule gate note** | Pure-pattern → Rule 3 not Rule 2 | R2=9, R3=371, R1=249
+
+---
+
 ## 2026-07-26
 
 - **12:15 PDT** | Restore wiped train/eval code from git + commit handoff pack | Disk had deleted `train_uni2_upernet.py`, `evaluate.py`, almost all `src/train/*` (still in git); R5 had failed earlier on a corrupted syntax line | Restored from `HEAD`; re-added `scripts/phase3_apply_corrections.py` (5% diagnostic); wrote root `README.md` for Omar pseudo-label-loop handoff; docs refreshed

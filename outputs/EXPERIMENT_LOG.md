@@ -7,15 +7,55 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## Code recovery (2026-07-30)
+
+**Why:** Pseudo-label Round 1 sources were never committed and were wiped from disk with other train files.
+
+**What:** Restored exact files from Cursor local History (not `.pyc`); committed as `e9add14` (`pseudo_label_rules.py`, `pseudo_label_dataset.py`, `round_control.py`, ISUP-informed losses, train CLI, Slurm/smoke/cache, protocol docs, round1 manifest).
+
+**Decision:** Do not start Option 3 until smoke tests pass on recovered code. Commit pseudo-label / Option-3 files early and often.
+
+
+## R6 — Pseudo-label Round 1 (Rules 1–3)
+
+**Why:** Replace A/B/C/D with iterative self-training; Round 1 trains from scratch with ISUP-informed single loss (Rules 1–3 rewrite flagged pixels in the original-mask seg target).
+
+**What:** Manifest initially 629 correcting / 3746 slides (R1: 249, R2: 9, R3: 371). Cached teacher A argmax for correcting slides. After protocol fix: wide-margin 2↔3 no longer hard-corrects; **187** slides tagged `wide_margin_unresolved` (empty flags; original mask kept). Correcting set = **442** (`rule1_soft_tie` 62 + R2 9 + R3 371).
+
+**Result (BN / loss path):**
+- `5305879` (`pseudo_r1`): cancelled; peak cancer **0.411 @ ep3**; decode BN running-stats → val NaN after unfreeze.
+- `5307259` (`pseudo_r1_bnfix`): dual-loss era; superseded.
+- `5307347` (`pseudo_r1_isup_seg`): ISUP single-loss + BN fix; reached **ep12**, best val cancer **0.570**; still used old `rule1_wide_margin` hard G3↔G4 rewrite → **cancelled**.
+- `5307779` (`pseudo_r1_isup_wmfix`): resubmitted with `wide_margin_unresolved` manifest. **Canonical Round 1 clean baseline** — do not conflate with `5307347`.
+
+**`5307779` isolation checklist (confirmed live from job log + script):**
+- `seg_target = original_mask` only (Round 1; no `--seg-target-dir`)
+- Loss = ISUP-informed single loss: Rules rewrite flagged pixels in that mask target (442 slides: soft_tie 62 + R2 9 + R3 371)
+- Wide-margin 187 slides: `wide_margin_unresolved`, empty flags, no rewrite
+- **OEEM deliberately OFF** (helpers exist in `losses.py`; not called from train loop) — Round 1 is Rules-only
+
+**Protocol decision (2026-07-29):** Wide-margin Rule 1 must **not** hard-correct over-extended G3/G4 pixels — no reliable pixel-level split of real secondary vs over-extension. Same effect as missing-class / `none`, but named `wide_margin_unresolved` for audit. Soft-tie (margin &lt; 0.15) unchanged.
+
+**Decision:** Train Round 1 on the unresolved-wide-margin manifest; judge vs teacher A on fresh `--panda-plus-eval` after `5307779`. Treat `5307347` as a discarded buggy protocol run only.
+
+**Omar protocol (2026-07-29) — supersedes EMA plan:** Round-based Option A only; **reject** mid-run self-relabel (B). Pixel mask regenerates once/round; continuous honesty = **live ISUP grade head/loss** every batch (not a second fighting pixel loss). Round 2+ target = cleaned map (agree→keep label; disagree+low conf→ignore; disagree+conf→ISUP referee then swap). See `outputs/pseudo_label/OMAR_ROUND_PROTOCOL.md`. Keep ≤2 rounds. Current `5307779` remains Round 1 mask-start baseline (grade head not yet built).
+
+
+
+---
+
 ## Active defaults (current)
 
 | Item | Value |
 |------|--------|
 | Architecture | UNI2-h + UPerNet |
 | Input | raw 512² (ImageNet norm) |
-| Loss | 0.5 CE + 0.5 soft Dice; adj soft α=0.15; optional g45 α=0.22 |
+| Loss (baseline) | 0.5 CE + 0.5 soft Dice; adj soft α=0.15–0.22 |
+| Loss (pseudo Round 1+) | `combined_loss` w_seg=0.70 / w_pseudo=0.30; Rules 1–3 |
 | Classes | 0 bg, 1 stroma, 2 benign, 3 G3, 4 G4, 5 G5 |
 | **Teacher / external report** | `…/h200x4/epoch_042_cancer_0.7420.pth` (PANDA+ cancer **0.554**) |
+| Pseudo Round 1 | Job `5307779`; tag `pseudo_r1_isup_wmfix`; ISUP full-weight edit; wide_margin_unresolved (no G3/G4 hard rewrite); BN batch-stats; freeze 5; backbone LR×0.05 |
+| Bias fallback | `round_control.apply_bias_fallback`; leak tolerance **1.05** (tightened from 1.10 after full-weight redesign); cancer/g5 any decline |
 | PANDA+ protocol | `gt≥2` only; benign/G3/G4/G5; `--panda-plus-eval` |
 | ISUP diagnostic `min_area_pct` | **0.05** |
 | Phase 3 ISUP-0 | **skip** |
