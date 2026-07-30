@@ -408,7 +408,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--num-workers", type=int, default=4)
     p.add_argument("--lambda-slide", type=float, default=0.3)
     p.add_argument("--lambda-grade", type=float, default=0.3)
-    p.add_argument("--adjacent-soft-alpha", type=float, default=0.22)
+    p.add_argument("--adjacent-soft-alpha", type=float, default=0.15)
     p.add_argument("--grad-clip", type=float, default=1.0)
     p.add_argument("--amp", action="store_true")
     p.add_argument("--allow-missing-h5", action="store_true")

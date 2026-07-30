@@ -80,7 +80,7 @@ CMD=(
   --slides-per-epoch "${SLIDES_PER_EPOCH}"
   --freeze-backbone-epochs "${FREEZE_EPOCHS}"
   --max-val-patches "${MAX_VAL_PATCHES}"
-  --adjacent-soft-alpha 0.22
+  --adjacent-soft-alpha 0.15
   --grad-clip 1.0
   --amp
   --allow-missing-h5

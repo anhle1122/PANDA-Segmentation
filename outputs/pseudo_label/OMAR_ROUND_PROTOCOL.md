@@ -78,7 +78,11 @@ Gate first, then swap — so Rules only touch confident pixels.
 
 ## Option 3 chosen (2026-07-30)
 
-Implementing **Option 3**: seg CE+Dice + derived-ISUP-from-seg slide loss **and** separate feature grade head (λ=0.3/0.3). Slide-bag loader over existing patches; train job `5322322` / tag `pseudo_r1_opt3_slidebag`.
+Implementing **Option 3**: seg CE+Dice + derived-ISUP-from-seg slide loss **and** separate feature grade head (λ=0.3/0.3). Slide-bag loader over existing patches; tag `pseudo_r1_opt3_slidebag`.
+
+**Current comparison target (2026-07-30):** Option 3 alone vs **teacher A** on PANDA+ (**0.554** cancer Dice / **0.528** G5 Dice). Adjacent soft **α=0.15** (teacher A recipe) — not 0.22. **Not** vs Round 1 `wmfix` for now.
+
+If a Rules-vs-Option-3 comparison is wanted later, run it as a **separate clean pair** with the **same α** on both arms. Comparing current Option 3 (α=0.15, no Rules) to `wmfix` (α=0.22, Rules) as-is would confound two variables.
 
 ### Soft ISUP proxy vs `derive_grade()` (important)
 
@@ -105,7 +109,7 @@ then \(\mathrm{CE}(\ell, \mathrm{ISUP}_\mathrm{clinician})\).
 
 | Outcome | Correct attribution |
 |---------|---------------------|
-| **Improves** (vs teacher A / wmfix) | The looser proxy is still a *useful* nudge (G3/G4/G5 mass balance), even without exact primary/secondary + 5% logic. Credit the dual-ISUP idea as directionally helpful. |
+| **Improves** (vs teacher A) | The looser proxy is still a *useful* nudge (G3/G4/G5 mass balance), even without exact primary/secondary + 5% logic. Credit the dual-ISUP idea as directionally helpful. |
 | **Flat or worse** | **Do not** conclude “dual ISUP losses don’t help.” Failure may be (a) the core idea, **or** (b) *this specific* loose proxy is a bad stand-in. |
 
 **Mandatory follow-up before declaring the idea dead:** if Option 3 underperforms, first upgrade \(L_\mathrm{slide}\) to a closer differentiable surrogate of `derive_grade()` (soft-sort / soft 5%-threshold primary–secondary), re-run, then reassess. Only after that upgrade fails is “slide-level ISUP-derived loss doesn’t help” a fair conclusion.
@@ -114,9 +118,8 @@ then \(\mathrm{CE}(\ell, \mathrm{ISUP}_\mathrm{clinician})\).
 
 - Backbone: **UNI2 pretrained** (`pretrained=True`); freeze 5 ep then LR×0.05 — matches; nothing to fix.
 - 256 slides/epoch: `DistributedSampler(shuffle=True)` + early stop at 256; without replacement within an epoch; reshuffled each epoch so coverage rotates (~15 ep ≈ full 3746 once). Reasonable unbiased scheme; **not 1:1 comparable** to patch-based “patches/epoch” budgets.
+- Adjacent soft: **α=0.15** (teacher A).
 
-### Decision framework vs Rules Round 1 (`wmfix`)
+### Later: Rules vs Option 3 (not current)
 
-- Option 3 has **no Rules 1–3** (isolated variable).
-- Keep **winner-then-maybe-combine**: (a) pick winner on PANDA+ (cancer / g5 / leak); (b) only if Option 3 helps **and** Rules still look useful, try Rules-edited targets + dual ISUP later.
-- Same isolate-one-variable discipline as R4 vs A/B, raw vs normalized.
+Deferred. If revisited, both arms must share the same α (and only then vary Rules on/off or dual-ISUP on/off). Do not compare current Option 3 to `wmfix` as a single-variable test.
