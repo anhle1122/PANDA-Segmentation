@@ -250,9 +250,11 @@ def run_eval(
     model.to(device)
     model.eval()
     if device.type == "cuda":
+        # Warmup with B>=2: decode BN uses batch stats (track_running_stats=False),
+        # so B=1 raises "Expected more than 1 value per channel".
         with torch.no_grad():
             with torch.autocast(device_type="cuda", enabled=amp):
-                _ = model(torch.zeros(1, 3, 512, 512, device=device))
+                _ = model(torch.zeros(2, 3, 512, 512, device=device))
 
     # PANDA+: score only labeled pixels (gt >= 2). No pred remapping.
     min_tgt = 2 if panda_plus_eval else 0
