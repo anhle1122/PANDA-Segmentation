@@ -14,10 +14,11 @@
 #SBATCH -o logs/train_opt3_slidebag_%j.out
 #SBATCH -e logs/train_opt3_slidebag_%j.err
 #SBATCH --time=7-00:00:00
-#SBATCH --cpus-per-task=4
-# Modest mem for shared 2-GPU. Exclusive 4-GPU:
+#SBATCH --cpus-per-task=8
+# 64G OOMed @ ~41min (val). Bags stack up to 323 patches/slide in RAM.
+# Modest share still OK at 200G on mixed H200 nodes; 4-GPU override higher.
 #   sbatch --gres=gpu:h200:4 --mem=400G --cpus-per-task=16 ...
-#SBATCH --mem=64G
+#SBATCH --mem=200G
 #SBATCH --gres=gpu:h200:2
 #SBATCH --requeue
 
@@ -100,6 +101,7 @@ CMD=(
   --max-val-patches "${MAX_VAL_PATCHES}"
   --adjacent-soft-alpha 0.15
   --grad-clip 1.0
+  --num-workers 2
   --amp
   --allow-missing-h5
 )

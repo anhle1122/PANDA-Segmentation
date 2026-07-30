@@ -82,8 +82,8 @@ fi
 
 submit_n() {
   local n="$1"
-  local mem="64G"
-  local cpus=4
+  local mem="200G"
+  local cpus=8
   if (( n >= 4 )); then mem="400G"; cpus=16; fi
   echo "Submitting ${n}xH200 mem=${mem} cpus=${cpus} opt3 (resume=${LATEST:+yes})"
   local common=(
