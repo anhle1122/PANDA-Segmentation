@@ -7,6 +7,10 @@ alwaysApply: true
 
 For this project (`/common/omarmlab/members/anh/panda_project`):
 
+## Session start (mandatory)
+
+Before any new work on this path: run `git status` and check for modified/untracked files under `src/train/` or `scripts/`. **Commit before proceeding** — do not leave pseudo-label / Option-3 sources only on disk (2026-07-30 wipe lesson).
+
 ## Files (always keep current)
 
 | File | Purpose |
