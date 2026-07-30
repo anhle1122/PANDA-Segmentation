@@ -11,7 +11,7 @@ Format: **Why → What → Result → Decision**
 
 **Why:** Omar Option 3 — seg CE+Dice + derived-ISUP-from-paint slide loss + separate grade-head loss; no Rules 1–3. Evaluate dual-ISUP on its own vs **teacher A**, not vs `wmfix`.
 
-**What:** Regroup existing patches (max 323/slide); micro-batch accumulate; λ_slide=λ_grade=0.3; tag `pseudo_r1_opt3_slidebag`. \(L_\mathrm{slide}\) = soft linear proxy on \((f_3,f_4,f_5)\), **not** differentiable `derive_grade()`. Backbone UNI2 pretrained + freeze 5 ep. 256 slides/ep. Adjacent soft **α=0.15** (teacher A; was 0.22 — changed 2026-07-30). Cancelled pending **5322322** (α=0.22); resubmit with 0.15.
+**What:** Regroup existing patches (max 323/slide); micro-batch accumulate; λ_slide=λ_grade=0.3; tag `pseudo_r1_opt3_slidebag`. \(L_\mathrm{slide}\) = soft linear proxy on \((f_3,f_4,f_5)\), **not** differentiable `derive_grade()`. Backbone UNI2 pretrained + freeze 5 ep. 256 slides/ep. Adjacent soft **α=0.15** (teacher A; was 0.22 — changed 2026-07-30). Cancelled pending **5322322** (α=0.22); resubmitted **5323010** with 0.15.
 
 **Result:** Pending H200. (`wmfix` PANDA+ cancer **0.508** recorded separately; not the Option 3 comparator.)
 
