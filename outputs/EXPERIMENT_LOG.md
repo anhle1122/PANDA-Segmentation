@@ -15,7 +15,7 @@ Format: **Why → What → Result → Decision**
 
 **Result:** First start **5323068** on cp098 (preemptable) crashed: BatchNorm N=1 on remainder micro-batch (`[1,512,1,1]`). Fixed by BN-safe pad (duplicate singleton → N=2; loss on real only). Resubmitted. H200 requires `--partition=preemptable --qos=part_preemptable` (gpu+normal → ReqNodeNotAvail). ETA rough **20–40 min/epoch** on 2× (~**1.5–3 days**/100 ep); refine after ep1. Monitor upgrades to 4× with `latest.pth` resume when a full node frees.
 
-**Decision:** Judge Option 3 vs teacher A PANDA+ **0.554** cancer / **0.528** G5. **Core hypothesis:** can \(L_\mathrm{slide}\) (λ=0.3, aggregate→seg grads) counteract original-mask G3/G4 bias under full CE+Dice, with no Rules? Post-run require teacher-A-style **G3→G4 leak** analysis, not Dice alone. If underperforms: (1) closer soft-`derive_grade` proxy, (2) higher λ / Rules+dual-ISUP same-α pair — before rejecting the idea.
+**Decision:** Judge Option 3 vs teacher A PANDA+ **0.554** cancer / **0.528** G5. **Core hypothesis:** can \(L_\mathrm{slide}\) (λ=0.3, aggregate→seg grads) counteract original-mask G3/G4 bias under full CE+Dice, with no Rules? Post-run require teacher-A-style **G3→G4 leak** analysis, not Dice alone. If underperforms / leak stuck: (1) **WeGleNet LSE** pool with val-tuned \(r\) (paper \(r=8\)) + consider secondary damp \(d\) (paper \(0.70\)) — current loss is mean-softmax + linear ISUP scores, not LSE; (2) soft-`derive_grade` surrogate; (3) higher λ / Rules+dual-ISUP same-α — before rejecting the idea.
 
 
 ## Code recovery (2026-07-30)

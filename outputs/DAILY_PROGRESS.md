@@ -9,7 +9,9 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-07-30
 
-- **14:28 PDT** | Option 3 **5323073** OOM-killed @ 41min; resubmit 200G | 64G too small (slide bags + val); SIGKILL/oom_kill; no `latest.pth` | Resubmitted **5323912** preemptable 2×H200 `--mem=200G`, workers=2. Cold restart (no ckpt).
+- **14:35 PDT** | Documented WeGleNet LSE as next \(L_\mathrm{slide}\) upgrade | Our linear soft-ISUP ≠ published LSE (\(r=8\)) / secondary damp \(d=0.70\) | Keep current run; after PANDA+ + leak, replace mean+linear with tunable LSE (+ optional \(d\)). Stub `aggregate_logsumexp_logits` exists but unwired / incomplete. Protocol updated.
+- **14:33 PDT** | Option 3 mem/sched fix: 110G + max 128 patches/slide | 200G couldn’t land on cp098 (FreeMem ~118G) despite 2 free H200s | Cancelled 200G pending; **5324107** @ 110G + `--max-patches-per-slide 128` (median was 119).
+- **14:28 PDT** | Option 3 **5323073** OOM-killed @ 41min; resubmit | 64G too small (slide bags + val); SIGKILL/oom_kill; no `latest.pth` | Cold restart path; later retuned to 110G+128 cap.
 - **14:00 PDT** | Flagged Option 3 core hypothesis: mask CE vs \(L_\mathrm{slide}\) tension | Original masks uncorrected; CE@1.0 can reinforce G3/G4 bias while slide@0.3 pulls aggregate ISUP | Documented in `OMAR_ROUND_PROTOCOL.md`. Post-run: teacher-A-style G3→G4 leak analysis (not Dice alone). \(L_\mathrm{slide}\) grads *do* reach seg pixels — open Q is whether λ=0.3 wins.
 - **13:43 PDT** | Option 3 BN N=1 crash fix + resubmit 2×H200 | Remainder micro-batch size 1 broke train BN | Pad singleton→2 (loss on real); resubmit preemptable. Prior **5323068** failed @ first steps. 3‑min monitor armed. ETA ~20–40 min/ep → **~1.5–3 days**/100 ep.
 - **13:40 PDT** | Option 3 started 2×H200 on cp098 (preemptable) | `gpu`+normal → ReqNodeNotAvail on all H200 | Job **5323068** (later crashed BN); need preemptable QOS; auto-resume `latest.pth`.

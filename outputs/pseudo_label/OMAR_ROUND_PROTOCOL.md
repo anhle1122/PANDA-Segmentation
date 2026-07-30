@@ -127,7 +127,26 @@ On bias slides these can **oppose**: mask says “paint G4” while slide loss s
 | **Improves** Dice but leak unchanged/worse | May be generic fit, not bias correction — don’t over-claim dual-ISUP fixed G3/G4. |
 | **Flat or worse** | **Do not** conclude “dual ISUP doesn’t help.” May be (a) idea, (b) loose soft proxy, or (c) λ=0.3 too weak vs full mask CE+Dice. |
 
-**Mandatory follow-ups before declaring the idea dead (order):** (1) soft-sort / soft 5%-threshold \(L_\mathrm{slide}\) closer to `derive_grade()`; (2) try higher λ_slide or combine with Rules (same-α pair). Only then reject “slide-level ISUP-derived loss.”
+**Mandatory follow-ups before declaring the idea dead (order):** (1) align \(L_\mathrm{slide}\) with WeGleNet LSE (below) and/or soft-sort / soft 5%-threshold closer to `derive_grade()`; (2) try higher λ_slide or combine with Rules (same-α pair). Only then reject “slide-level ISUP-derived loss.”
+
+### WeGleNet LSE vs our current \(L_\mathrm{slide}\) (planned upgrade — not in live job)
+
+Silva-Rodríguez et al. 2021 (WeGleNet) — already cited in our protocol notes — uses **log-sum-exp pooling** (their Eq. 2), not our linear soft-ISUP scores:
+
+\[
+p_{\mathrm{LSE}} = \frac{1}{r}\log\Big(\frac{1}{S}\sum_{ij}\exp(r\, x_{ij})\Big)
+\]
+
+- \(r\to\infty\): global max; \(r\to 0\): global average; **they tuned \(r=8\) on val**.
+- Also **\(d=0.70\)** (Eq. 3): suppress secondary-pattern confidence in global scoring — published fix for the same “model over-represents secondary / G3→G4-ish” failure mode we measured.
+
+| | WeGleNet | Option 3 **now** (`5324107`) |
+|--|--|--|
+| Pixel→slide pool | LSE, tunable \(r\) | **Mean softmax** over bag (`aggregate_softmax_probs`) |
+| ISUP from paint | From LSE global scores | **Fixed linear scores** on \((f_3,f_4,f_5)\) |
+| Secondary damp | \(d\) tuned on val | None |
+
+Code note: `aggregate_logsumexp_logits` in `grade_head.py` is a **stub** (plain `logsumexp`, no \(r\), no \(1/S\)) and is **not wired** into the train loss. Do **not** swap mid-run; after current Option 3 reports (Dice + G3→G4 leak), prefer LSE+\(r\) (and consider \(d\)) tuned on **our** val — same discipline as WeGleNet.
 
 ### Backbone / sampling (settled — no further action)
 
