@@ -105,14 +105,29 @@ then \(\mathrm{CE}(\ell, \mathrm{ISUP}_\mathrm{clinician})\).
 - `derive_grade()` is still called on **detached** probs only for logging the hard ISUP.
 - So \(L_\mathrm{slide}\) teaches a **related but different** signal than the validated diagnostic.
 
+### Core tension — \(L_\mathrm{CE+Dice}\) vs \(L_\mathrm{slide}\) (flag before results)
+
+Option 3 uses **original uncorrected masks** (no Rules 1–3). QC’s old “grade exists somewhere” check does **not** guarantee mask proportions match clinical ISUP — that is why Rules/wmfix exist.
+
+| Loss | Pull on seg head |
+|------|------------------|
+| \(L_\mathrm{CE+Dice}\) (weight **1.0**) | Match the **mask** pixel-by-pixel — including known G3↔G4 bias |
+| \(L_\mathrm{slide}\) (λ=**0.3**) | Match clinician ISUP via **bag aggregate** of seg probs — gradient **does** flow into pixel logits, but only **indirectly** (which pixels to fix is not localized) |
+| \(L_\mathrm{grade}\) (λ=**0.3**) | Feature grade head only — does **not** paint pixels |
+
+On bias slides these can **oppose**: mask says “paint G4” while slide loss says “aggregate is too G4-heavy.” Nothing in Option 3 prevents that conflict — **that is the hypothesis**: can slide-level ISUP alone (no pixel Rules) pull the model off a flawed mask?
+
+**Post-run (mandatory):** same teacher-A style confusion / **G3→G4 leak-ratio** on Option 3 PANDA+ (and in-domain if useful). Ask: did λ=0.3 \(L_\mathrm{slide}\) meaningfully counteract mask bias, or did full-weight CE+Dice win?
+
 ### How to interpret Option 3 PANDA+ (write down before results)
 
 | Outcome | Correct attribution |
 |---------|---------------------|
-| **Improves** (vs teacher A) | The looser proxy is still a *useful* nudge (G3/G4/G5 mass balance), even without exact primary/secondary + 5% logic. Credit the dual-ISUP idea as directionally helpful. |
-| **Flat or worse** | **Do not** conclude “dual ISUP losses don’t help.” Failure may be (a) the core idea, **or** (b) *this specific* loose proxy is a bad stand-in. |
+| **Improves** (vs teacher A) + leak improves | Slide ISUP pull was strong enough to matter despite mask tension / loose proxy. |
+| **Improves** Dice but leak unchanged/worse | May be generic fit, not bias correction — don’t over-claim dual-ISUP fixed G3/G4. |
+| **Flat or worse** | **Do not** conclude “dual ISUP doesn’t help.” May be (a) idea, (b) loose soft proxy, or (c) λ=0.3 too weak vs full mask CE+Dice. |
 
-**Mandatory follow-up before declaring the idea dead:** if Option 3 underperforms, first upgrade \(L_\mathrm{slide}\) to a closer differentiable surrogate of `derive_grade()` (soft-sort / soft 5%-threshold primary–secondary), re-run, then reassess. Only after that upgrade fails is “slide-level ISUP-derived loss doesn’t help” a fair conclusion.
+**Mandatory follow-ups before declaring the idea dead (order):** (1) soft-sort / soft 5%-threshold \(L_\mathrm{slide}\) closer to `derive_grade()`; (2) try higher λ_slide or combine with Rules (same-α pair). Only then reject “slide-level ISUP-derived loss.”
 
 ### Backbone / sampling (settled — no further action)
 

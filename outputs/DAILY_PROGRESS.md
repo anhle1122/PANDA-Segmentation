@@ -9,6 +9,7 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-07-30
 
+- **14:00 PDT** | Flagged Option 3 core hypothesis: mask CE vs \(L_\mathrm{slide}\) tension | Original masks uncorrected; CE@1.0 can reinforce G3/G4 bias while slide@0.3 pulls aggregate ISUP | Documented in `OMAR_ROUND_PROTOCOL.md`. Post-run: teacher-A-style G3→G4 leak analysis (not Dice alone). \(L_\mathrm{slide}\) grads *do* reach seg pixels — open Q is whether λ=0.3 wins.
 - **13:43 PDT** | Option 3 BN N=1 crash fix + resubmit 2×H200 | Remainder micro-batch size 1 broke train BN | Pad singleton→2 (loss on real); resubmit preemptable. Prior **5323068** failed @ first steps. 3‑min monitor armed. ETA ~20–40 min/ep → **~1.5–3 days**/100 ep.
 - **13:40 PDT** | Option 3 started 2×H200 on cp098 (preemptable) | `gpu`+normal → ReqNodeNotAvail on all H200 | Job **5323068** (later crashed BN); need preemptable QOS; auto-resume `latest.pth`.
 - **13:37 PDT** | Option 3 → **2×H200** + mem fix + auto-resume monitor | 4× pending stuck; shared-node mem too high at first | Cancelled prior 4× pending; scripts: `monitor_opt3_h200.sh`, Slurm auto-resume.
