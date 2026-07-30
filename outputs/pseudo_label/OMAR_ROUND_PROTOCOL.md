@@ -99,14 +99,24 @@ then \(\mathrm{CE}(\ell, \mathrm{ISUP}_\mathrm{clinician})\).
 
 - **No** 5% soft-threshold, **no** soft-sort of primary/secondary.
 - `derive_grade()` is still called on **detached** probs only for logging the hard ISUP.
-- So \(L_\mathrm{slide}\) teaches a **related but different** signal than the validated diagnostic. Treat PANDA+ results with that caveat; a future iteration can replace this with a closer differentiable surrogate if needed.
+- So \(L_\mathrm{slide}\) teaches a **related but different** signal than the validated diagnostic.
 
-### Backbone / sampling
+### How to interpret Option 3 PANDA+ (write down before results)
 
-- Backbone: **UNI2 pretrained** (`pretrained=True`); freeze 5 ep then LR×0.05 — schedule matches.
-- 256 slides/epoch: `DistributedSampler(shuffle=True)` + early stop at 256; **without replacement within an epoch**; reshuffled each epoch (`set_epoch`) so coverage rotates (~15 ep to see ~all 3746 once). Not a fixed 256-slide subset.
+| Outcome | Correct attribution |
+|---------|---------------------|
+| **Improves** (vs teacher A / wmfix) | The looser proxy is still a *useful* nudge (G3/G4/G5 mass balance), even without exact primary/secondary + 5% logic. Credit the dual-ISUP idea as directionally helpful. |
+| **Flat or worse** | **Do not** conclude “dual ISUP losses don’t help.” Failure may be (a) the core idea, **or** (b) *this specific* loose proxy is a bad stand-in. |
+
+**Mandatory follow-up before declaring the idea dead:** if Option 3 underperforms, first upgrade \(L_\mathrm{slide}\) to a closer differentiable surrogate of `derive_grade()` (soft-sort / soft 5%-threshold primary–secondary), re-run, then reassess. Only after that upgrade fails is “slide-level ISUP-derived loss doesn’t help” a fair conclusion.
+
+### Backbone / sampling (settled — no further action)
+
+- Backbone: **UNI2 pretrained** (`pretrained=True`); freeze 5 ep then LR×0.05 — matches; nothing to fix.
+- 256 slides/epoch: `DistributedSampler(shuffle=True)` + early stop at 256; without replacement within an epoch; reshuffled each epoch so coverage rotates (~15 ep ≈ full 3746 once). Reasonable unbiased scheme; **not 1:1 comparable** to patch-based “patches/epoch” budgets.
 
 ### Decision framework vs Rules Round 1 (`wmfix`)
 
-Keep **isolated comparison** first (a): pick winner on PANDA+ (cancer / g5 / leak).  
-Only if Option 3 helps **and** Rules still look useful: consider (b) combine later (Rules-edited targets + dual ISUP losses). Do not merge designs before both report.
+- Option 3 has **no Rules 1–3** (isolated variable).
+- Keep **winner-then-maybe-combine**: (a) pick winner on PANDA+ (cancer / g5 / leak); (b) only if Option 3 helps **and** Rules still look useful, try Rules-edited targets + dual ISUP later.
+- Same isolate-one-variable discipline as R4 vs A/B, raw vs normalized.

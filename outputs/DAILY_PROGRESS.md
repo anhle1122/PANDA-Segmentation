@@ -9,12 +9,14 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-07-30
 
+- **13:06 PDT** | Documented Option 3 result-attribution caveat | Looser \(L_\mathrm{slide}\) ≠ `derive_grade()` — avoid misreading a null/negative PANDA+ | If underperforms: try soft-sort/soft-threshold upgrade **before** concluding dual ISUP doesn't help. Train/Slurm already in git (`9d282e8`). Protocol: `OMAR_ROUND_PROTOCOL.md`
 - **12:55 PDT** | Full smoke re-validated recovered tree + started Option 3 | Confirm latest validated Rules stack before slide-bag work | Manifest **62/187** of 249; smoke **6/6 PASSED**; OEEM flagged weight=1.0 OK; session git reminder committed; PANDA+ eval job **5322295**; Option 3 train **5322322** tag `pseudo_r1_opt3_slidebag` (λ=0.3/0.3)
 - **12:35 PDT** | Recovered wiped pseudo-label stack from Cursor local history + **committed** `e9add14` | Files were never in git and got deleted from disk | Restored `pseudo_label_rules/dataset`, `round_control`, ISUP-informed `losses`, `train_uni2_upernet`, Slurm/smoke/cache, Omar protocol docs. Stubs deleted. **Option 3 still blocked until smoke re-check; commit early going forward**
 
 ### Open / next
 - [x] Smoke re-validate recovered Rules stack (6/6 + 62/187 + OEEM flag=1.0)
-- [ ] Await PANDA+ eval **5322295** on `pseudo_r1_isup_wmfix/best.pth`
+- [x] Document soft-ISUP caveat + winner-then-combine framework
+- [ ] Await PANDA+ eval on `pseudo_r1_isup_wmfix/best.pth` (resubmit **5322326** if needed)
 - [ ] Await Option 3 train **5322322** (`pseudo_r1_opt3_slidebag`)
 - [ ] `git push` when ready
 
