@@ -74,3 +74,8 @@ Gate first, then swap — so Rules only touch confident pixels.
 - Finish measuring Round 1 Rules-only baseline (`5307779`) — still valid as Round 1 start.
 - Do **not** implement EMA within-run refresh.
 - Next design work (after Round 1): grade head + slide-level ISUP loss; Round 2 cleaned-target builder in Omar’s order; single seg loss on that map.
+
+
+## Option 3 chosen (2026-07-30)
+
+Implementing **Option 3**: seg CE+Dice + derived-ISUP-from-seg slide loss **and** separate feature grade head (λ=0.3/0.3). Slide-bag loader over existing patches; train job `5322322` / tag `pseudo_r1_opt3_slidebag`.

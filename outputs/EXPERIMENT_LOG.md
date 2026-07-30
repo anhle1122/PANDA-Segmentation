@@ -7,6 +7,15 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## Option 3 — slide-bag + dual ISUP (started 2026-07-30)
+
+**Why:** Omar Option 3 — seg CE+Dice + derived-ISUP-from-paint slide loss + separate grade-head loss; round-based bags.
+
+**What:** Regroup existing patches (max 323/slide); micro-batch accumulate; λ_slide=λ_grade=0.3; tag `pseudo_r1_opt3_slidebag`; job **5322322**. Foundation: recovered Rules stack smoke 6/6; Round 1 Rules baseline PANDA+ eval **5322295** on `pseudo_r1_isup_wmfix/best.pth`.
+
+**Decision:** Proceed on committed foundation; commit Option 3 pieces incrementally (done: dataset, grade head, trainer/Slurm).
+
+
 ## Code recovery (2026-07-30)
 
 **Why:** Pseudo-label Round 1 sources were never committed and were wiped from disk with other train files.
