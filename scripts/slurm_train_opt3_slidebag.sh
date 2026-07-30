@@ -2,14 +2,23 @@
 # Option 3: slide-bag training + dual ISUP losses
 #   L = CE+Dice + λ_slide * derived_ISUP_from_seg + λ_grade * grade_head
 # Args: [epochs] [resume_checkpoint]
+# Override GPU count at submit time, e.g.:
+#   sbatch --gres=gpu:h200:2 scripts/slurm_train_opt3_slidebag.sh
+#   sbatch --gres=gpu:h200:4 scripts/slurm_train_opt3_slidebag.sh
+# Auto-resumes from outputs/checkpoints/.../latest.pth when present (unless $2 set).
 #SBATCH --job-name=opt3_slidebag
-#SBATCH --partition=gpu
+# H200 currently needs preemptable + part_preemptable (gpu+normal →
+# ReqNodeNotAvail on cp095-098). Preemptable ⇒ requeue + auto-resume.
+#SBATCH --partition=preemptable
+#SBATCH --qos=part_preemptable
 #SBATCH -o logs/train_opt3_slidebag_%j.out
 #SBATCH -e logs/train_opt3_slidebag_%j.err
 #SBATCH --time=7-00:00:00
-#SBATCH --cpus-per-task=32
-#SBATCH --mem=500G
-#SBATCH --gres=gpu:h200:4
+#SBATCH --cpus-per-task=4
+# Modest mem for shared 2-GPU. Exclusive 4-GPU:
+#   sbatch --gres=gpu:h200:4 --mem=400G --cpus-per-task=16 ...
+#SBATCH --mem=64G
+#SBATCH --gres=gpu:h200:2
 #SBATCH --requeue
 
 set -euo pipefail
@@ -55,7 +64,7 @@ export TORCH_CUDNN_ENABLED="${TORCH_CUDNN_ENABLED:-0}"
 
 EPOCHS="${1:-100}"
 RESUME="${2:-}"
-NGPU="${SLURM_GPUS_ON_NODE:-4}"
+NGPU="${SLURM_GPUS_ON_NODE:-${SLURM_JOB_NUM_GPUS:-2}}"
 RUN_TAG="${RUN_TAG:-pseudo_r1_opt3_slidebag}"
 UNI2_CKPT="${UNI2_CKPT:-${PANDA_PROJECT}/assets/ckpts/uni2-h/pytorch_model.bin}"
 LAMBDA_SLIDE="${LAMBDA_SLIDE:-0.3}"
@@ -64,9 +73,18 @@ MICRO_BS="${MICRO_BS:-4}"
 SLIDES_PER_EPOCH="${SLIDES_PER_EPOCH:-256}"
 FREEZE_EPOCHS="${FREEZE_EPOCHS:-5}"
 MAX_VAL_PATCHES="${MAX_VAL_PATCHES:-20000}"
+CKPT_DIR="${PANDA_PROJECT}/outputs/checkpoints/uni2_upernet_raw_${RUN_TAG}"
+LATEST="${CKPT_DIR}/latest.pth"
+
+# Prefer explicit $2; else auto-resume so 2↔4 GPU upgrades never restart from scratch.
+if [[ -z "${RESUME}" && -f "${LATEST}" ]]; then
+  RESUME="${LATEST}"
+  echo "Auto-resume from ${RESUME}"
+fi
 
 echo "=== $(date) | OPTION 3 slide-bag | ${NGPU}x H200 | tag=${RUN_TAG} ==="
 echo "λ_slide=${LAMBDA_SLIDE} λ_grade=${LAMBDA_GRADE} micro_bs=${MICRO_BS} slides/ep=${SLIDES_PER_EPOCH}"
+echo "resume=${RESUME:-none}"
 
 CMD=(
   torchrun --standalone --nproc_per_node="${NGPU}"
@@ -96,7 +114,7 @@ echo "${CMD[*]}"
 "${CMD[@]}"
 
 echo "=== $(date) | OPTION 3 training finished ==="
-BEST="${PANDA_PROJECT}/outputs/checkpoints/uni2_upernet_raw_${RUN_TAG}/best.pth"
+BEST="${CKPT_DIR}/best.pth"
 if [[ -f "${BEST}" ]]; then
   echo "Submitting PANDA+ eval on ${BEST}"
   sbatch scripts/slurm_eval_uni2_panda_plus.sh "${BEST}" || true

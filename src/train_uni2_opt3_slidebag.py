@@ -236,28 +236,44 @@ def train(args: argparse.Namespace) -> None:
             feat_chunks: list[torch.Tensor] = []
             pixel_loss_acc = 0.0
 
+            def _bn_safe(t: torch.Tensor) -> tuple[torch.Tensor, int]:
+                """BatchNorm (train) needs N>1; duplicate a singleton patch if needed."""
+                n = int(t.shape[0])
+                if n >= 2:
+                    return t, n
+                return torch.cat([t, t], dim=0), n
+
             n_micro = int(math.ceil(n_patches / micro))
             for m_i in range(n_micro):
                 sl = slice(m_i * micro, min((m_i + 1) * micro, n_patches))
+                n_real = sl.stop - sl.start
+                imgs_b, _ = _bn_safe(images[sl])
+                masks_b, _ = _bn_safe(masks[sl])
+                weights_b, _ = _bn_safe(weights[sl])
                 with torch.cuda.amp.autocast(enabled=use_amp):
-                    logits, feats, _grade = model(images[sl])
+                    logits, feats, _grade = model(imgs_b)
+                    # Loss / bag stats only on real patches (ignore BN pad)
                     p_loss = segmentation_loss(
-                        logits,
-                        masks[sl],
-                        weights[sl],
+                        logits[:n_real],
+                        masks_b[:n_real],
+                        weights_b[:n_real],
                         class_weights,
                         adjacent_soft_alpha=args.adjacent_soft_alpha,
                     )
-                    scaled = p_loss * ((sl.stop - sl.start) / n_patches)
+                    scaled = p_loss * (n_real / n_patches)
                 scaler.scale(scaled).backward()
                 pixel_loss_acc += float(scaled.detach().item())
-                logits_chunks.append(logits.detach())
-                feat_chunks.append(feats.detach())
+                logits_chunks.append(logits[:n_real].detach())
+                feat_chunks.append(feats[:n_real].detach())
 
             # Differentiable slide losses on a random subset (+ bag-mean prior)
             idx = torch.randperm(n_patches, device=device)[: min(micro, n_patches)]
+            imgs_g, n_g = _bn_safe(images[idx])
             with torch.cuda.amp.autocast(enabled=use_amp):
-                logits_g, feats_g, grade_live = model(images[idx])
+                logits_g, feats_g, grade_live = model(imgs_g)
+                logits_g = logits_g[:n_g]
+                feats_g = feats_g[:n_g]
+                grade_live = grade_live[:n_g]
                 mean_live = torch.softmax(logits_g.float(), dim=1).mean(dim=(0, 2, 3))
                 bag_mean = aggregate_softmax_probs(logits_chunks).to(mean_live.device)
                 mean_probs = 0.5 * mean_live + 0.5 * bag_mean

@@ -11,9 +11,9 @@ Format: **Why → What → Result → Decision**
 
 **Why:** Omar Option 3 — seg CE+Dice + derived-ISUP-from-paint slide loss + separate grade-head loss; no Rules 1–3. Evaluate dual-ISUP on its own vs **teacher A**, not vs `wmfix`.
 
-**What:** Regroup existing patches (max 323/slide); micro-batch accumulate; λ_slide=λ_grade=0.3; tag `pseudo_r1_opt3_slidebag`. \(L_\mathrm{slide}\) = soft linear proxy on \((f_3,f_4,f_5)\), **not** differentiable `derive_grade()`. Backbone UNI2 pretrained + freeze 5 ep. 256 slides/ep. Adjacent soft **α=0.15** (teacher A; was 0.22 — changed 2026-07-30). Cancelled pending **5322322** (α=0.22); resubmitted **5323010** with 0.15.
+**What:** Regroup existing patches (max 323/slide); micro-batch accumulate; λ_slide=λ_grade=0.3; tag `pseudo_r1_opt3_slidebag`. \(L_\mathrm{slide}\) = soft linear proxy on \((f_3,f_4,f_5)\), **not** differentiable `derive_grade()`. Backbone UNI2 pretrained + freeze 5 ep. 256 slides/ep/rank. Adjacent soft **α=0.15**. Train on **2×H200** (`--mem=120G`) to share mixed nodes; Slurm auto-resumes `latest.pth`. Monitor `scripts/monitor_opt3_h200.sh` upgrades to 4×+400G when a full node frees (resume, never scratch).
 
-**Result:** Pending H200. (`wmfix` PANDA+ cancer **0.508** recorded separately; not the Option 3 comparator.)
+**Result:** First start **5323068** on cp098 (preemptable) crashed: BatchNorm N=1 on remainder micro-batch (`[1,512,1,1]`). Fixed by BN-safe pad (duplicate singleton → N=2; loss on real only). Resubmitted. H200 requires `--partition=preemptable --qos=part_preemptable` (gpu+normal → ReqNodeNotAvail). ETA rough **20–40 min/epoch** on 2× (~**1.5–3 days**/100 ep); refine after ep1. Monitor upgrades to 4× with `latest.pth` resume when a full node frees.
 
 **Decision:** Judge Option 3 vs teacher A PANDA+ **0.554** cancer / **0.528** G5. If underperforms: soft-sort/soft-threshold upgrade before rejecting dual-ISUP. Rules-vs-Option-3 later only as a same-α clean pair.
 

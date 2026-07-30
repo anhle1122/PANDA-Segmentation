@@ -9,6 +9,9 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-07-30
 
+- **13:43 PDT** | Option 3 BN N=1 crash fix + resubmit 2×H200 | Remainder micro-batch size 1 broke train BN | Pad singleton→2 (loss on real); resubmit preemptable. Prior **5323068** failed @ first steps. 3‑min monitor armed. ETA ~20–40 min/ep → **~1.5–3 days**/100 ep.
+- **13:40 PDT** | Option 3 started 2×H200 on cp098 (preemptable) | `gpu`+normal → ReqNodeNotAvail on all H200 | Job **5323068** (later crashed BN); need preemptable QOS; auto-resume `latest.pth`.
+- **13:37 PDT** | Option 3 → **2×H200** + mem fix + auto-resume monitor | 4× pending stuck; shared-node mem too high at first | Cancelled prior 4× pending; scripts: `monitor_opt3_h200.sh`, Slurm auto-resume.
 - **13:29 PDT** | Option 3 α→**0.15**; cancel/resubmit vs teacher A | Not comparing to `wmfix` now — drop 0.22 confound | Cancelled **5322322**; resubmitted with adj soft 0.15 (teacher A). Frame: Option 3 vs A (PANDA+ 0.554 / G5 0.528). Rules-vs-Opt3 later needs same-α pair. Protocol + Slurm/train defaults updated.
 - **13:06 PDT** | Documented Option 3 result-attribution caveat | Looser \(L_\mathrm{slide}\) ≠ `derive_grade()` — avoid misreading a null/negative PANDA+ | If underperforms: try soft-sort/soft-threshold upgrade **before** concluding dual ISUP doesn't help. Train/Slurm already in git (`9d282e8`). Protocol: `OMAR_ROUND_PROTOCOL.md`
 - **12:55 PDT** | Full smoke re-validated recovered tree + started Option 3 | Confirm latest validated Rules stack before slide-bag work | Manifest **62/187** of 249; smoke **6/6 PASSED**; OEEM flagged weight=1.0 OK; session git reminder committed; PANDA+ eval job **5322295**; Option 3 train **5322322** tag `pseudo_r1_opt3_slidebag` (λ=0.3/0.3)
@@ -18,7 +21,7 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 - [x] Smoke re-validate recovered Rules stack (6/6 + 62/187 + OEEM flag=1.0)
 - [x] Document soft-ISUP caveat + winner-then-combine framework
 - [ ] Await PANDA+ eval on `pseudo_r1_isup_wmfix/best.pth` (resubmit **5322326** if needed)
-- [ ] Await Option 3 train **5323010** (`pseudo_r1_opt3_slidebag`, α=0.15)
+- [ ] Await Option 3 train (2×H200, α=0.15; monitor may upgrade→4× with resume)
 - [ ] `git push` when ready
 
 ---
