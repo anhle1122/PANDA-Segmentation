@@ -1,12 +1,9 @@
 """Slide-bag dataset for Option 3 (MIL-style) training.
 
 Regroups existing patch rows in ``panda_train.csv`` by ``image_id``. Each
-``__getitem__`` returns **one slide**: a variable-length bag of patches plus
-the clinician ISUP label. No WSI re-extraction.
-
-The training loop is expected to micro-batch the bag (e.g. 4–8 patches) and
-accumulate gradients, then compute slide-level ISUP losses once the full bag
-has been painted.
+``__getitem__`` returns **one slide**: by default only patch *indices* + ISUP
+(lazy), so the train loop can micro-batch-load without holding a full 323-patch
+tensor in RAM. No WSI re-extraction.
 """
 
 from __future__ import annotations
@@ -16,6 +13,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import torch
+from torch import Tensor
 from torch.utils.data import Dataset
 
 from patch_utils import PROJECT
@@ -25,16 +23,33 @@ DEFAULT_METADATA = PROJECT / "data" / "train.csv"
 DEFAULT_SPLIT = PROJECT / "outputs" / "splits" / "panda_train.csv"
 
 
+def load_patch_batch(
+    base: BaselinePatchDataset, patch_idxs: list[int] | Tensor
+) -> tuple[Tensor, Tensor, Tensor]:
+    """Load a micro-batch of patches from the baseline dataset."""
+    if isinstance(patch_idxs, Tensor):
+        patch_idxs = [int(i) for i in patch_idxs.tolist()]
+    images, masks, weights = [], [], []
+    for pi in patch_idxs:
+        image_t, mask_t, weight_t = base[int(pi)]
+        images.append(image_t)
+        masks.append(mask_t)
+        weights.append(weight_t)
+    return (
+        torch.stack(images, dim=0),
+        torch.stack(masks, dim=0),
+        torch.stack(weights, dim=0),
+    )
+
+
 class SlideBagPatchDataset(Dataset):
     """One item = one slide bag.
 
-    Returns a dict:
-      image_id: str
-      images:   FloatTensor (N, 3, H, W)
-      masks:    LongTensor  (N, H, W)
-      weights:  FloatTensor (N, H, W)
-      isup:     LongTensor  scalar clinician ISUP (0–5)
-      coords:   LongTensor  (N, 2)  optional debug
+    Lazy mode (default) returns:
+      image_id, patch_indices (LongTensor N,), isup
+
+    Eager mode (``lazy=False``) also stacks images/masks/weights — only for
+    small smokes; do not use for full training (OOM risk).
     """
 
     def __init__(
@@ -43,11 +58,13 @@ class SlideBagPatchDataset(Dataset):
         *,
         metadata_csv: str | Path = DEFAULT_METADATA,
         max_patches_per_slide: int | None = None,
+        lazy: bool = True,
         seed: int = 42,
         **baseline_kwargs,
     ) -> None:
         self.base = BaselinePatchDataset(split_csv, **baseline_kwargs)
         self.max_patches_per_slide = max_patches_per_slide
+        self.lazy = lazy
         self.rng = np.random.default_rng(seed)
 
         meta = pd.read_csv(metadata_csv, dtype={"image_id": str})
@@ -62,7 +79,6 @@ class SlideBagPatchDataset(Dataset):
         groups: dict[str, list[int]] = {}
         for i, sid in enumerate(df["image_id"].tolist()):
             groups.setdefault(sid, []).append(i)
-        # Stable slide order
         self.slide_ids = sorted(groups.keys())
         self.indices_by_slide = {s: groups[s] for s in self.slide_ids}
 
@@ -76,8 +92,7 @@ class SlideBagPatchDataset(Dataset):
     def __len__(self) -> int:
         return len(self.slide_ids)
 
-    def __getitem__(self, idx: int) -> dict:
-        slide_id = self.slide_ids[idx]
+    def _select_indices(self, slide_id: str) -> list[int]:
         patch_idxs = list(self.indices_by_slide[slide_id])
         if (
             self.max_patches_per_slide is not None
@@ -87,30 +102,27 @@ class SlideBagPatchDataset(Dataset):
                 len(patch_idxs), size=self.max_patches_per_slide, replace=False
             )
             patch_idxs = [patch_idxs[i] for i in sorted(chosen.tolist())]
+        return patch_idxs
 
-        images, masks, weights, coords = [], [], [], []
-        for pi in patch_idxs:
-            image_t, mask_t, weight_t = self.base[pi]
-            row = self.base.df.iloc[pi]
-            images.append(image_t)
-            masks.append(mask_t)
-            weights.append(weight_t)
-            coords.append((int(row["x"]), int(row["y"])))
-
-        return {
+    def __getitem__(self, idx: int) -> dict:
+        slide_id = self.slide_ids[idx]
+        patch_idxs = self._select_indices(slide_id)
+        out = {
             "image_id": slide_id,
-            "images": torch.stack(images, dim=0),
-            "masks": torch.stack(masks, dim=0),
-            "weights": torch.stack(weights, dim=0),
+            "patch_indices": torch.tensor(patch_idxs, dtype=torch.long),
             "isup": torch.tensor(int(self.isup_by_slide[slide_id]), dtype=torch.long),
-            "coords": torch.tensor(coords, dtype=torch.long),
         }
+        if not self.lazy:
+            images, masks, weights = load_patch_batch(self.base, patch_idxs)
+            out["images"] = images
+            out["masks"] = masks
+            out["weights"] = weights
+        return out
 
 
 def slide_bag_collate(batch: list[dict]) -> dict:
     """Collate a list of slide bags (usually batch_size=1)."""
     if len(batch) != 1:
-        # Multi-slide batches are possible but uncommon; keep simple for now.
         raise ValueError(
             f"SlideBag collate expects batch_size=1 (got {len(batch)} slides). "
             "Use micro-batches inside the training loop over each slide's patches."

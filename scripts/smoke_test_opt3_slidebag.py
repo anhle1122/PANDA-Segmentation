@@ -16,21 +16,38 @@ from train.grade_head import (  # noqa: E402
     derived_isup_ce_from_seg_probs,
     grade_head_ce,
 )
-from train.slide_bag_dataset import SlideBagPatchDataset, summarize_bags  # noqa: E402
+from train.slide_bag_dataset import (  # noqa: E402
+    SlideBagPatchDataset,
+    load_patch_batch,
+    summarize_bags,
+)
 
 
 def main() -> None:
     ds = SlideBagPatchDataset(
         "outputs/splits/panda_train.csv",
         max_patches_per_slide=2,
+        lazy=True,
         allow_missing_h5=True,
     )
     stats = summarize_bags(ds)
     assert stats["max_patches"] == 323
     assert stats["min_patches"] == 3
     bag = ds[0]
-    assert bag["images"].shape[0] <= 2
-    print("bag ok", bag["image_id"], bag["images"].shape, "isup", int(bag["isup"]))
+    assert "patch_indices" in bag and bag["patch_indices"].numel() <= 2
+    assert "images" not in bag
+    imgs, masks, weights = load_patch_batch(ds.base, bag["patch_indices"])
+    assert imgs.shape[0] == bag["patch_indices"].numel()
+    print(
+        "bag ok",
+        bag["image_id"],
+        "n",
+        int(bag["patch_indices"].numel()),
+        "loaded",
+        tuple(imgs.shape),
+        "isup",
+        int(bag["isup"]),
+    )
 
     logits = [torch.randn(2, 6, 8, 8), torch.randn(1, 6, 8, 8)]
     mean_p = aggregate_softmax_probs(logits)

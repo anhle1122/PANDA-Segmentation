@@ -9,6 +9,7 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-07-30
 
+- **14:38 PDT** | Option 3 lazy bags + mem/worker retune | Eager full-slide stacks caused 64G OOM; 200G wouldn’t schedule | Dataset returns indices only; micro-batch load on the fly. Slurm: **96G**, workers=4, max 160 patches/slide. Resubmit after cancel pending.
 - **14:35 PDT** | Documented WeGleNet LSE as next \(L_\mathrm{slide}\) upgrade | Our linear soft-ISUP ≠ published LSE (\(r=8\)) / secondary damp \(d=0.70\) | Keep current run; after PANDA+ + leak, replace mean+linear with tunable LSE (+ optional \(d\)). Stub `aggregate_logsumexp_logits` exists but unwired / incomplete. Protocol updated.
 - **14:33 PDT** | Option 3 mem/sched fix: 110G + max 128 patches/slide | 200G couldn’t land on cp098 (FreeMem ~118G) despite 2 free H200s | Cancelled 200G pending; **5324107** @ 110G + `--max-patches-per-slide 128` (median was 119).
 - **14:28 PDT** | Option 3 **5323073** OOM-killed @ 41min; resubmit | 64G too small (slide bags + val); SIGKILL/oom_kill; no `latest.pth` | Cold restart path; later retuned to 110G+128 cap.

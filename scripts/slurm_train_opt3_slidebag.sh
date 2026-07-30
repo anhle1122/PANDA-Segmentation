@@ -15,10 +15,10 @@
 #SBATCH -e logs/train_opt3_slidebag_%j.err
 #SBATCH --time=7-00:00:00
 #SBATCH --cpus-per-task=8
-# 64G OOMed @ ~41min (val). Bags stack up to 323 patches/slide in RAM.
-# Modest share still OK at 200G on mixed H200 nodes; 4-GPU override higher.
+# Lazy bags (indices only) keep host RAM low — 96G is enough to schedule on
+# mixed H200 nodes and avoid the old 64G OOM. Exclusive 4-GPU:
 #   sbatch --gres=gpu:h200:4 --mem=400G --cpus-per-task=16 ...
-#SBATCH --mem=200G
+#SBATCH --mem=96G
 #SBATCH --gres=gpu:h200:2
 #SBATCH --requeue
 
@@ -74,6 +74,8 @@ MICRO_BS="${MICRO_BS:-4}"
 SLIDES_PER_EPOCH="${SLIDES_PER_EPOCH:-256}"
 FREEZE_EPOCHS="${FREEZE_EPOCHS:-5}"
 MAX_VAL_PATCHES="${MAX_VAL_PATCHES:-20000}"
+# 160 ≈ covers median 119; caps worst-case 323 for speed. Set 0 = no cap.
+MAX_PATCHES_PER_SLIDE="${MAX_PATCHES_PER_SLIDE:-160}"
 CKPT_DIR="${PANDA_PROJECT}/outputs/checkpoints/uni2_upernet_raw_${RUN_TAG}"
 LATEST="${CKPT_DIR}/latest.pth"
 
@@ -85,7 +87,7 @@ fi
 
 echo "=== $(date) | OPTION 3 slide-bag | ${NGPU}x H200 | tag=${RUN_TAG} ==="
 echo "λ_slide=${LAMBDA_SLIDE} λ_grade=${LAMBDA_GRADE} micro_bs=${MICRO_BS} slides/ep=${SLIDES_PER_EPOCH}"
-echo "resume=${RESUME:-none}"
+echo "max_patches/slide=${MAX_PATCHES_PER_SLIDE} resume=${RESUME:-none} lazy=1"
 
 CMD=(
   torchrun --standalone --nproc_per_node="${NGPU}"
@@ -101,10 +103,13 @@ CMD=(
   --max-val-patches "${MAX_VAL_PATCHES}"
   --adjacent-soft-alpha 0.15
   --grad-clip 1.0
-  --num-workers 2
+  --num-workers 4
   --amp
   --allow-missing-h5
 )
+if [[ "${MAX_PATCHES_PER_SLIDE}" != "0" ]]; then
+  CMD+=(--max-patches-per-slide "${MAX_PATCHES_PER_SLIDE}")
+fi
 if [[ -n "${UNI2_CKPT}" && -f "${UNI2_CKPT}" ]]; then
   CMD+=(--uni2-checkpoint "${UNI2_CKPT}")
 fi

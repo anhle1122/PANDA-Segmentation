@@ -44,6 +44,7 @@ from train.losses import segmentation_loss  # noqa: E402
 from train.metrics import PerClassDiceAccumulator  # noqa: E402
 from train.slide_bag_dataset import (  # noqa: E402
     SlideBagPatchDataset,
+    load_patch_batch,
     slide_bag_collate,
     summarize_bags,
 )
@@ -125,22 +126,30 @@ def train(args: argparse.Namespace) -> None:
         if world_size > 1
         else None
     )
-    train_loader = DataLoader(
-        train_ds,
+    nw = max(0, int(args.num_workers))
+    train_dl_kwargs: dict = dict(
         batch_size=1,
         shuffle=(train_sampler is None),
         sampler=train_sampler,
-        num_workers=args.num_workers,
+        num_workers=nw,
         collate_fn=slide_bag_collate,
         pin_memory=True,
     )
-    val_loader = DataLoader(
-        val_ds,
+    if nw > 0:
+        train_dl_kwargs["persistent_workers"] = True
+        train_dl_kwargs["prefetch_factor"] = 2
+    train_loader = DataLoader(train_ds, **train_dl_kwargs)
+    val_nw = max(1, nw // 2) if nw > 0 else 0
+    val_dl_kwargs: dict = dict(
         batch_size=args.val_batch_size,
         shuffle=False,
-        num_workers=max(1, args.num_workers // 2),
+        num_workers=val_nw,
         pin_memory=True,
     )
+    if val_nw > 0:
+        val_dl_kwargs["persistent_workers"] = True
+        val_dl_kwargs["prefetch_factor"] = 2
+    val_loader = DataLoader(val_ds, **val_dl_kwargs)
 
     weight_df = pd.read_csv(SPLITS_DIR / "panda_train.csv")
     weight_bundle = get_or_compute_class_weights(weight_df, mode=args.mode)
@@ -221,38 +230,42 @@ def train(args: argparse.Namespace) -> None:
         running = {"loss": 0.0, "pixel": 0.0, "slide": 0.0, "grade": 0.0, "n": 0}
         n_slides = 0
 
+        def _bn_safe(t: torch.Tensor) -> tuple[torch.Tensor, int]:
+            """BatchNorm (train) needs N>1; duplicate a singleton patch if needed."""
+            n = int(t.shape[0])
+            if n >= 2:
+                return t, n
+            return torch.cat([t, t], dim=0), n
+
         for bag in train_loader:
             if args.slides_per_epoch and n_slides >= args.slides_per_epoch:
                 break
 
-            images = bag["images"].to(device, non_blocking=True)
-            masks = bag["masks"].to(device, non_blocking=True)
-            weights = bag["weights"].to(device, non_blocking=True)
+            # Lazy bags: only indices in RAM; load micro-batches on the fly.
+            patch_idxs = [int(i) for i in bag["patch_indices"].tolist()]
             isup = int(bag["isup"].item())
-            n_patches = int(images.shape[0])
+            n_patches = len(patch_idxs)
+            if n_patches == 0:
+                continue
 
             optimizer.zero_grad(set_to_none=True)
             logits_chunks: list[torch.Tensor] = []
             feat_chunks: list[torch.Tensor] = []
             pixel_loss_acc = 0.0
 
-            def _bn_safe(t: torch.Tensor) -> tuple[torch.Tensor, int]:
-                """BatchNorm (train) needs N>1; duplicate a singleton patch if needed."""
-                n = int(t.shape[0])
-                if n >= 2:
-                    return t, n
-                return torch.cat([t, t], dim=0), n
-
             n_micro = int(math.ceil(n_patches / micro))
             for m_i in range(n_micro):
                 sl = slice(m_i * micro, min((m_i + 1) * micro, n_patches))
                 n_real = sl.stop - sl.start
-                imgs_b, _ = _bn_safe(images[sl])
-                masks_b, _ = _bn_safe(masks[sl])
-                weights_b, _ = _bn_safe(weights[sl])
+                images, masks, weights = load_patch_batch(train_ds.base, patch_idxs[sl])
+                images = images.to(device, non_blocking=True)
+                masks = masks.to(device, non_blocking=True)
+                weights = weights.to(device, non_blocking=True)
+                imgs_b, _ = _bn_safe(images)
+                masks_b, _ = _bn_safe(masks)
+                weights_b, _ = _bn_safe(weights)
                 with torch.cuda.amp.autocast(enabled=use_amp):
                     logits, feats, _grade = model(imgs_b)
-                    # Loss / bag stats only on real patches (ignore BN pad)
                     p_loss = segmentation_loss(
                         logits[:n_real],
                         masks_b[:n_real],
@@ -265,10 +278,14 @@ def train(args: argparse.Namespace) -> None:
                 pixel_loss_acc += float(scaled.detach().item())
                 logits_chunks.append(logits[:n_real].detach())
                 feat_chunks.append(feats[:n_real].detach())
+                del images, masks, weights, imgs_b, masks_b, weights_b
 
             # Differentiable slide losses on a random subset (+ bag-mean prior)
-            idx = torch.randperm(n_patches, device=device)[: min(micro, n_patches)]
-            imgs_g, n_g = _bn_safe(images[idx])
+            perm = torch.randperm(n_patches)[: min(micro, n_patches)].tolist()
+            live_idxs = [patch_idxs[i] for i in perm]
+            images_g, _, _ = load_patch_batch(train_ds.base, live_idxs)
+            images_g = images_g.to(device, non_blocking=True)
+            imgs_g, n_g = _bn_safe(images_g)
             with torch.cuda.amp.autocast(enabled=use_amp):
                 logits_g, feats_g, grade_live = model(imgs_g)
                 logits_g = logits_g[:n_g]
@@ -281,7 +298,6 @@ def train(args: argparse.Namespace) -> None:
 
                 feat_bag = torch.cat(feat_chunks, dim=0).mean(dim=0)
                 feat_mix = 0.5 * feats_g.mean(dim=0) + 0.5 * feat_bag
-                # Prefer live grade_logits from the subset forward for DDP sync
                 g_logits = 0.5 * grade_live.mean(dim=0) + 0.5 * unwrap_model(model).grade_head(
                     feat_mix
                 )
@@ -294,6 +310,7 @@ def train(args: argparse.Namespace) -> None:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
             scaler.step(optimizer)
             scaler.update()
+            del images_g, imgs_g, logits_chunks, feat_chunks
 
             total = pixel_loss_acc + float(slide_term.detach().item())
             running["loss"] += total
