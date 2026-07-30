@@ -355,12 +355,24 @@ class UNI2UPerNet(nn.Module):
         return maps
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        logits, _ = self.forward_with_features(x)
+        return logits
+
+    def forward_with_features(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """Seg logits plus GAP of the deepest FPN map (for the ISUP grade head).
+
+        Returns:
+            logits: (B, num_classes, H, W) at original resolution
+            feats:  (B, fpn_channels[-1]) global-average-pooled deepest map
+        """
         x_in, (orig_h, orig_w) = self._pad_to_model_size(x)
         if self._backbone_frozen:
             with torch.no_grad():
                 maps = self._extract_pyramid(x_in)
         else:
             maps = self._extract_pyramid(x_in)
+        # Deepest projected map for slide-level grade features
+        feats = maps[-1].mean(dim=(2, 3))
         logits = self.decode_head(maps)
         logits = F.interpolate(
             logits, size=(self.model_size, self.model_size), mode="bilinear", align_corners=False
@@ -372,7 +384,7 @@ class UNI2UPerNet(nn.Module):
                 logits = F.interpolate(
                     logits, size=(orig_h, orig_w), mode="bilinear", align_corners=False
                 )
-        return logits
+        return logits, feats
 
 
 def disable_bn_running_stats(model: nn.Module) -> int:
