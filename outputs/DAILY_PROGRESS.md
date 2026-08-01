@@ -7,8 +7,22 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-08-01
+
+- **11:11 PDT** | Status check: Option 3 dead; mask-vs-clinical done | Catch up after Jul 30 evening | **5326090** FAILED @53m (NCCL ALLREDUCE timeout / rank desync); no ep1 row, no ckpt. Host RSS stayed **~10–13G** (mem fix OK). Mask check: **3054/3746 = 81.5%** vs model **53.9%** — not a coincidence. Nothing queued. Next: resubmit Opt3 (investigate DDP hang) + write mask number into protocol.
+
+---
+
 ## 2026-07-30
 
+- **19:05 PDT** | Mask-vs-clinical finished (**5326054**) | Fresh raw-mask `derive_grade` @5% | **3054/3746 = 81.5%** match (`mask_isup_vs_clinical.csv`). Model-vs-clinical stays **2018/3746 = 53.9%**. Per-ISUP mask match: 0=100%, 1≈100%, 2≈55%, 3≈54%, 4≈96%, 5≈77%.
+- **19:07 PDT** | Option 3 **5326090** FAILED @53m | NCCL watchdog ALLREDUCE timeout 600s (rank desync); exit -6 | Never finished ep1; `training_log` header-only; no `latest.pth`. MaxRSS peaked **~13G**/96G (flat — cache fix held).
+- **18:13 PDT** | Option 3 **5326090** full mem fix (after **5326082** SyntaxError) | Accidental one-line merge on val clear insert | Fixed compile; LRU + train/val clear. Cancelled **5326064** earlier (no ckpt). Watch RSS through ep1 **val** + ep1 wall time.
+- **18:12 PDT** | Option 3 restart **full** mem fix (cancel **5326064**) | Train-only clear missed val workers (separate `val_ds` + DataLoader copies) | Class LRU `max_cached_opens=2` + `val_ds.clear_open_handles()` after val. Resubmit cold start; watch RSS through **full ep1 incl. val**.
+- **18:04 PDT** | Option 3 host-RSS leak: cancel **5324260**, resubmit **5326064** | MaxRSS rose ~1.2G/30s (→67G@51m) from uncapped H5/OpenSlide caches per new slide | `BaselinePatchDataset.clear_open_handles()` after each bag. No `latest.pth` → cold start. Watch `opt3_rss_timeline.csv`.
+- **17:59 PDT** | **Corrected:** 53.9% is model-vs-clinical, not mask | Identical 2018/3746 to teacher A diagnostic — mislabeled in chat | Confirmed `diagnostic_report.csv` uses `pred_pixels_*`. Submitted fresh mask check **5326054** (`slurm_mask_isup_vs_clinical.sh` → `mask_isup_vs_clinical.csv`). Protocol note updated.
+- **17:57 PDT** | Armed Option 3 MaxRSS timeline vs val/`latest.pth` | Prior 64G eager OOM; don’t treat mid-epoch ~27G as proof | Sampler `scripts/sample_opt3_rss.sh` → `logs/opt3_rss_timeline.csv` every 30s; flags `OPT3_RSS_EVENT` on log-row / ckpt mtime / ≥72G. Snapshot @43m: MaxRSS **~50G**/96G, still ep1 (0 log rows).
+- **17:15 PDT** | Option 3 **5324260** RUNNING 2×H200 on `cp098` | Queue cleared after long PENDING | Cold start (no `latest.pth`); monitor keeps 2× unless full node frees for 4× upgrade. Tag `pseudo_r1_opt3_slidebag`.
 - **14:38 PDT** | Option 3 lazy bags + mem/worker retune | Eager full-slide stacks caused 64G OOM; 200G wouldn’t schedule | Dataset returns indices only; micro-batch load on the fly. Slurm: **96G**, workers=4, max 160 patches/slide. Resubmit after cancel pending.
 - **14:35 PDT** | Documented WeGleNet LSE as next \(L_\mathrm{slide}\) upgrade | Our linear soft-ISUP ≠ published LSE (\(r=8\)) / secondary damp \(d=0.70\) | Keep current run; after PANDA+ + leak, replace mean+linear with tunable LSE (+ optional \(d\)). Stub `aggregate_logsumexp_logits` exists but unwired / incomplete. Protocol updated.
 - **14:33 PDT** | Option 3 mem/sched fix: 110G + max 128 patches/slide | 200G couldn’t land on cp098 (FreeMem ~118G) despite 2 free H200s | Cancelled 200G pending; **5324107** @ 110G + `--max-patches-per-slide 128` (median was 119).
@@ -25,8 +39,9 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 ### Open / next
 - [x] Smoke re-validate recovered Rules stack (6/6 + 62/187 + OEEM flag=1.0)
 - [x] Document soft-ISUP caveat + winner-then-combine framework
-- [ ] Await PANDA+ eval on `pseudo_r1_isup_wmfix/best.pth` (resubmit **5322326** if needed)
-- [ ] Await Option 3 train (2×H200, α=0.15; monitor may upgrade→4× with resume)
+- [x] Mask-vs-clinical confirmed: **81.5%** (≠ model 53.9%)
+- [ ] Diagnose Option 3 DDP/NCCL hang and resubmit (**5326090** failed @53m; no ckpt)
+- [ ] Await PANDA+ eval on `pseudo_r1_isup_wmfix/best.pth` (resubmit if needed)
 - [ ] `git push` when ready
 
 ---

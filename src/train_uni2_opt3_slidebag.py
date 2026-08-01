@@ -311,6 +311,9 @@ def train(args: argparse.Namespace) -> None:
             scaler.step(optimizer)
             scaler.update()
             del images_g, imgs_g, logits_chunks, feat_chunks
+            # Drop per-slide H5/OpenSlide caches — otherwise host MaxRSS climbs
+            # ~1G per new slide and can hit the Slurm mem cap mid-epoch.
+            train_ds.base.clear_open_handles()
 
             total = pixel_loss_acc + float(slide_term.detach().item())
             running["loss"] += total
@@ -342,6 +345,9 @@ def train(args: argparse.Namespace) -> None:
                 val_loss_sum += float(vloss.item())
                 val_n += 1
                 dice_acc.update(logits_v.argmax(1), masks_v)
+        # Separate instance from train_ds.base — must clear explicitly.
+        # (Worker processes also stay bounded via max_cached_opens LRU.)
+        val_ds.clear_open_handles()
 
         metrics = dice_acc.to_baseline_metrics()
         cancer = float(metrics.get("cancer_dice", 0.0))

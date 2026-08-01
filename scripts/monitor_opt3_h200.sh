@@ -139,4 +139,9 @@ else
   fi
 fi
 
+# Host-RAM trend (MaxRSS vs val/ckpt). Cheap; complements 30s sampler loop.
+if [[ -x "${PANDA_PROJECT}/scripts/sample_opt3_rss.sh" ]]; then
+  bash "${PANDA_PROJECT}/scripts/sample_opt3_rss.sh" 2>/dev/null || true
+fi
+
 echo "=== monitor done ==="

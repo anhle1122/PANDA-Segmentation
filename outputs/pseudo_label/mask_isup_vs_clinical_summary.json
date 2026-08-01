@@ -1,0 +1,25 @@
+{
+  "comparison": "mask_derived_isup_vs_clinical_isup",
+  "input": "raw mask patch pixels (OpenSlide L0 mask tiffs), NOT model preds",
+  "derive_grade": "isup_diagnostic.derive_grade",
+  "min_area_pct": 0.05,
+  "n_slides": 3746,
+  "n_match": 3054,
+  "match_rate": 0.8152696209289909,
+  "out_csv": "outputs/pseudo_label/mask_isup_vs_clinical.csv",
+  "contrast_model_diagnostic": {
+    "file": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/diagnostic_report.csv",
+    "label": "model_pred_isup_vs_clinical (teacher A / Model C A)",
+    "n_match": 2018,
+    "n_slides": 3746,
+    "match_rate": 0.5387079551521623
+  },
+  "per_metadata_isup_match_rate": {
+    "0": 1.0,
+    "1": 0.9983739837398374,
+    "2": 0.5510204081632653,
+    "3": 0.536923076923077,
+    "4": 0.9605488850771869,
+    "5": 0.7738461538461539
+  }
+}

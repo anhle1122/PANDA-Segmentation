@@ -109,6 +109,15 @@ then \(\mathrm{CE}(\ell, \mathrm{ISUP}_\mathrm{clinician})\).
 
 Option 3 uses **original uncorrected masks** (no Rules 1–3). QC’s old “grade exists somewhere” check does **not** guarantee mask proportions match clinical ISUP — that is why Rules/wmfix exist.
 
+**ISUP match rates (do not conflate):**
+
+| Comparison | Rate | Source |
+|---|---|---|
+| **Mask** → `derive_grade` @5% vs clinical | **3054 / 3746 = 81.5%** | `outputs/pseudo_label/mask_isup_vs_clinical.csv` (raw mask patch pixels) |
+| **Teacher A model** → `derive_grade` @5% vs clinical | **2018 / 3746 = 53.9%** | `outputs/pseudo_label/diagnostic_report.csv` (`pred_pixels_*`) |
+
+Round-1 manifest `match` = 2018 is the **model** comparison. Mask match is much higher; teacher A adds disagreement beyond mask noise (worst on ISUP 2/3 ≈55%).
+
 | Loss | Pull on seg head |
 |------|------------------|
 | \(L_\mathrm{CE+Dice}\) (weight **1.0**) | Match the **mask** pixel-by-pixel — including known G3↔G4 bias |

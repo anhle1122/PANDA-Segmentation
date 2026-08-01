@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from pathlib import Path
 
 import h5py
@@ -59,11 +60,31 @@ class BaselinePatchDataset(Dataset):
         self.raw_h5_dir = mode_cfg["raw_h5_dir"]
         self.raw_h5_stem = mode_cfg["raw_h5_stem"]
         self.zero_artifact_loss = bool(mode_cfg["zero_artifact_loss"])
-        self._h5_handles: dict[str, h5py.File] = {}
+        # Bound open handles (train main process, val DataLoader workers, etc.).
+        # Unbounded growth previously OOM'd Option 3 (~1G/slide retained).
+        self.max_cached_opens = 2
+        self._h5_handles: OrderedDict[str, h5py.File] = OrderedDict()
         self._h5_index: dict[str, dict[tuple[int, int], int]] = {}
-        self._mask_cache: dict[str, openslide.OpenSlide] = {}
-        self._png_mask_cache: dict[str, np.ndarray] = {}
-        self._slide_cache: dict[str, openslide.OpenSlide] = {}
+        self._mask_cache: OrderedDict[str, openslide.OpenSlide] = OrderedDict()
+        self._png_mask_cache: OrderedDict[str, np.ndarray] = OrderedDict()
+        self._slide_cache: OrderedDict[str, openslide.OpenSlide] = OrderedDict()
+
+    def _cache_put(self, cache: OrderedDict, key: str, value, *, close_fn=None) -> None:
+        """Insert into an open-handle cache, evicting oldest entries if over cap."""
+        if key in cache:
+            cache[key] = value
+            cache.move_to_end(key)
+            return
+        while len(cache) >= int(self.max_cached_opens):
+            old_k, old_v = cache.popitem(last=False)
+            if close_fn is not None:
+                try:
+                    close_fn(old_v)
+                except Exception:
+                    pass
+            if cache is self._h5_handles:
+                self._h5_index.pop(old_k, None)
+        cache[key] = value
 
     def __len__(self) -> int:
         return len(self.df)
@@ -73,10 +94,13 @@ class BaselinePatchDataset(Dataset):
 
     def _load_h5_index(self, image_id: str, *, h5_dir: Path, h5_stem: str) -> None:
         path = str(self._h5_path(image_id, h5_dir=h5_dir, h5_stem=h5_stem))
-        if path in self._h5_index:
+        if path in self._h5_index and path in self._h5_handles:
+            self._h5_handles.move_to_end(path)
             return
         if path not in self._h5_handles:
-            self._h5_handles[path] = h5py.File(path, "r")
+            self._cache_put(
+                self._h5_handles, path, h5py.File(path, "r"), close_fn=lambda h: h.close()
+            )
         coords = self._h5_handles[path][H5_COORDS_KEY][:]
         self._h5_index[path] = {(int(x), int(y)): i for i, (x, y) in enumerate(coords)}
 
@@ -98,7 +122,14 @@ class BaselinePatchDataset(Dataset):
 
     def _read_slide_patch(self, image_id: str, x: int, y: int) -> np.ndarray:
         if image_id not in self._slide_cache:
-            self._slide_cache[image_id] = openslide.OpenSlide(str(self.slide_dir / f"{image_id}.tiff"))
+            self._cache_put(
+                self._slide_cache,
+                image_id,
+                openslide.OpenSlide(str(self.slide_dir / f"{image_id}.tiff")),
+                close_fn=lambda s: s.close(),
+            )
+        else:
+            self._slide_cache.move_to_end(image_id)
         slide = self._slide_cache[image_id]
         return np.array(slide.read_region((x, y), 0, (PATCH_SIZE, PATCH_SIZE)))[:, :, :3]
 
@@ -147,7 +178,9 @@ class BaselinePatchDataset(Dataset):
             mask = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
             if mask is None:
                 raise FileNotFoundError(f"Missing mask: {path}")
-            self._png_mask_cache[image_id] = mask
+            self._cache_put(self._png_mask_cache, image_id, mask)
+        else:
+            self._png_mask_cache.move_to_end(image_id)
         full = self._png_mask_cache[image_id]
         patch = full[y : y + PATCH_SIZE, x : x + PATCH_SIZE]
         if patch.shape != (PATCH_SIZE, PATCH_SIZE):
@@ -162,7 +195,14 @@ class BaselinePatchDataset(Dataset):
             return self._read_png_mask_patch(image_id, x, y)
         if image_id not in self._mask_cache:
             mask_path = str(self._mask_file(image_id))
-            self._mask_cache[image_id] = openslide.OpenSlide(mask_path)
+            self._cache_put(
+                self._mask_cache,
+                image_id,
+                openslide.OpenSlide(mask_path),
+                close_fn=lambda s: s.close(),
+            )
+        else:
+            self._mask_cache.move_to_end(image_id)
         mask_slide = self._mask_cache[image_id]
         mask = np.array(mask_slide.read_region((x, y), 0, (PATCH_SIZE, PATCH_SIZE)))
         if mask.ndim == 3:
@@ -212,22 +252,37 @@ class BaselinePatchDataset(Dataset):
             )
         print("Sanity check PASSED")
 
-    def __del__(self) -> None:
+    def clear_open_handles(self) -> None:
+        """Close cached H5/OpenSlide handles so host RSS cannot grow unboundedly.
+
+        Slide-bag training visits many distinct slides per epoch; without this,
+        ``_h5_handles`` / ``_mask_cache`` / ``_slide_cache`` accumulate until
+        Slurm ``--mem`` kills the job.
+        """
         for h in getattr(self, "_h5_handles", {}).values():
             try:
                 h.close()
             except Exception:
                 pass
+        self._h5_handles.clear()
+        self._h5_index.clear()
         for slide in getattr(self, "_mask_cache", {}).values():
             try:
                 slide.close()
             except Exception:
                 pass
-        if hasattr(self, "_png_mask_cache"):
-            self._png_mask_cache.clear()
-        for slide in self._slide_cache.values():
+        self._mask_cache.clear()
+        for slide in getattr(self, "_slide_cache", {}).values():
             try:
                 slide.close()
             except Exception:
                 pass
-        self._png_mask_cache.clear()
+        self._slide_cache.clear()
+        if hasattr(self, "_png_mask_cache"):
+            self._png_mask_cache.clear()
+
+    def __del__(self) -> None:
+        try:
+            self.clear_open_handles()
+        except Exception:
+            pass

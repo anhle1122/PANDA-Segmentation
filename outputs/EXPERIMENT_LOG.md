@@ -7,15 +7,26 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## Mask ISUP vs clinical — provenance fix (2026-07-30)
+
+**Why:** Chat reused **2018/3746 = 53.9%** as “mask-derived vs clinical,” but that number is identical to teacher A’s model-vs-clinical diagnostic.
+
+**What:** Traced `outputs/pseudo_label/diagnostic_report.csv` — columns are `pred_pixels_*` from `src/isup_diagnostic.py` (model inference), match sum **2018**. Round1 `match` count is the same comparison. Submitted CPU job **5326054**: `src/mask_isup_vs_clinical.py` aggregates **raw mask patch** pixels → `derive_grade()` @ 5% → clinical ISUP; out `outputs/pseudo_label/mask_isup_vs_clinical.csv`.
+
+**Result:** **5326054** finished. Raw-mask → `derive_grade` @5% vs clinical: **3054 / 3746 = 81.5%**. Teacher A model-vs-clinical remains **2018 / 3746 = 53.9%**. Not the same number — prior chat reuse was wrong. Per-metadata ISUP mask match: 0=1.00, 1≈1.00, 2≈0.55, 3≈0.54, 4≈0.96, 5≈0.77. Artifact: `outputs/pseudo_label/mask_isup_vs_clinical.csv`.
+
+**Decision:** Cite **81.5%** as mask-vs-clinical and **53.9%** as model-vs-clinical separately. Teacher A is *worse* than the masks at matching clinical ISUP — model adds disagreement beyond mask noise (esp. ISUP 2/3).
+
+
 ## Option 3 — slide-bag + dual ISUP (started 2026-07-30)
 
 **Why:** Omar Option 3 — seg CE+Dice + derived-ISUP-from-paint slide loss + separate grade-head loss; no Rules 1–3. Evaluate dual-ISUP on its own vs **teacher A**, not vs `wmfix`.
 
 **What:** Regroup existing patches (max 323/slide); micro-batch accumulate; λ_slide=λ_grade=0.3; tag `pseudo_r1_opt3_slidebag`. \(L_\mathrm{slide}\) = soft linear proxy on \((f_3,f_4,f_5)\), **not** differentiable `derive_grade()`. Backbone UNI2 pretrained + freeze 5 ep. 256 slides/ep/rank. Adjacent soft **α=0.15**. Train on **2×H200** (`--mem=120G`) to share mixed nodes; Slurm auto-resumes `latest.pth`. Monitor `scripts/monitor_opt3_h200.sh` upgrades to 4×+400G when a full node frees (resume, never scratch).
 
-**Result:** First start **5323068** on cp098 (preemptable) crashed: BatchNorm N=1 on remainder micro-batch (`[1,512,1,1]`). Fixed by BN-safe pad (duplicate singleton → N=2; loss on real only). Resubmitted. H200 requires `--partition=preemptable --qos=part_preemptable` (gpu+normal → ReqNodeNotAvail). ETA rough **20–40 min/epoch** on 2× (~**1.5–3 days**/100 ep); refine after ep1. Monitor upgrades to 4× with `latest.pth` resume when a full node frees.
+**Result:** First start **5323068** on cp098 (preemptable) crashed: BatchNorm N=1 on remainder micro-batch (`[1,512,1,1]`). Fixed by BN-safe pad (duplicate singleton → N=2; loss on real only). Resubmitted. H200 requires `--partition=preemptable --qos=part_preemptable` (gpu+normal → ReqNodeNotAvail). Later OOMs / preempts; retuned to lazy bags + **96G** + max 160 patches/slide. **5324260** ran ~51 min then cancelled: host MaxRSS climbed linearly **~1.2G/30s** to **~67G** — uncapped H5/OpenSlide caches. Full mem fix: class LRU `max_cached_opens=2` + train-bag clear + `val_ds.clear_open_handles()`. **5326090** (full fix) FAILED @ **53m** on Jul 30 19:07: NCCL ALLREDUCE timeout 600s (rank desync / SIGABRT); never wrote ep1 metrics; no `latest.pth`. Host MaxRSS stayed **~10→13G**/96G (cache fix held). ETA rough **20–40 min/epoch** on 2× once stable; refine after ep1.
 
-**Decision:** Judge Option 3 vs teacher A PANDA+ **0.554** cancer / **0.528** G5. **Core hypothesis:** can \(L_\mathrm{slide}\) (λ=0.3, aggregate→seg grads) counteract original-mask G3/G4 bias under full CE+Dice, with no Rules? Post-run require teacher-A-style **G3→G4 leak** analysis, not Dice alone. If underperforms / leak stuck: (1) **WeGleNet LSE** pool with val-tuned \(r\) (paper \(r=8\)) + consider secondary damp \(d\) (paper \(0.70\)) — current loss is mean-softmax + linear ISUP scores, not LSE; (2) soft-`derive_grade` surrogate; (3) higher λ / Rules+dual-ISUP same-α — before rejecting the idea.
+**Decision:** Judge Option 3 vs teacher A PANDA+ **0.554** cancer / **0.528** G5. **Core hypothesis:** can \(L_\mathrm{slide}\) (λ=0.3, aggregate→seg grads) counteract original-mask G3/G4 bias under full CE+Dice, with no Rules? Post-run require teacher-A-style **G3→G4 leak** analysis, not Dice alone. If underperforms / leak stuck: (1) **WeGleNet LSE** pool with val-tuned \(r\) (paper \(r=8\)) + consider secondary damp \(d\) (paper \(0.70\)) — current loss is mean-softmax + linear ISUP scores, not LSE; (2) soft-`derive_grade` surrogate; (3) higher λ / Rules+dual-ISUP same-α — before rejecting the idea. **Immediate:** diagnose DDP hang (asymmetric bag sizes / collective order across ranks) and resubmit; mem path is no longer the blocker.
 
 
 ## Code recovery (2026-07-30)
