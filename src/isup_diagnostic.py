@@ -27,7 +27,13 @@ SRC = Path(__file__).resolve().parent
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from evaluate import build_eval_model, detect_arch, load_model_weights  # noqa: E402
+from evaluate import (  # noqa: E402
+    _opt3_flags,
+    _peek_state_dict,
+    build_eval_model,
+    detect_arch,
+    load_model_weights,
+)
 from patch_utils import NUM_CLASSES, PROJECT  # noqa: E402
 from train.baseline_dataset import BaselinePatchDataset, _preprocess_image  # noqa: E402
 
@@ -104,8 +110,12 @@ class SlideInferenceDataset(Dataset):
         slide_to_index: dict[str, int],
         *,
         mode: str,
+        allow_missing_h5: bool = True,
     ) -> None:
-        self.base = BaselinePatchDataset(DEFAULT_SPLIT, mode=mode)
+        # allow_missing_h5=True: PANDA+ coords may not be in train H5 index → WSI fallback
+        self.base = BaselinePatchDataset(
+            DEFAULT_SPLIT, mode=mode, allow_missing_h5=allow_missing_h5
+        )
         self.base.df = split_df.reset_index(drop=True)
         self.df = self.base.df
         self.slide_to_index = slide_to_index
@@ -193,6 +203,12 @@ def main() -> None:
     parser.add_argument("--min-area-pct", type=float, default=0.05)
     parser.add_argument("--max-slides", type=int, default=None, help="Smoke test only")
     parser.add_argument(
+        "--allow-missing-h5",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Fall back to WSI when patch coords missing from H5 (needed for PANDA+)",
+    )
+    parser.add_argument(
         "--max-patches-per-slide",
         type=int,
         default=None,
@@ -217,7 +233,9 @@ def main() -> None:
     slide_to_index = {slide_id: i for i, slide_id in enumerate(slide_ids)}
     patch_counts = split_df.groupby("image_id").size().to_dict()
 
-    dataset = SlideInferenceDataset(split_df, slide_to_index, mode=args.mode)
+    dataset = SlideInferenceDataset(
+        split_df, slide_to_index, mode=args.mode, allow_missing_h5=args.allow_missing_h5
+    )
     sampler = RankSlideSampler(dataset, rank, world_size)
     loader = DataLoader(
         dataset,
@@ -229,9 +247,16 @@ def main() -> None:
     )
 
     resolved_arch = detect_arch(args.checkpoint, args.arch)
-    model = build_eval_model(resolved_arch)
+    # Match evaluate.run_eval: Opt3 ckpts need GN + LoRA wraps before load.
+    _ckpt_peek, peek_keys = _peek_state_dict(args.checkpoint)
+    _is_opt3, decode_norm, use_lora = _opt3_flags(peek_keys)
+    model = build_eval_model(
+        resolved_arch, decode_norm=decode_norm, use_lora=use_lora
+    )
     ckpt = load_model_weights(args.checkpoint, model)
     model.to(device).eval()
+    if rank == 0 and (_is_opt3 or use_lora):
+        print(f"Opt3 load: decode_norm={decode_norm} use_lora={use_lora}")
     amp_dtype = torch.bfloat16 if args.amp_dtype == "bfloat16" else torch.float16
     local_counts = np.zeros((len(slide_ids), NUM_CLASSES), dtype=np.int64)
 
@@ -251,7 +276,9 @@ def main() -> None:
                 dtype=amp_dtype,
                 enabled=args.amp and device.type == "cuda",
             ):
-                preds = model(images).argmax(dim=1)
+                out = model(images)
+                logits = out[0] if isinstance(out, tuple) else out
+                preds = logits.argmax(dim=1)
             for batch_i, slide_index in enumerate(slide_indices.tolist()):
                 bincount = torch.bincount(
                     preds[batch_i].reshape(-1), minlength=NUM_CLASSES

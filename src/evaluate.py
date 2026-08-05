@@ -30,6 +30,7 @@ from patch_utils import CLASS_NAMES, NUM_CLASSES, OUTPUTS  # noqa: E402
 from train.baseline_dataset import BaselinePatchDataset  # noqa: E402
 from train.model import build_model  # noqa: E402
 from train.uni2_upernet import build_uni2_upernet  # noqa: E402
+from train.lora_vit import apply_lora_to_vit_qkv  # noqa: E402
 
 SPLITS_DIR = OUTPUTS / "splits"
 EVAL_DIR = OUTPUTS / "evaluation"
@@ -168,9 +169,36 @@ def resolve_split(split: str) -> tuple[Path, str]:
     raise ValueError(f"Unknown split: {split}")
 
 
-def load_model_weights(checkpoint: Path, model: torch.nn.Module) -> dict:
+def _peek_state_dict(checkpoint: Path) -> tuple[dict, list[str]]:
     ckpt = torch.load(checkpoint, map_location="cpu", weights_only=False)
-    model.load_state_dict(ckpt["model_state_dict"])
+    state = ckpt.get("model_state_dict", ckpt)
+    if not isinstance(state, dict):
+        raise ValueError(f"Bad checkpoint state_dict in {checkpoint}")
+    # DDP may prefix module.
+    if any(k.startswith("module.") for k in state):
+        state = {k[len("module.") :]: v for k, v in state.items()}
+    return ckpt, list(state.keys())
+
+
+def _opt3_flags(keys: list[str]) -> tuple[bool, str, bool]:
+    """Return (is_opt3_wrapper, decode_norm, use_lora)."""
+    joined = " ".join(keys)
+    use_lora = ("lora_A" in joined) or ("lora_B" in joined) or (".lora_" in joined)
+    is_opt3 = any(k.startswith("seg.") for k in keys) or ("grade_head." in joined)
+    # Opt3 Omar stack uses GroupNorm; teacher A / plain UNI2 use BN.
+    decode_norm = "gn" if (is_opt3 or use_lora) else "bn"
+    return is_opt3, decode_norm, use_lora
+
+
+def load_model_weights(checkpoint: Path, model: torch.nn.Module) -> dict:
+    ckpt, keys = _peek_state_dict(checkpoint)
+    state = ckpt["model_state_dict"]
+    if any(k.startswith("module.") for k in state):
+        state = {k[len("module.") :]: v for k, v in state.items()}
+    # Option 3 saves SegPlusGrade: keep only seg.* for pixel eval.
+    if any(k.startswith("seg.") for k in state):
+        state = {k[len("seg.") :]: v for k, v in state.items() if k.startswith("seg.")}
+    model.load_state_dict(state, strict=True)
     return ckpt
 
 
@@ -178,22 +206,38 @@ def detect_arch(checkpoint: Path, arch: str) -> str:
     """Resolve model architecture; prefer explicit --arch, else peek at state dict keys."""
     if arch != "auto":
         return arch
-    ckpt = torch.load(checkpoint, map_location="cpu", weights_only=False)
-    keys = list(ckpt.get("model_state_dict", ckpt).keys())
-    joined = " ".join(keys[:80])
-    if "decode_head." in joined or "backbone.blocks." in joined or "projections." in joined:
+    _ckpt, keys = _peek_state_dict(checkpoint)
+    joined = " ".join(keys[:120])
+    if (
+        "decode_head." in joined
+        or "backbone.blocks." in joined
+        or "projections." in joined
+        or "seg.backbone." in joined
+    ):
         return "uni2_upernet"
     return "baseline"
 
 
-def build_eval_model(arch: str) -> torch.nn.Module:
+def build_eval_model(
+    arch: str,
+    *,
+    decode_norm: str = "bn",
+    use_lora: bool = False,
+    lora_r: int = 8,
+    lora_alpha: float = 16.0,
+) -> torch.nn.Module:
     if arch == "uni2_upernet":
         # pretrained=False: weights come from the training checkpoint (no HF needed).
-        return build_uni2_upernet(
+        model = build_uni2_upernet(
             num_classes=NUM_CLASSES,
             freeze_backbone=False,
             pretrained=False,
+            decode_norm=decode_norm,
         )
+        if use_lora:
+            n = apply_lora_to_vit_qkv(model.backbone, r=lora_r, alpha=lora_alpha)
+            print(f"Eval LoRA QKV wraps={n} | decode_norm={decode_norm}")
+        return model
     if arch == "baseline":
         return build_model(num_classes=NUM_CLASSES)
     raise ValueError(f"Unknown arch: {arch}")
@@ -245,8 +289,14 @@ def run_eval(
     )
 
     resolved_arch = detect_arch(checkpoint, arch)
-    model = build_eval_model(resolved_arch)
+    _ckpt_peek, peek_keys = _peek_state_dict(checkpoint)
+    _is_opt3, decode_norm, use_lora = _opt3_flags(peek_keys)
+    model = build_eval_model(
+        resolved_arch, decode_norm=decode_norm, use_lora=use_lora
+    )
     ckpt_meta = load_model_weights(checkpoint, model)
+    if _is_opt3 or use_lora:
+        print(f"Opt3 load: decode_norm={decode_norm} use_lora={use_lora}")
     model.to(device)
     model.eval()
     if device.type == "cuda":

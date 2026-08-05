@@ -77,15 +77,27 @@ def _resample_pos_embed(state: dict, model: nn.Module) -> dict:
     return state
 
 
-def _decode_bn(channels: int) -> nn.BatchNorm2d:
-    """Decode-head BN matching the project's UNI2+UPerNet training recipe.
+def _decode_norm(channels: int, kind: str = "bn") -> nn.Module:
+    """Decode-head normalization (ViT backbone stays LayerNorm either way).
 
-    Teacher A and every working checkpoint in this repo were trained with
-    ``track_running_stats=False``: batch statistics in both train and eval.
-    Default BatchNorm (running stats) causes the train-flat / val-explode
-    pattern seen when the backbone unfreezes under small per-GPU batches.
+    ``bn``: BatchNorm with ``track_running_stats=False`` — recipe used by
+    teacher A / existing UNI2+UPerNet checkpoints in this repo.
+    ``gn``: GroupNorm — Omar Option-3 recommendation (stable under micro-batches).
     """
+    kind = (kind or "bn").lower()
+    if kind == "gn":
+        for g in (32, 16, 8, 4, 2, 1):
+            if channels % g == 0:
+                return nn.GroupNorm(g, channels)
+        return nn.GroupNorm(1, channels)
+    if kind != "bn":
+        raise ValueError(f"Unknown decode norm kind: {kind}")
     return nn.BatchNorm2d(channels, track_running_stats=False)
+
+
+def _decode_bn(channels: int) -> nn.Module:
+    """Back-compat alias → BatchNorm decode recipe."""
+    return _decode_norm(channels, kind="bn")
 
 
 class PPM(nn.Module):
@@ -96,6 +108,8 @@ class PPM(nn.Module):
         in_channels: int,
         channels: int,
         pool_scales: tuple[int, ...] = (1, 2, 3, 6),
+        *,
+        norm: str = "bn",
     ) -> None:
         super().__init__()
         self.stages = nn.ModuleList(
@@ -103,7 +117,7 @@ class PPM(nn.Module):
                 nn.Sequential(
                     nn.AdaptiveAvgPool2d(scale),
                     nn.Conv2d(in_channels, channels, kernel_size=1, bias=False),
-                    _decode_bn(channels),
+                    _decode_norm(channels, norm),
                     nn.ReLU(inplace=True),
                 )
                 for scale in pool_scales
@@ -117,7 +131,7 @@ class PPM(nn.Module):
                 padding=1,
                 bias=False,
             ),
-            _decode_bn(channels),
+            _decode_norm(channels, norm),
             nn.ReLU(inplace=True),
         )
 
@@ -140,14 +154,16 @@ class UPerNetHead(nn.Module):
         channels: int = 512,
         num_classes: int = 6,
         pool_scales: tuple[int, ...] = (1, 2, 3, 6),
+        *,
+        norm: str = "bn",
     ) -> None:
         super().__init__()
-        self.psp = PPM(in_channels[-1], channels, pool_scales=pool_scales)
+        self.psp = PPM(in_channels[-1], channels, pool_scales=pool_scales, norm=norm)
         self.lateral_convs = nn.ModuleList(
             [
                 nn.Sequential(
                     nn.Conv2d(c, channels, kernel_size=1, bias=False),
-                    _decode_bn(channels),
+                    _decode_norm(channels, norm),
                     nn.ReLU(inplace=True),
                 )
                 for c in in_channels[:-1]
@@ -157,7 +173,7 @@ class UPerNetHead(nn.Module):
             [
                 nn.Sequential(
                     nn.Conv2d(channels, channels, kernel_size=3, padding=1, bias=False),
-                    _decode_bn(channels),
+                    _decode_norm(channels, norm),
                     nn.ReLU(inplace=True),
                 )
                 for _ in in_channels[:-1]
@@ -165,7 +181,7 @@ class UPerNetHead(nn.Module):
         )
         self.fpn_bottleneck = nn.Sequential(
             nn.Conv2d(len(in_channels) * channels, channels, kernel_size=3, padding=1, bias=False),
-            _decode_bn(channels),
+            _decode_norm(channels, norm),
             nn.ReLU(inplace=True),
         )
         self.cls_seg = nn.Conv2d(channels, num_classes, kernel_size=1)
@@ -213,6 +229,7 @@ class UNI2UPerNet(nn.Module):
         pretrained: bool = True,
         freeze_backbone: bool = True,
         checkpoint_path: str | Path | None = None,
+        decode_norm: str = "bn",
     ) -> None:
         super().__init__()
         if len(out_indices) != len(fpn_channels):
@@ -220,6 +237,7 @@ class UNI2UPerNet(nn.Module):
         self.model_size = int(model_size)
         self.out_indices = tuple(out_indices)
         self.patch_size = 14
+        self.decode_norm = (decode_norm or "bn").lower()
         if self.model_size % self.patch_size != 0:
             raise ValueError(f"model_size must be divisible by {self.patch_size}")
 
@@ -238,6 +256,7 @@ class UNI2UPerNet(nn.Module):
             in_channels=fpn_channels,
             channels=head_channels,
             num_classes=num_classes,
+            norm=self.decode_norm,
         )
         self._backbone_frozen = False
         if freeze_backbone:
@@ -426,6 +445,7 @@ def build_uni2_upernet(
     pretrained: bool = True,
     checkpoint_path: str | Path | None = None,
     model_size: int = DEFAULT_MODEL_SIZE,
+    decode_norm: str = "bn",
 ) -> UNI2UPerNet:
     model = UNI2UPerNet(
         num_classes=num_classes,
@@ -433,14 +453,16 @@ def build_uni2_upernet(
         pretrained=pretrained,
         freeze_backbone=freeze_backbone,
         checkpoint_path=checkpoint_path,
+        decode_norm=decode_norm,
     )
-    # Belt-and-suspenders: any BN that slipped through still matches the recipe.
-    n_bn = disable_bn_running_stats(model)
+    n_bn = (
+        disable_bn_running_stats(model) if (decode_norm or "bn").lower() == "bn" else 0
+    )
     n_train = sum(p.numel() for p in model.parameters() if p.requires_grad)
     n_all = sum(p.numel() for p in model.parameters())
     print(
         f"Model: UNI2-h + UPerNet | params trainable={n_train:,} / total={n_all:,} "
         f"| freeze_backbone={freeze_backbone} | model_size={model_size} "
-        f"| decode_bn_batch_stats={n_bn}"
+        f"| decode_norm={decode_norm} | decode_bn_batch_stats={n_bn}"
     )
     return model
