@@ -362,12 +362,12 @@ def render_contact(clusters: pd.DataFrame, max_clusters: int = 24) -> None:
 
 
 def main() -> None:
+    global IOU_REVIEW
     ap = argparse.ArgumentParser()
     ap.add_argument("--resume", action="store_true")
     ap.add_argument("--iou-review", type=float, default=IOU_REVIEW)
     ap.add_argument("--skip-contact", action="store_true")
     args = ap.parse_args()
-    global IOU_REVIEW
     IOU_REVIEW = float(args.iou_review)
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
