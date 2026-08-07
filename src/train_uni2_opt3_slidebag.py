@@ -118,7 +118,9 @@ def train(args: argparse.Namespace) -> None:
         print("Option 3 slide-bag |", summarize_bags(train_ds))
         print(
             f"λ_slide={args.lambda_slide} λ_grade={args.lambda_grade} "
-            f"micro_bs={args.micro_batch_size} slides/ep={args.slides_per_epoch}"
+            f"micro_bs={args.micro_batch_size} slides/ep={args.slides_per_epoch} "
+            f"min_slide_patches={args.min_slide_patches} "
+            f"min_area_pct={args.min_area_pct}"
         )
 
     train_sampler = (
@@ -247,6 +249,9 @@ def train(args: argparse.Namespace) -> None:
             n_patches = len(patch_idxs)
             if n_patches == 0:
                 continue
+            # Omar 2026-08-06: hard-skip dual ISUP on tiny bags (n < 5).
+            # Pixel loss still runs; L_slide / L_grade are skipped.
+            apply_slide_isup = n_patches >= int(args.min_slide_patches)
 
             optimizer.zero_grad(set_to_none=True)
             logits_chunks: list[torch.Tensor] = []
@@ -276,50 +281,61 @@ def train(args: argparse.Namespace) -> None:
                     scaled = p_loss * (n_real / n_patches)
                 scaler.scale(scaled).backward()
                 pixel_loss_acc += float(scaled.detach().item())
-                logits_chunks.append(logits[:n_real].detach())
-                feat_chunks.append(feats[:n_real].detach())
+                if apply_slide_isup:
+                    logits_chunks.append(logits[:n_real].detach())
+                    feat_chunks.append(feats[:n_real].detach())
                 del images, masks, weights, imgs_b, masks_b, weights_b
 
-            # Differentiable slide losses on a random subset (+ bag-mean prior)
-            perm = torch.randperm(n_patches)[: min(micro, n_patches)].tolist()
-            live_idxs = [patch_idxs[i] for i in perm]
-            images_g, _, _ = load_patch_batch(train_ds.base, live_idxs)
-            images_g = images_g.to(device, non_blocking=True)
-            imgs_g, n_g = _bn_safe(images_g)
-            with torch.cuda.amp.autocast(enabled=use_amp):
-                logits_g, feats_g, grade_live = model(imgs_g)
-                logits_g = logits_g[:n_g]
-                feats_g = feats_g[:n_g]
-                grade_live = grade_live[:n_g]
-                mean_live = torch.softmax(logits_g.float(), dim=1).mean(dim=(0, 2, 3))
-                bag_mean = aggregate_softmax_probs(logits_chunks).to(mean_live.device)
-                mean_probs = 0.5 * mean_live + 0.5 * bag_mean
-                l_slide, _ = derived_isup_ce_from_seg_probs(mean_probs, isup)
+            l_slide_val = 0.0
+            l_grade_val = 0.0
+            slide_term_val = 0.0
+            if apply_slide_isup:
+                # Differentiable slide losses on a random subset (+ bag-mean prior)
+                perm = torch.randperm(n_patches)[: min(micro, n_patches)].tolist()
+                live_idxs = [patch_idxs[i] for i in perm]
+                images_g, _, _ = load_patch_batch(train_ds.base, live_idxs)
+                images_g = images_g.to(device, non_blocking=True)
+                imgs_g, n_g = _bn_safe(images_g)
+                with torch.cuda.amp.autocast(enabled=use_amp):
+                    logits_g, feats_g, grade_live = model(imgs_g)
+                    logits_g = logits_g[:n_g]
+                    feats_g = feats_g[:n_g]
+                    grade_live = grade_live[:n_g]
+                    mean_live = torch.softmax(logits_g.float(), dim=1).mean(dim=(0, 2, 3))
+                    bag_mean = aggregate_softmax_probs(logits_chunks).to(mean_live.device)
+                    mean_probs = 0.5 * mean_live + 0.5 * bag_mean
+                    l_slide, _ = derived_isup_ce_from_seg_probs(
+                        mean_probs, isup, min_area_pct=args.min_area_pct
+                    )
 
-                feat_bag = torch.cat(feat_chunks, dim=0).mean(dim=0)
-                feat_mix = 0.5 * feats_g.mean(dim=0) + 0.5 * feat_bag
-                g_logits = 0.5 * grade_live.mean(dim=0) + 0.5 * unwrap_model(model).grade_head(
-                    feat_mix
-                )
-                l_grade = grade_head_ce(g_logits, isup)
-                slide_term = args.lambda_slide * l_slide + args.lambda_grade * l_grade
+                    feat_bag = torch.cat(feat_chunks, dim=0).mean(dim=0)
+                    feat_mix = 0.5 * feats_g.mean(dim=0) + 0.5 * feat_bag
+                    g_logits = 0.5 * grade_live.mean(dim=0) + 0.5 * unwrap_model(
+                        model
+                    ).grade_head(feat_mix)
+                    l_grade = grade_head_ce(g_logits, isup)
+                    slide_term = args.lambda_slide * l_slide + args.lambda_grade * l_grade
 
-            scaler.scale(slide_term).backward()
+                scaler.scale(slide_term).backward()
+                l_slide_val = float(l_slide.detach().item())
+                l_grade_val = float(l_grade.detach().item())
+                slide_term_val = float(slide_term.detach().item())
+                del images_g, imgs_g, logits_chunks, feat_chunks
+
             if args.grad_clip > 0:
                 scaler.unscale_(optimizer)
                 torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
             scaler.step(optimizer)
             scaler.update()
-            del images_g, imgs_g, logits_chunks, feat_chunks
             # Drop per-slide H5/OpenSlide caches — otherwise host MaxRSS climbs
             # ~1G per new slide and can hit the Slurm mem cap mid-epoch.
             train_ds.base.clear_open_handles()
 
-            total = pixel_loss_acc + float(slide_term.detach().item())
+            total = pixel_loss_acc + slide_term_val
             running["loss"] += total
             running["pixel"] += pixel_loss_acc
-            running["slide"] += float(l_slide.detach().item())
-            running["grade"] += float(l_grade.detach().item())
+            running["slide"] += l_slide_val
+            running["grade"] += l_grade_val
             running["n"] += 1
             n_slides += 1
 
@@ -447,6 +463,18 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--num-workers", type=int, default=4)
     p.add_argument("--lambda-slide", type=float, default=0.3)
     p.add_argument("--lambda-grade", type=float, default=0.3)
+    p.add_argument(
+        "--min-slide-patches",
+        type=int,
+        default=5,
+        help="Hard-skip L_slide/L_grade when bag has fewer patches (Omar: 5; was planned 32).",
+    )
+    p.add_argument(
+        "--min-area-pct",
+        type=float,
+        default=0.0,
+        help="Hard derive_grade area gate for logging (Omar: 0 = no 5%% threshold).",
+    )
     p.add_argument("--adjacent-soft-alpha", type=float, default=0.15)
     p.add_argument("--grad-clip", type=float, default=1.0)
     p.add_argument("--amp", action="store_true")
@@ -454,7 +482,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--uni2-checkpoint", type=str, default="")
     p.add_argument("--resume", type=str, default="")
     p.add_argument("--save-every", type=int, default=5)
-    p.add_argument("--keep-checkpoints", type=int, default=3)
+    p.add_argument(
+        "--keep-checkpoints",
+        type=int,
+        default=0,
+        help="Max epoch_*.pth to retain (by mtime). 0 = keep all (default; never auto-delete).",
+    )
     p.add_argument("--seed", type=int, default=42)
     return p
 

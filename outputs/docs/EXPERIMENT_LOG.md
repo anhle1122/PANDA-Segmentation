@@ -17,9 +17,11 @@ Format: **Why → What → Result → Decision**
 | Classes | 0 bg, 1 stroma, 2 benign, 3 G3, 4 G4, 5 G5 |
 | **Teacher / external report** | `…/h200x4/epoch_042_cancer_0.7420.pth` (PANDA+ cancer **0.554**) |
 | PANDA+ protocol | `gt≥2` only; benign/G3/G4/G5; `--panda-plus-eval` |
-| ISUP diagnostic `min_area_pct` | **0.05** |
+| ISUP diagnostic `min_area_pct` | **0.0** (Omar 2026-08-06: remove 5% gate; any positive grade counts) |
+| Opt3 tiny-bag gate | **hard skip L_slide/L_grade if n&lt;5** (Omar; was soft n/64 / planned 32) |
 | Phase 3 ISUP-0 | **skip** |
 | Handoff README | `/common/omarmlab/members/anh/panda_project/README.md` |
+| Checkpoint prune | **off by default** (`--keep-checkpoints 0` = keep all `epoch_*.pth`) |
 
 ---
 
@@ -33,6 +35,8 @@ Format: **Why → What → Result → Decision**
 | **R4** | `40k_g45soft_bf16/epoch_061_cancer_0.7394` | **0.739** | **0.528** | Fair 40k+g45; external below A |
 | R4-ep35 | `40k_g45soft_bf16/epoch_035_cancer_0.7222` | 0.722 | **0.539** | Best R4 PANDA+ |
 | R5 | `h200x4_10k_adj015` | — | — | Failed job `5260610`; resubmit after code restore |
+| Opt3-ep12 | `opt3_slidebag/epoch_012…0.6190` (**pruned**) | 0.619 | **0.551** | Best Opt3 external so far; ISUP-in-domain 52.6% |
+| Opt3-ep21 | `opt3_slidebag/epoch_021…0.6356` | **0.636** | 0.546 | Val/ISUP-in-domain better; **PANDA+ worse** (Model-C pattern) |
 
 ---
 
@@ -90,9 +94,69 @@ A/B/C were sequential engineering runs (confounded). Cleaner grid:
 
 ---
 
+## Opt3 slide-bag (in progress) — Model-C pattern + PANDA+ ISUP
+
+| | |
+|--|--|
+| **Why** | Dual ISUP losses; check whether clinical-match gains track external seg |
+| **What** | Tag `pseudo_r1_opt3_slidebag`; soft gate `min(1,n/64)`; live=64; GN+LoRA |
+| **Result** | ep12: val 0.619 / PANDA+ **0.551** / ISUP(train) 52.6%. ep21: val 0.636 / PANDA+ **0.546** / ISUP(train) 57.3%. **Same divergence as Model C: internal↑, PANDA+↓.** |
+| **Decision** | Prefer **ep12** for external claims (ckpt currently pruned — keep Dice number). Next tag: **hard skip n&lt;32** for L_slide/L_grade (Policy A). First PANDA+ ISUP jobs **5367373** (Teacher A) / **5367374** (ep21) vs `train.csv` clinical on 48 matched slides. |
+
+---
+
+
+## Part1 — min_area_pct calibration (mask vs clinical, PANDA train)
+
+| | |
+|--|--|
+| **Why** | Threshold used by derive_grade / Rules / L_slide never validated vs clinical |
+| **What** | Offline sweep on cached raw-mask pixel counts (3746 train slides); NOT model preds |
+| **Result** | match@thr: 0.01→87.8%, 0.02→85.7%, 0.03→84.0%, **0.05→81.5%**, 0.07→79.6%, 0.10→76.5%, 0.15→72.8%. Best=0.01. ISUP0/1 flat ~100%; ISUP2/3/5 drop as thr rises. Max adjacent Δ≈3.7pp. Extended: still monotonic to 0.001→90.6%. Flips 0.05→0.01: 222 wrong→right, 0 right→wrong. |
+| **Decision** | (superseded 2026-08-06) Omar removes area gate → **thr=0**. Prior caution against locking 0.01 still noted historically. |
+
+## Part2 — ep21 confidence + LSE precheck (2026-08-05)
+
+| | |
+|--|--|
+| **Why** | Gate confidence-gating / LSE before wiring into train; ep12 differing-pixel analysis blocked (ckpt pruned) |
+| **What** | **5368457** ep21-only A/B conf on clinical-mismatch + pred≠mask; **5368439** ep21 conf + LSE r∈{2,4,8,16,32} on 120 divergent slides. Both `--mem=64G`. |
+| **Result** | 64G OOM → fixed. **5368614**/ **5368615** COMPLETED @128G+stream. Conf: cancer low-conf **~50%**. A (ISUP-mismatch G3–5): low-conf **51%** / high **49%**. B (pred≠mask): low-conf **20%** / high **80%**. LSE: plain G5 **22.6%** → r=8 **18.9%** (Δ≈−3.7pp); plateaus after r≈8. |
+| **Decision** | Mixed gate: A borderline; B confidently wrong vs expert. Conf-gating not auto-wired. |
+
+## Omar protocol update (2026-08-06) — thr + tiny-bag gate
+
+| | |
+|--|--|
+| **Why** | Omar: remove 5% area rule; only skip dual-ISUP on very small bags |
+| **What** | `derive_grade` default `min_area_pct=0.0`. Opt3 `--min-slide-patches 5` hard-skips `L_slide`/`L_grade` when n&lt;5 (pixel loss still runs). Soft `L_slide` never used the 5% gate for grads. |
+| **Result** | Code in `isup_diagnostic.py`, `grade_head.py`, `train_uni2_opt3_slidebag.py`. |
+| **Decision** | Next runs / diagnostics use thr=0 and n&lt;5 skip. Re-score ISUP tables at thr=0 before citing new match rates. Prefer PANDA+ for ckpt pick. |
+
+## v33 patch-filter audit (2026-08-06) — tissue gate is stain-biased
+
+| | |
+|--|--|
+| **Why** | Slide `39f36065811d` (ISUP 5) reaches training with only **3** patches; need the cause before blaming bag size / L_slide |
+| **What** | Recovered the v33 rule from 99,764 logged decisions (decision tree, 99.5% agreement) — generator `src/patch_filtering_panda.py` is **missing from repo and git history** (Jul-30 wipe). Order: pen/dark >2% → drop; `tissue_pct` &lt;20 → `low_tissue`; ≥20 &amp; cancer ≥1% → `rescued_cancer`; ≥20 &amp; G4/G5 near cutoff → `rescued_g45_near_cutoff`; ≥40, or ≥20 with mask tissue ≥40 → plain keep. `tissue_pct` fitted to `100*(1-mean(all(RGB>210) \| blank))`, no blur (mean abs err **0.32pp**). Corpus scan → `outputs/docs/lowtissue_drop_scan_v33.csv`. |
+| **Result** | On that slide the gate reproduces all 128 decisions exactly (max dropped tissue 19.69% vs min kept 20.83%); **cancer plays no role** — 73 dropped tiles contain cancer, max **35.7%** vs best kept **27.6%**. Root cause is stain intensity, not tissue amount: tile mean RGB **223–230**, so pale eosinophilic stroma clears the 210 "white" cutoff and only dark nuclei count. Corpus (4731 slides / 776,709 tiles / **71.6%** kept): ≥50% `low_tissue` on **24** slides, ≥80% on **1**; **3446 slides (72.8%)** lose ≥1 tile with ≥1% cancer, **32,465** tiles total; dropped tile beats every kept tile on cancer for **3** slides. Both worst cases (`39f36065811d`, `6875cac943f8`) are ISUP 5. |
+| **Decision** | Cancer rescue **is live** (v33 is the only tag; `DEFAULT_RULES_TAG="v33"`, splits built from it) — without it this slide would contribute 0 patches. Do **not** treat sparse-bag ISUP mismatch as purely a model/loss problem. Filter cannot be re-run until the generator is rewritten; if rewritten, replace the fixed RGB-210 cutoff with a stain-robust measure (Otsu on optical density) and re-check the 24 worst slides. |
+
 ## Open next
 
-1. Push commits to origin  
-2. Resubmit R5  
-3. Clean Phase 3 from 5% report  
-4. Omar design session on loss-loop vs offline-only  
+1. Re-score train / PANDA+ ISUP at `min_area_pct=0`  
+2. Next Opt3 tag with n&lt;5 skip + thr=0  
+3. Keep reporting val + PANDA+ + ISUP (not val-best alone)  
+4. Commit prune keep-all + Omar thr/gate change  
+5. Decide whether to rewrite `patch_filtering_panda.py` with a stain-robust tissue measure  
+6. **Slide duplicate scan job `5382339`** — review pairs/clusters; if cross-split hits, dedupe before next train  
+
+## Slide near-duplicate audit (2026-08-07)
+
+| | |
+|--|--|
+| **Why** | User spotted same cores under different `image_id` (e.g. `48440a60`/`4889d110`) — leakage / overcount risk |
+| **What** | Shape+metadata scan on all `radboud_clean` slides (`src/scan_slide_duplicates.py`). Silhouette IoU (flip/rot) within same gleason; cluster + train/val/test mapping. Job **5382339**. |
+| **Result** | Pending job. Preliminary: flagged pairs are train∩train; dims differ slightly (re-crop/re-scan). All `data_provider=radboud` → **dataset/metadata duplicates**, not a bug we introduced in extract. |
+| **Decision** | Treat as PANDA inheritance; our fix is dedupe-before-split once scan lands. Prefer keeping the copy with more kept patches. |  
+

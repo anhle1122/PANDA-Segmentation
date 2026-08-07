@@ -7,81 +7,21 @@ Format: **Why → What → Result → Decision**
 
 ---
 
-## Mask ISUP vs clinical — provenance fix (2026-07-30)
-
-**Why:** Chat reused **2018/3746 = 53.9%** as “mask-derived vs clinical,” but that number is identical to teacher A’s model-vs-clinical diagnostic.
-
-**What:** Traced `outputs/pseudo_label/diagnostic_report.csv` — columns are `pred_pixels_*` from `src/isup_diagnostic.py` (model inference), match sum **2018**. Round1 `match` count is the same comparison. Submitted CPU job **5326054**: `src/mask_isup_vs_clinical.py` aggregates **raw mask patch** pixels → `derive_grade()` @ 5% → clinical ISUP; out `outputs/pseudo_label/mask_isup_vs_clinical.csv`.
-
-**Result:** **5326054** finished. Raw-mask → `derive_grade` @5% vs clinical: **3054 / 3746 = 81.5%**. Teacher A model-vs-clinical remains **2018 / 3746 = 53.9%**. Not the same number — prior chat reuse was wrong. Per-metadata ISUP mask match: 0=1.00, 1≈1.00, 2≈0.55, 3≈0.54, 4≈0.96, 5≈0.77. Artifact: `outputs/pseudo_label/mask_isup_vs_clinical.csv`.
-
-**Decision:** Cite **81.5%** as mask-vs-clinical and **53.9%** as model-vs-clinical separately. Teacher A is *worse* than the masks at matching clinical ISUP — model adds disagreement beyond mask noise (esp. ISUP 2/3).
-
-
-## Option 3 — slide-bag + dual ISUP (started 2026-07-30)
-
-**Why:** Omar Option 3 — seg CE+Dice + derived-ISUP-from-paint slide loss + separate grade-head loss; no Rules 1–3. Evaluate dual-ISUP on its own vs **teacher A**, not vs `wmfix`.
-
-**What:** Regroup existing patches (max 323/slide); micro-batch accumulate; λ_slide=λ_grade=0.3; tag `pseudo_r1_opt3_slidebag`. \(L_\mathrm{slide}\) = soft linear proxy on \((f_3,f_4,f_5)\), **not** differentiable `derive_grade()`. Backbone UNI2 pretrained + freeze 5 ep. 256 slides/ep/rank. Adjacent soft **α=0.15**. Train on **2×H200** (`--mem=120G`) to share mixed nodes; Slurm auto-resumes `latest.pth`. Monitor `scripts/monitor_opt3_h200.sh` upgrades to 4×+400G when a full node frees (resume, never scratch).
-
-**Result:** First start **5323068** on cp098 (preemptable) crashed: BatchNorm N=1 on remainder micro-batch (`[1,512,1,1]`). Fixed by BN-safe pad (duplicate singleton → N=2; loss on real only). Resubmitted. H200 requires `--partition=preemptable --qos=part_preemptable` (gpu+normal → ReqNodeNotAvail). Later OOMs / preempts; retuned to lazy bags + **96G** + max 160 patches/slide. **5324260** ran ~51 min then cancelled: host MaxRSS climbed linearly **~1.2G/30s** to **~67G** — uncapped H5/OpenSlide caches. Full mem fix: class LRU `max_cached_opens=2` + train-bag clear + `val_ds.clear_open_handles()`. **5326090** (full fix) FAILED @ **53m** on Jul 30 19:07: NCCL ALLREDUCE timeout 600s (rank desync / SIGABRT); never wrote ep1 metrics; no `latest.pth`. Host MaxRSS stayed **~10→13G**/96G (cache fix held). ETA rough **20–40 min/epoch** on 2× once stable; refine after ep1.
-
-**Decision:** Judge Option 3 vs teacher A PANDA+ **0.554** cancer / **0.528** G5. **Core hypothesis:** can \(L_\mathrm{slide}\) (λ=0.3, aggregate→seg grads) counteract original-mask G3/G4 bias under full CE+Dice, with no Rules? Post-run require teacher-A-style **G3→G4 leak** analysis, not Dice alone. If underperforms / leak stuck: (1) **WeGleNet LSE** pool with val-tuned \(r\) (paper \(r=8\)) + consider secondary damp \(d\) (paper \(0.70\)) — current loss is mean-softmax + linear ISUP scores, not LSE; (2) soft-`derive_grade` surrogate; (3) higher λ / Rules+dual-ISUP same-α — before rejecting the idea. **Immediate:** diagnose DDP hang (asymmetric bag sizes / collective order across ranks) and resubmit; mem path is no longer the blocker.
-
-
-## Code recovery (2026-07-30)
-
-**Why:** Pseudo-label Round 1 sources were never committed and were wiped from disk with other train files.
-
-**What:** Restored exact files from Cursor local History (not `.pyc`); committed as `e9add14` (`pseudo_label_rules.py`, `pseudo_label_dataset.py`, `round_control.py`, ISUP-informed losses, train CLI, Slurm/smoke/cache, protocol docs, round1 manifest).
-
-**Decision:** Do not start Option 3 until smoke tests pass on recovered code. Commit pseudo-label / Option-3 files early and often.
-
-
-## R6 — Pseudo-label Round 1 (Rules 1–3)
-
-**Why:** Replace A/B/C/D with iterative self-training; Round 1 trains from scratch with ISUP-informed single loss (Rules 1–3 rewrite flagged pixels in the original-mask seg target).
-
-**What:** Manifest initially 629 correcting / 3746 slides (R1: 249, R2: 9, R3: 371). Cached teacher A argmax for correcting slides. After protocol fix: wide-margin 2↔3 no longer hard-corrects; **187** slides tagged `wide_margin_unresolved` (empty flags; original mask kept). Correcting set = **442** (`rule1_soft_tie` 62 + R2 9 + R3 371).
-
-**Result (BN / loss path):**
-- `5305879` (`pseudo_r1`): cancelled; peak cancer **0.411 @ ep3**; decode BN running-stats → val NaN after unfreeze.
-- `5307259` (`pseudo_r1_bnfix`): dual-loss era; superseded.
-- `5307347` (`pseudo_r1_isup_seg`): ISUP single-loss + BN fix; reached **ep12**, best val cancer **0.570**; still used old `rule1_wide_margin` hard G3↔G4 rewrite → **cancelled**.
-- `5307779` (`pseudo_r1_isup_wmfix`): resubmitted with `wide_margin_unresolved` manifest. **Canonical Round 1 clean baseline** — do not conflate with `5307347`.
-
-**`5307779` isolation checklist (confirmed live from job log + script):**
-- `seg_target = original_mask` only (Round 1; no `--seg-target-dir`)
-- Loss = ISUP-informed single loss: Rules rewrite flagged pixels in that mask target (442 slides: soft_tie 62 + R2 9 + R3 371)
-- Wide-margin 187 slides: `wide_margin_unresolved`, empty flags, no rewrite
-- **OEEM deliberately OFF** (helpers exist in `losses.py`; not called from train loop) — Round 1 is Rules-only
-
-**Protocol decision (2026-07-29):** Wide-margin Rule 1 must **not** hard-correct over-extended G3/G4 pixels — no reliable pixel-level split of real secondary vs over-extension. Same effect as missing-class / `none`, but named `wide_margin_unresolved` for audit. Soft-tie (margin &lt; 0.15) unchanged.
-
-**Decision:** Train Round 1 on the unresolved-wide-margin manifest; judge vs teacher A on fresh `--panda-plus-eval` after `5307779`. Treat `5307347` as a discarded buggy protocol run only.
-
-**Omar protocol (2026-07-29) — supersedes EMA plan:** Round-based Option A only; **reject** mid-run self-relabel (B). Pixel mask regenerates once/round; continuous honesty = **live ISUP grade head/loss** every batch (not a second fighting pixel loss). Round 2+ target = cleaned map (agree→keep label; disagree+low conf→ignore; disagree+conf→ISUP referee then swap). See `outputs/pseudo_label/OMAR_ROUND_PROTOCOL.md`. Keep ≤2 rounds. Current `5307779` remains Round 1 mask-start baseline (grade head not yet built).
-
-
-
----
-
 ## Active defaults (current)
 
 | Item | Value |
 |------|--------|
 | Architecture | UNI2-h + UPerNet |
 | Input | raw 512² (ImageNet norm) |
-| Loss (baseline) | 0.5 CE + 0.5 soft Dice; adj soft α=0.15–0.22 |
-| Loss (pseudo Round 1+) | `combined_loss` w_seg=0.70 / w_pseudo=0.30; Rules 1–3 |
+| Loss | 0.5 CE + 0.5 soft Dice; adj soft α=0.15; optional g45 α=0.22 |
 | Classes | 0 bg, 1 stroma, 2 benign, 3 G3, 4 G4, 5 G5 |
 | **Teacher / external report** | `…/h200x4/epoch_042_cancer_0.7420.pth` (PANDA+ cancer **0.554**) |
-| Pseudo Round 1 | Job `5307779`; tag `pseudo_r1_isup_wmfix`; ISUP full-weight edit; wide_margin_unresolved (no G3/G4 hard rewrite); BN batch-stats; freeze 5; backbone LR×0.05 |
-| Bias fallback | `round_control.apply_bias_fallback`; leak tolerance **1.05** (tightened from 1.10 after full-weight redesign); cancer/g5 any decline |
 | PANDA+ protocol | `gt≥2` only; benign/G3/G4/G5; `--panda-plus-eval` |
-| ISUP diagnostic `min_area_pct` | **0.05** |
+| ISUP diagnostic `min_area_pct` | **0.0** (Omar 2026-08-06: remove 5% gate; any positive grade counts) |
+| Opt3 tiny-bag gate | **hard skip L_slide/L_grade if n&lt;5** (Omar; was soft n/64 / planned 32) |
 | Phase 3 ISUP-0 | **skip** |
 | Handoff README | `/common/omarmlab/members/anh/panda_project/README.md` |
+| Checkpoint prune | **off by default** (`--keep-checkpoints 0` = keep all `epoch_*.pth`) |
 
 ---
 
@@ -95,6 +35,8 @@ Format: **Why → What → Result → Decision**
 | **R4** | `40k_g45soft_bf16/epoch_061_cancer_0.7394` | **0.739** | **0.528** | Fair 40k+g45; external below A |
 | R4-ep35 | `40k_g45soft_bf16/epoch_035_cancer_0.7222` | 0.722 | **0.539** | Best R4 PANDA+ |
 | R5 | `h200x4_10k_adj015` | — | — | Failed job `5260610`; resubmit after code restore |
+| Opt3-ep12 | `opt3_slidebag/epoch_012…0.6190` (**pruned**) | 0.619 | **0.551** | Best Opt3 external so far; ISUP-in-domain 52.6% |
+| Opt3-ep21 | `opt3_slidebag/epoch_021…0.6356` | **0.636** | 0.546 | Val/ISUP-in-domain better; **PANDA+ worse** (Model-C pattern) |
 
 ---
 
@@ -152,9 +94,69 @@ A/B/C were sequential engineering runs (confounded). Cleaner grid:
 
 ---
 
+## Opt3 slide-bag (in progress) — Model-C pattern + PANDA+ ISUP
+
+| | |
+|--|--|
+| **Why** | Dual ISUP losses; check whether clinical-match gains track external seg |
+| **What** | Tag `pseudo_r1_opt3_slidebag`; soft gate `min(1,n/64)`; live=64; GN+LoRA |
+| **Result** | ep12: val 0.619 / PANDA+ **0.551** / ISUP(train) 52.6%. ep21: val 0.636 / PANDA+ **0.546** / ISUP(train) 57.3%. **Same divergence as Model C: internal↑, PANDA+↓.** |
+| **Decision** | Prefer **ep12** for external claims (ckpt currently pruned — keep Dice number). Next tag: **hard skip n&lt;32** for L_slide/L_grade (Policy A). First PANDA+ ISUP jobs **5367373** (Teacher A) / **5367374** (ep21) vs `train.csv` clinical on 48 matched slides. |
+
+---
+
+
+## Part1 — min_area_pct calibration (mask vs clinical, PANDA train)
+
+| | |
+|--|--|
+| **Why** | Threshold used by derive_grade / Rules / L_slide never validated vs clinical |
+| **What** | Offline sweep on cached raw-mask pixel counts (3746 train slides); NOT model preds |
+| **Result** | match@thr: 0.01→87.8%, 0.02→85.7%, 0.03→84.0%, **0.05→81.5%**, 0.07→79.6%, 0.10→76.5%, 0.15→72.8%. Best=0.01. ISUP0/1 flat ~100%; ISUP2/3/5 drop as thr rises. Max adjacent Δ≈3.7pp. Extended: still monotonic to 0.001→90.6%. Flips 0.05→0.01: 222 wrong→right, 0 right→wrong. |
+| **Decision** | (superseded 2026-08-06) Omar removes area gate → **thr=0**. Prior caution against locking 0.01 still noted historically. |
+
+## Part2 — ep21 confidence + LSE precheck (2026-08-05)
+
+| | |
+|--|--|
+| **Why** | Gate confidence-gating / LSE before wiring into train; ep12 differing-pixel analysis blocked (ckpt pruned) |
+| **What** | **5368457** ep21-only A/B conf on clinical-mismatch + pred≠mask; **5368439** ep21 conf + LSE r∈{2,4,8,16,32} on 120 divergent slides. Both `--mem=64G`. |
+| **Result** | 64G OOM → fixed. **5368614**/ **5368615** COMPLETED @128G+stream. Conf: cancer low-conf **~50%**. A (ISUP-mismatch G3–5): low-conf **51%** / high **49%**. B (pred≠mask): low-conf **20%** / high **80%**. LSE: plain G5 **22.6%** → r=8 **18.9%** (Δ≈−3.7pp); plateaus after r≈8. |
+| **Decision** | Mixed gate: A borderline; B confidently wrong vs expert. Conf-gating not auto-wired. |
+
+## Omar protocol update (2026-08-06) — thr + tiny-bag gate
+
+| | |
+|--|--|
+| **Why** | Omar: remove 5% area rule; only skip dual-ISUP on very small bags |
+| **What** | `derive_grade` default `min_area_pct=0.0`. Opt3 `--min-slide-patches 5` hard-skips `L_slide`/`L_grade` when n&lt;5 (pixel loss still runs). Soft `L_slide` never used the 5% gate for grads. |
+| **Result** | Code in `isup_diagnostic.py`, `grade_head.py`, `train_uni2_opt3_slidebag.py`. |
+| **Decision** | Next runs / diagnostics use thr=0 and n&lt;5 skip. Re-score ISUP tables at thr=0 before citing new match rates. Prefer PANDA+ for ckpt pick. |
+
+## v33 patch-filter audit (2026-08-06) — tissue gate is stain-biased
+
+| | |
+|--|--|
+| **Why** | Slide `39f36065811d` (ISUP 5) reaches training with only **3** patches; need the cause before blaming bag size / L_slide |
+| **What** | Recovered the v33 rule from 99,764 logged decisions (decision tree, 99.5% agreement) — generator `src/patch_filtering_panda.py` is **missing from repo and git history** (Jul-30 wipe). Order: pen/dark >2% → drop; `tissue_pct` &lt;20 → `low_tissue`; ≥20 &amp; cancer ≥1% → `rescued_cancer`; ≥20 &amp; G4/G5 near cutoff → `rescued_g45_near_cutoff`; ≥40, or ≥20 with mask tissue ≥40 → plain keep. `tissue_pct` fitted to `100*(1-mean(all(RGB>210) \| blank))`, no blur (mean abs err **0.32pp**). Corpus scan → `outputs/docs/lowtissue_drop_scan_v33.csv`. |
+| **Result** | On that slide the gate reproduces all 128 decisions exactly (max dropped tissue 19.69% vs min kept 20.83%); **cancer plays no role** — 73 dropped tiles contain cancer, max **35.7%** vs best kept **27.6%**. Root cause is stain intensity, not tissue amount: tile mean RGB **223–230**, so pale eosinophilic stroma clears the 210 "white" cutoff and only dark nuclei count. Corpus (4731 slides / 776,709 tiles / **71.6%** kept): ≥50% `low_tissue` on **24** slides, ≥80% on **1**; **3446 slides (72.8%)** lose ≥1 tile with ≥1% cancer, **32,465** tiles total; dropped tile beats every kept tile on cancer for **3** slides. Both worst cases (`39f36065811d`, `6875cac943f8`) are ISUP 5. |
+| **Decision** | Cancer rescue **is live** (v33 is the only tag; `DEFAULT_RULES_TAG="v33"`, splits built from it) — without it this slide would contribute 0 patches. Do **not** treat sparse-bag ISUP mismatch as purely a model/loss problem. Filter cannot be re-run until the generator is rewritten; if rewritten, replace the fixed RGB-210 cutoff with a stain-robust measure (Otsu on optical density) and re-check the 24 worst slides. |
+
 ## Open next
 
-1. Push commits to origin  
-2. Resubmit R5  
-3. Clean Phase 3 from 5% report  
-4. Omar design session on loss-loop vs offline-only  
+1. Re-score train / PANDA+ ISUP at `min_area_pct=0`  
+2. Next Opt3 tag with n&lt;5 skip + thr=0  
+3. Keep reporting val + PANDA+ + ISUP (not val-best alone)  
+4. Commit prune keep-all + Omar thr/gate change  
+5. Decide whether to rewrite `patch_filtering_panda.py` with a stain-robust tissue measure  
+6. **Slide duplicate scan job `5382339`** — review pairs/clusters; if cross-split hits, dedupe before next train  
+
+## Slide near-duplicate audit (2026-08-07)
+
+| | |
+|--|--|
+| **Why** | User spotted same cores under different `image_id` (e.g. `48440a60`/`4889d110`) — leakage / overcount risk |
+| **What** | Shape+metadata scan on all `radboud_clean` slides (`src/scan_slide_duplicates.py`). Silhouette IoU (flip/rot) within same gleason; cluster + train/val/test mapping. Job **5382339**. |
+| **Result** | Pending job. Preliminary: flagged pairs are train∩train; dims differ slightly (re-crop/re-scan). All `data_provider=radboud` → **dataset/metadata duplicates**, not a bug we introduced in extract. |
+| **Decision** | Treat as PANDA inheritance; our fix is dedupe-before-split once scan lands. Prefer keeping the copy with more kept patches. |  
+

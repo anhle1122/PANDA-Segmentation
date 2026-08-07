@@ -66,7 +66,7 @@ def derived_isup_ce_from_seg_probs(
     mean_probs: Tensor,
     clinician_isup: int | Tensor,
     *,
-    min_area_pct: float = 0.05,
+    min_area_pct: float = 0.0,
 ) -> tuple[Tensor, int]:
     """Slide-level CE using a soft proxy of derive_grade on mean class probs.
 
@@ -74,6 +74,9 @@ def derived_isup_ce_from_seg_probs(
     offline diagnostic. The training loss is CE between clinician ISUP and a
     soft distribution built from cancer-class masses (G3/G4/G5), so gradients
     flow into the segmentation head.
+
+    Note: the soft CE path does **not** apply ``min_area_pct``; that gate only
+    affects the hard ``derive_grade`` used for logging (Omar: default 0.0).
     """
     # mean_probs: (C,) with C=6
     cancer = mean_probs[3:6].clamp_min(1e-8)

@@ -468,7 +468,7 @@ def train(args: argparse.Namespace) -> None:
                     mode=args.mode,
                 )
                 shutil.copy2(ckpt_path, ckpt_dir / "best.pth")
-                prune_checkpoints(ckpt_dir, keep=3)
+                prune_checkpoints(ckpt_dir, keep=0)
             else:
                 patience_counter += 1
                 if epoch >= args.min_epochs and patience_counter >= args.patience:

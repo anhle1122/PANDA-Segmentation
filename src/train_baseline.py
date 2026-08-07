@@ -118,7 +118,17 @@ def load_checkpoint(
     return start_epoch
 
 
-def prune_checkpoints(ckpt_dir: Path, keep: int = 3) -> None:
+def prune_checkpoints(ckpt_dir: Path, keep: int = 0) -> None:
+    """Optionally drop old ``epoch_*.pth`` files.
+
+    ``keep <= 0`` means keep **all** epoch checkpoints (default). This avoids
+    silently deleting externally useful epochs (e.g. Opt3 ep12 pruned while
+    later worse-val epochs were retained by mtime). ``best.pth`` / ``latest.pth``
+    are never touched. Pass a positive ``keep`` only when disk pressure forces it.
+    """
+    if keep is None or int(keep) <= 0:
+        return
+    keep = int(keep)
     paths = sorted(ckpt_dir.glob("epoch_*.pth"), key=lambda p: p.stat().st_mtime, reverse=True)
     for p in paths[keep:]:
         p.unlink(missing_ok=True)
@@ -373,7 +383,7 @@ def train(args: argparse.Namespace) -> None:
                     mode=args.mode,
                 )
                 shutil.copy2(ckpt_path, ckpt_dir / "best.pth")
-                prune_checkpoints(ckpt_dir, keep=3)
+                prune_checkpoints(ckpt_dir, keep=0)
             else:
                 patience_counter += 1
                 if epoch >= args.min_epochs and patience_counter >= args.patience:

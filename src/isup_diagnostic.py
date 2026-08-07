@@ -64,9 +64,13 @@ def gleason_to_isup(primary: int, secondary: int) -> int:
 def derive_grade(
     class_pixel_counts: np.ndarray,
     *,
-    min_area_pct: float = 0.05,
+    min_area_pct: float = 0.0,
 ) -> tuple[str, int]:
-    """Derive Gleason/ISUP from predicted G3/G4/G5 pixel proportions."""
+    """Derive Gleason/ISUP from predicted G3/G4/G5 pixel proportions.
+
+    ``min_area_pct=0`` (Omar 2026-08-06): any positive cancer-grade fraction
+    counts toward primary/secondary. Prior default was 0.05.
+    """
     cancer = np.asarray(class_pixel_counts[3:6], dtype=np.float64)
     total_cancer = float(cancer.sum())
     if total_cancer <= 0:
@@ -75,7 +79,8 @@ def derive_grade(
     retained = [
         (grade, float(cancer[grade - 3] / total_cancer))
         for grade in (3, 4, 5)
-        if float(cancer[grade - 3] / total_cancer) >= min_area_pct
+        if float(cancer[grade - 3] / total_cancer) > 0.0
+        and float(cancer[grade - 3] / total_cancer) >= min_area_pct
     ]
     if not retained:
         return "benign", 0
@@ -200,7 +205,12 @@ def main() -> None:
     parser.add_argument("--num-workers", type=int, default=4)
     parser.add_argument("--amp", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--amp-dtype", choices=("float16", "bfloat16"), default="bfloat16")
-    parser.add_argument("--min-area-pct", type=float, default=0.05)
+    parser.add_argument(
+        "--min-area-pct",
+        type=float,
+        default=0.0,
+        help="Min cancer-grade fraction to count in derive_grade (Omar: 0 = any positive).",
+    )
     parser.add_argument("--max-slides", type=int, default=None, help="Smoke test only")
     parser.add_argument(
         "--allow-missing-h5",

@@ -7,8 +7,67 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-08-07
+
+- **12:07 PDT** | Full WSI **duplicate scan** submitted | User found same cores under different `image_id`s (leakage risk) | Job **`5382339`** `slide_dup_scan` on `defq`. Script `src/scan_slide_duplicates.py` + `scripts/slurm_scan_slide_duplicates.sh`. Fingerprints tissue silhouette + Hu; matches crop-robust IoU within same gleason; reports pairs/clusters × train/val/test. Out: `outputs/docs/slide_duplicates/`. This is a **PANDA/metadata** issue (Radboud twins with different IDs), not something our extract invented — our gap is we never deduped before splits.
+
+## 2026-08-06
+
+- **14:05 PDT** | v33 patch-filter audit: **20% RGB-tissue gate is stain-biased** | Explain slide `39f36065811d` keeping only 3 patches | Gate reproduces that slide 100% at `tissue_pct>=20`; 125/128 dropped `low_tissue` though **73 contain cancer** (max **35.7%** vs best kept 27.6%). Cause: `tissue_pct` counts a pixel as glass if `all(RGB>210)` → pale H&E leaves only dark nuclei (tile mean RGB 223–230). Corpus scan (4731 slides, 776,709 tiles, 71.6% kept): only **24** slides drop ≥50% as `low_tissue`, but **3446 (72.8%)** lose ≥1 cancer tile (**32,465** tiles). Artifacts: `outputs/docs/lowtissue_drop_scan_v33.csv`, `outputs/docs/lowtissue_worst_slides_contact.png`, `outputs/docs/min_slide_39f36065_hires/`. **Blocker:** generator `src/patch_filtering_panda.py` absent from repo+git (Jul-30 wipe) — thresholds not re-runnable without a rewrite.
+
+- **12:57 PDT** | Omar protocol: **thr=0** + tiny-bag skip **n&lt;5** | Remove 5% derive_grade gate; only skip dual-ISUP on very small bags | `derive_grade` default `min_area_pct=0.0`; Opt3 `--min-slide-patches 5` hard-skips `L_slide`/`L_grade` (pixel loss still runs). Soft `L_slide` never used 5% for grads. Next: re-score ISUP @ thr=0; new Opt3 tag with these defaults.
+
+## 2026-08-05
+
+- **21:13 PDT** | Wrote Opt3 epoch/PANDA+ README | Document all ep1–30 + available PANDA+ | `outputs/docs/OPT3_EPOCH_RESULTS_README.md` (+ ckpt dir `README.md`). Notes unstable val (big dips ep10/15); ep12 best PANDA+ 0.551 vs ep21 val-best 0.636 / PANDA+ 0.546.
+
+- **17:20 PDT** | Part2 **DONE** (both jobs) | Gate confidence-gating / LSE before train | **5368614** LSE OK (~14G). Cancer low-conf **~50%**; LSE lowers G5 share (plain 22.6% → r=8 **18.9%**), plateaus ≥8. **5368615** A/B: A (ISUP-mismatch cancer preds) low-conf **51.0%** (borderline noise); B (pred≠mask) low-conf only **19.9%** → mostly **confident** disagreement with expert. Single-ckpt / no ep12. Confidence-gating still **not** auto-wired — needs Omar call. Artifacts: `part2_ep21_only/part2_ep21_only_summary.json`, `part2_lse_precheck/lse_r_precheck_summary.json`.
+
+- **15:56 PDT** | Part2 resubmit **128G + streaming** | Fix 64G OOM from full-pixel conf/prob buffers | Scripts stream hist/sum/count + online LSE logsumexp (no pixel buffers). Jobs **5368614** (`part2_lse`) + **5368615** (`part2_ep21`); workers=2. Out dirs same as before.
+
+- **15:52 PDT** | Part2 jobs both **OUT_OF_MEMORY** @64G | Peak RAM after near-full inference (logit/conf accum) | **5368457** died ~2720/2750 (partial `mismatch_slides_streamed_isup.csv` only; no A/B conf summary). **5368439** finished batches then OOM — wrote `ep21_confidence_summary.json` (low-conf all **5.5%**, cancer pixels low-conf **~50%**, mean cancer conf **0.68**) but **no LSE r-curve**. Next: resubmit ≥96–128G and/or stream+free tensors; gate report still blocked.
+
+- **14:58 PDT** | Modified Part2 submitted (ep21-only) **5368457** | ep12 unrecoverable; weaker single-ckpt diagnosis | A) conf of pred G3/G4/G5 on clinical-ISUP mismatch slides; B) conf where pred≠expert mask. Explicitly NOT ep12-vs-ep21. Out `outputs/pseudo_label/part2_ep21_only/`. Prior LSE job **5368439** still RUNNING.
+
+- **14:57 PDT** | Part2/LSE path started; thr stays **0.05** | Aggregation progress not blocked by min_area edge | Offline: **871/3746 (23.3%)** slides with ep12≠ep21 derived ISUP; median max|Δcancer_frac| **0.15** (only 12% <0.05) — leans systematic, not tiny nudges. ep12 ckpt still gone → differing-pixel Part2 **partial**. GPU job **5368439** (`part2_lse`): ep21 conf on 120 divergent slides + LSE r∈{{2,4,8,16,32}} on conf>0.7 pixels. Out: `outputs/pseudo_label/part2_lse_precheck/`. Confidence-gating **not** wired to train until gate reports.
+
+- **14:53 PDT** | Visualized 15 flip secondaries (0.05→0.01 match) | Check if 1% patterns are real tissue vs noise | Contact `outputs/pseudo_label/flip_secondary_vis/`. Sampled ISUP2/3/5 × tiny(~1%) & larger(~5%). Visual read: **cohesive, morphologically distinct islands** (G4 fused glands / discrete G3 / solid G5 nests), not scattered mask speckles. Supports small-but-real secondary; still does not alone justify locking thr=0.01.
+
+- **14:30 PDT** | Extended min_area sweep + flip audit; ep12 confirmed gone | Check degenerate→0 before locking 0.01 | Match keeps climbing: **0.001→90.6%**, 0.005→89.1%, 0.01→87.8% (still monotonic). 0.05→0.01 flips on ISUP2/3/5: **222 wrong→right, 0 right→wrong**; 100% have a grade in [1%,5%); median 2nd-pattern **2.6%**. Rule1 2↔3 swap count 261@5% → 283@1%. **Do not lock 0.01.** ep12 `epoch_012…0.6190.pth`: deleted by prune `unlink` — not in trash/archive; other `epoch_012` files are different runs. CSVs: `mask_isup_min_area_pct_sweep_extended*` + `mask_isup_flips_0.05_to_0.01_*`.
+
+- **14:18 PDT** | Part1 min_area_pct sweep DONE (mask vs clinical, PANDA train) | Calibrate threshold before aggregation fixes | Curve: 1%→**87.8%**, 2% 85.7%, 3% 84.0%, **5% 81.5%**, 7% 79.6%, 10% 76.5%, 15% 72.8% (n=3746). Best=**0.01**; sensitive mainly on ISUP2/3/5. Artifacts: `mask_isup_min_area_pct_sweep.csv` + `_summary.json`. **STOP before Part2.** PANDA+ clinical independence still blocked (Della Corte).
+
+- **14:16 PDT** | Disable auto checkpoint prune (keep all epoch_*.pth) | ep12 was deleted by keep=3 mtime prune | `prune_checkpoints(keep<=0)` no-ops; Opt3 `--keep-checkpoints` default **0**. Never silent-delete epoch ckpts again unless explicitly set.
+
+- **14:15 PDT** | Committed Opt3 eval stack `b3e28a3`; push blocked | Survive disk wipe / git restore | Added `lora_vit.py` + GN/LoRA load in `evaluate`/`isup_diagnostic`/`uni2_upernet` + `slurm_isup_diagnostic_panda_plus.sh`. Restored wiped tracked docs/scripts from HEAD. Push failed: no GitHub creds on login node (HTTPS prompt / SSH no key). Still **ahead 23** of origin — push from authed machine.
+
+- **14:09 PDT** | TeacherA PANDA+ ISUP done; Opt3 ep21 FAILED→resubmit | First external ISUP check | TeacherA **15/48=31.2%** but **all 48 derived as 4+3 (ISUP3)** — collapse, not real match. Opt3 **5367374** NameError LoRA import; fixed; resubmit **5367914**. Treat 31.2% as invalid until paint-mode verified.
+
+- **12:21 PDT** | PANDA+ ISUP match jobs submitted (first time) | Never scored model paint→ISUP on PANDA+ before; compare with PANDA+ Dice | Split `outputs/splits/panda_plus_isup.csv` (48 slides / 4688 patches; clinical=`train.csv`). Jobs **5367373** TeacherA, **5367374** Opt3 ep21. Outs: `diagnostic_report_panda_plus_{teacherA_ep042,opt3_ep21}.csv`. **ep12 ckpt pruned** — cannot re-run; keep prior PANDA+ Dice 0.551 only. Standing rule: prefer PANDA+ over val; ep12 still preferred over ep21 on Dice.
+- **12:21 PDT** | Flag Model-C pattern on Opt3 run | ep21 val↑/ISUP↑ but PANDA+↓ vs ep12 | Explicit: ep12 val 0.619 / PANDA+ **0.551** / ISUP(in-domain) 52.6% vs ep21 0.636 / **0.546** / 57.3%. Checkpoint pick for this run → **ep12** (if recovered) else report both; do not default to val-best.
+- **12:21 PDT** | Lock next Opt3: hard skip n<32 for \(L_\mathrm{slide}/L_\mathrm{grade}\) | Omar: soft min(1,n/64) ≠ “shouldn't drive” | Policy A queued for next tag (not applied mid-run). Open Q: whether gate shifts toward ep12-like (PANDA+) vs ep21-like (internal) — needs ablation after gate lands.
+
+## 2026-08-02
+
+- **13:03 PDT** | Queued **4×H200** hold **5346813** (`opt3_h200_4q`) | Grab full node or same-node when other 2 free | PENDING; keeps 2× **5343680** training. On start: cancel 2× → resume `latest.pth`. Monitor cancels 2× if `cp098` free≥2 so 4× can pack. Script `scripts/slurm_opt3_h200_4queue.sh`.
+- **12:50 PDT** | Opt3 **5343680** healthy — **ep7 done**, ep8 train 256/256 (val) | Check after overnight H200 | Best **ep5 cancer Dice 0.604** (`best.pth`); ep6–7 dipped as λ_slide warms (0.06→0.12). Wall **~1.85 h/ep** (ep6 6744s, ep7 6646s). RSS flat ~5.94G. Job 9h+ on `cp098` 2×H200. Next: watch whether cancer recovers as λ→0.3; PANDA+ after `best.pth` stabilizes.
+
 ## 2026-08-01
 
+- **20:51 PDT** | H200 handoff live — **5343680** 2×H200 `cp098` | Queue finally got GPUs; cancelled A100 **5343825** @~192 slides | Resumed `latest.pth` skip 192; now **~202/256** ep1 @ ~22 s/slide (~0.3h to ep1 train end). Mid-epoch ckpt path worked. RSS flat ~5.94G; CUDA peak ~29G.
+- **18:37 PDT** | A100 **5343678** FAILED NCCL @~slide 14; fixed DDP desync; restarted **5343822** | Variable micro-batch backwards desynced ranks (same bug class as Jul 30) | `no_sync` on non-last micros; empty-bag dummy syncs; ckpt every **8** slides. H200 queue **5343680** still PENDING.
+- **17:18 PDT** | Queued **2×H200** hold **5343680** (`opt3_h200_q`) | Take over when H200 frees; A100 keeps training | On start: cancel A100 → resume `latest.pth`. Watch log `logs/opt3_h200_watch.log` every 2m.
+- **17:17 PDT** | Mid-epoch ckpt every 16 slides (preempt safety) | Lost ~95 slides twice with no `latest.pth` | Atomic `latest.pth` + resume skip `slides_done`. Restarted job with protection (cheap; was only ~2 slides in).
+- **17:14 PDT** | Opt3 preempted; switch to fastest free = **2×A100** | 4×A100 PENDING(Resources); H100/H200 none usable | **5343544** cancelled after preemption @~slide 95 (no ckpt). Resubmit **2×A100** — same wall-clock as 4× with per-rank 256. H200 migrate monitor still armed.
+- **15:27 PDT** | Upgraded Opt3 → **4×A100**; armed H200 migrate | Only ~12 slides on 2×, no ckpt — cheap cold restart | Cancelled **5343536**. **5343544** RUNNING 4×A100 `cp040` (200G). Monitor `monitor_opt3_upgrade.sh` every 3m: when H200 frees + `latest.pth` → migrate **4×** prefer else **2×** resume. RSS sampler + mem/LoRA CSVs continue.
+- **15:16 PDT** | Locked live=64; restarted Option 3 **5343536** | Omar cleared bar; all 6 fixes + mem/LoRA watches | Cold start tag `pseudo_r1_opt3_slidebag`, **2×A100** `cp058` (H200 unavailable). live=64+ckpt, GN, LoRA, gates, λ warmup, extent soft-ISUP. Timelines: `opt3_mem_timeline_*.csv`, `opt3_lora_grad_*.csv`, `logs/opt3_rss_timeline.csv` (30s sampler). Keep eye on early LoRA grad mags vs loss.
+- **14:27 PDT** | Longer live=64 smoke **5343397** COMPLETED (22m) | Omar: numeric LoRA grads + mem flat over time before lock 64 | LoRA step2 A/B abs-mean >0 (`omar_fix4_lora_grads.json`). Timeline 48 slides+val: host RSS **5.93→5.93** (creep **+0**), CUDA peak **~27.5G**, Slurm MaxRSS **~8.9G**/96G. **OK to lock live=64** — say go to restart Option 3.
+- **14:05 PDT** | Omar asks for fuller Fix4 + Fix5b checks before locking 64 | Silently-not-training class + peak-mem≠leak-over-time | Verify dumps numeric `lora_A/B.grad`; longer live=64 smoke **5343397** (48 slides + val).
+- **13:20 PDT** | Omar GPU verify **5343281** COMPLETED (all fixes) | Unblock live-size pick + train restart | Fix1–4/5a/6 **PASS**. Fix5b same-pass: live16 → CUDA **25.0G** / host **6.3G** / **2.5s**; live64 → CUDA **26.0G** / host **6.3G** / **8.7s**. Both far under 96G; **64 looks comfortable** (your call). JSON `outputs/omar_fix5b_live16_vs_64.json`.
+- **13:19 PDT** | Fix LoRA+freeze bug; resubmit verify **5343281** | Frozen `no_grad`/`detach` killed LoRA grads; also A.grad≈0 at B=0 init | **5343200** FAILED mid Fix4. Patched `uni2_upernet` (skip no_grad when LoRA trainable) + assert on B.grad. **5343281** RUNNING on A100 `cp040`.
+- **13:07 PDT** | Omar GPU verify moved off H200 → **A100** | H200 nodes unavailable; smoke only needs ~5–15 min once scheduled | Cancelled stuck **5343087**. **5343200** RUNNING on `cp040` (`gpu:a100:1`, 96G): Fix4/5a + dual 5b (live 16 vs 64).
+- **12:51 PDT** | Fix 5b smoke → both live=16 and 64 in one pass | Prefer largest live with real headroom under 96G (64 if under ~75–80G; fall back to 16 if ~≥85G) | Cancelled pending **5343074** (32G, 5a-only). Resubmitted **5343087** (`omar_verify`, 96G, H200): Fix4/5a + same-pass 16 vs 64 peak CUDA / host RSS / time/step. No full train until you pick live size.
+- **12:50 PDT** | Implementing Omar 6-point Option 3 review | Gate ISUP by n_patches; λ_slide warmup; decoder GN; LoRA not full unfreeze; proj outside no_grad; live=16+ckpt; soft ISUP extent | Pre-commit `8b69fcf`. CPU verify **Fix1/2/3/6 PASS**. GPU verify job **5343074** for Fix4/5a. No full train until all checks reported.
 - **11:11 PDT** | Status check: Option 3 dead; mask-vs-clinical done | Catch up after Jul 30 evening | **5326090** FAILED @53m (NCCL ALLREDUCE timeout / rank desync); no ep1 row, no ckpt. Host RSS stayed **~10–13G** (mem fix OK). Mask check: **3054/3746 = 81.5%** vs model **53.9%** — not a coincidence. Nothing queued. Next: resubmit Opt3 (investigate DDP hang) + write mask number into protocol.
 
 ---
