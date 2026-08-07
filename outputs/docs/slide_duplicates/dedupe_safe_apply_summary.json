@@ -1,0 +1,8 @@
+{
+  "policy": "size-2 clusters only, shape IoU>=0.70, same ISUP+gleason (from mutual-NN), keep more patches",
+  "n_pairs_removed_one": 545,
+  "n_drop": 545,
+  "n_cross_split_pairs": 185,
+  "multi_member_clusters_held_for_review": 55,
+  "backups": "outputs/splits/*_pre_dedupe.csv"
+}

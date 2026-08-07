@@ -9,6 +9,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-07
 
+- **13:12 PDT** | **Safe dedupe applied** (shape+ISUP, ignore pale/dark) | User: rematch + remove one twin | Dry-run IoU≥0.30 mutual-NN too aggressive (drop 2604). **Applied:** size-2 pairs with shape IoU≥**0.70** + same ISUP/gleason → drop **545** IDs (185 cross-split). Also force-dropped confirmed twins `6e6c…`(val), `dd11…`, `507a…`. Backups `outputs/splits/*_pre_dedupe.csv`. Slides 4683→**4135**. Held 55 multi-member clusters (273 slides) for review. Lists: `dedupe_safe_pairs_iou70.csv`, `dedupe_drop_ids_safe_iou70.txt`.
+
 - **12:33 PDT** | Duplicate scan **DONE** (`5382352`, ~11 min, CPU `cp011`) | Shape IoU on all 4683 clean slides | Fingerprints OK; user pairs recovered (IoU 0.86/0.43/0.34). **Silhouette IoU too weak** for needle cores → 5.3k “high” pairs / giant gleason-chained clusters (not actionable as true dups). Artifacts: `outputs/docs/slide_duplicates/` + `README.md` caveat. Next: stronger matcher (pHash/ORB + dim gate + review) before dedupe; then ISUP sufficiency on kept bags.
 
 - **12:07 PDT** | Full WSI **duplicate scan** submitted | User found same cores under different `image_id`s (leakage risk) | Job **`5382339`** FAILED instantly (`SyntaxError` global). Fixed → resubmit **`5382352`** on `defq` CPU node `esplhpc-cp011` (~7 slides/s fingerprint → **~10–15 min** fingerprints + match). Not GPU. After: ISUP sufficiency check on kept bags (esp. 5≤n&lt;32).
