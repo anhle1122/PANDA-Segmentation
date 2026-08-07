@@ -9,7 +9,9 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-07
 
-- **12:07 PDT** | Full WSI **duplicate scan** submitted | User found same cores under different `image_id`s (leakage risk) | Job **`5382339`** `slide_dup_scan` on `defq`. Script `src/scan_slide_duplicates.py` + `scripts/slurm_scan_slide_duplicates.sh`. Fingerprints tissue silhouette + Hu; matches crop-robust IoU within same gleason; reports pairs/clusters × train/val/test. Out: `outputs/docs/slide_duplicates/`. This is a **PANDA/metadata** issue (Radboud twins with different IDs), not something our extract invented — our gap is we never deduped before splits.
+- **12:33 PDT** | Duplicate scan **DONE** (`5382352`, ~11 min, CPU `cp011`) | Shape IoU on all 4683 clean slides | Fingerprints OK; user pairs recovered (IoU 0.86/0.43/0.34). **Silhouette IoU too weak** for needle cores → 5.3k “high” pairs / giant gleason-chained clusters (not actionable as true dups). Artifacts: `outputs/docs/slide_duplicates/` + `README.md` caveat. Next: stronger matcher (pHash/ORB + dim gate + review) before dedupe; then ISUP sufficiency on kept bags.
+
+- **12:07 PDT** | Full WSI **duplicate scan** submitted | User found same cores under different `image_id`s (leakage risk) | Job **`5382339`** FAILED instantly (`SyntaxError` global). Fixed → resubmit **`5382352`** on `defq` CPU node `esplhpc-cp011` (~7 slides/s fingerprint → **~10–15 min** fingerprints + match). Not GPU. After: ISUP sufficiency check on kept bags (esp. 5≤n&lt;32).
 
 ## 2026-08-06
 

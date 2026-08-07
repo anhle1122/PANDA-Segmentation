@@ -1,0 +1,16 @@
+{
+  "wall_clock": "12:22\u201312:33 PDT (~11 min) on esplhpc-cp011 CPU",
+  "n_fingerprinted": 4683,
+  "loose_iou_0.28_pairs": 36735,
+  "high_iou_0.5_pairs": 5268,
+  "high_cross_split_pairs": 1852,
+  "high_clusters": 100,
+  "high_cross_split_clusters": 58,
+  "slides_in_high_clusters": 4248,
+  "high_cluster_slides_by_split": {
+    "train": 3403,
+    "test": 426,
+    "val": 419
+  },
+  "note": "IoU>=0.28 matches thin-core lookalikes too aggressively (4371/4683 slides). Prefer IoU>=0.5 for action."
+}

@@ -1,0 +1,24 @@
+{
+  "n_fingerprinted": 4683,
+  "iou_review": 0.28,
+  "iou_high": 0.5,
+  "n_pairs_review": 36735,
+  "n_pairs_high": 5268,
+  "n_pairs_cross_split": 12735,
+  "n_clusters": 154,
+  "n_clusters_cross_split": 77,
+  "n_slides_in_any_duplicate_cluster": 4371,
+  "pair_counts_by_split_combo": {
+    "train\u2194val": 5827,
+    "test\u2194train": 6185,
+    "test\u2194val": 723,
+    "train\u2194train": 23284,
+    "val\u2194val": 336,
+    "test\u2194test": 380
+  },
+  "known_user_pairs_recovered": {
+    "48440a60/4889d110": 0.8603,
+    "dd11c914/72e64850": 0.4269,
+    "e707ef8c/507ac341": 0.3426
+  }
+}
