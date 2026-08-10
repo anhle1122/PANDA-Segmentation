@@ -1,0 +1,55 @@
+{
+  "n_slides": 4683,
+  "edge_min": 0.3,
+  "group_thr": 0.5,
+  "thresholds": {
+    "0.9": {
+      "n_edges": 80,
+      "n_cross_grade_edges": 0,
+      "n_groups": 4606,
+      "n_singletons": 4531,
+      "n_in_groups": 152,
+      "largest_group": 3
+    },
+    "0.7": {
+      "n_edges": 2494,
+      "n_cross_grade_edges": 1497,
+      "n_groups": 3551,
+      "n_singletons": 3071,
+      "n_in_groups": 1612,
+      "largest_group": 610
+    },
+    "0.6": {
+      "n_edges": 26725,
+      "n_cross_grade_edges": 20947,
+      "n_groups": 2155,
+      "n_singletons": 1746,
+      "n_in_groups": 2937,
+      "largest_group": 2082
+    },
+    "0.5": {
+      "n_edges": 148542,
+      "n_cross_grade_edges": 120679,
+      "n_groups": 998,
+      "n_singletons": 764,
+      "n_in_groups": 3919,
+      "largest_group": 3440
+    },
+    "0.4": {
+      "n_edges": 544483,
+      "n_cross_grade_edges": 447596,
+      "n_groups": 297,
+      "n_singletons": 214,
+      "n_in_groups": 4469,
+      "largest_group": 4300
+    },
+    "0.3": {
+      "n_edges": 1531377,
+      "n_cross_grade_edges": 1267312,
+      "n_groups": 38,
+      "n_singletons": 30,
+      "n_in_groups": 4653,
+      "largest_group": 4639
+    }
+  }
+}

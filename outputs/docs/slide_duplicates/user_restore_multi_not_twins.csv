@@ -1,0 +1,5 @@
+pair_num,source,keep_id,drop_id,shape_iou,action,reason
+837,multi_cluster,6a363e70baf98838b0093f9ae93052fd,7f8e10f3342e3763a4251fbde58ba92e,0.9128,restore_both_force_train,user: not twins
+839,multi_cluster,1c4653246dc78308252d47160786ad15,8d5860e10e09ee25e066ee7fb699453d,0.9076,restore_both_force_train,user: not twins
+827,multi_cluster,6edc4da86334190089f6a093bf258ab6,65fc1018a8862bdbe4d8a063c3130a0e,0.9259,restore_both_force_train,user: not twins
+828,multi_cluster,6edc4da86334190089f6a093bf258ab6,7d5dbfb91ce9be33221e4ba9358326fd,0.9259,restore_both_force_train,user: not twins

@@ -1,0 +1,9 @@
+pair_num,keep_id,drop_id,shape_iou,action,reason,source
+476,fae6996aeed84a9a75cbe726be46bab3,3f0c4e9f8fb3b846e49bb1ca2b3021ef,0.7241,restore_both_force_train,user: safe pair not twins,
+480,3ee16cef000a96c344248a90e5cfccd2,8d2d81395c6a14a4683d92b7db8bf18b,0.7232,restore_both_force_train,user: safe pair not twins,
+511,b31d1678d2148a94702ffa5bd6ac3aba,8ca4eea53dab8fb41f2ba01deb4e84db,0.7122,restore_both_force_train,user: safe pair not twins,
+414,c0dbbf2b29da2ef0cab6bc7032e7ac92,6e79fc78cf67358d3d16daec5573b5a3,0.7465,restore_both_force_train,user: not twins,safe_iou70
+6,d676924aa4d2c3259e47e91955fe161f,c4cde1827d4895957ca8507e37a3cf76,0.717,keep_both_force_train,user: rescan safe not twins,rescan_alive_safe_page1
+7,1c4653246dc78308252d47160786ad15,8d5860e10e09ee25e066ee7fb699453d,0.7169,keep_both_force_train,user: rescan safe not twins,rescan_alive_safe_page1
+8,2a837ababa0cb124818a3b4852244711,4c25d8ba4a2ecabe2b69b901c994e2dd,0.7162,keep_both_force_train,user: rescan safe not twins,rescan_alive_safe_page1
+10,7fa4634ab59a7832bc877fef162eacaa,a1f79e44db2ca88a3c1b330af1343d61,0.7105,keep_both_force_train,user: rescan safe not twins,rescan_alive_safe_page1

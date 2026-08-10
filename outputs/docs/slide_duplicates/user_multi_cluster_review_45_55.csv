@@ -1,0 +1,5 @@
+action,image_id,reason
+drop,b8affdee909004e05802b957c7d6e61c,C54 user
+drop,a48b27a0f0f78595b8d71a4b373acf81,C51 user
+drop,dbf09c7c30806ef30dca99273d05075b,C49 user keep-1
+restore,4c25d8ba4a2ecabe2b69b901c994e2dd,C54 user keep with 2a837

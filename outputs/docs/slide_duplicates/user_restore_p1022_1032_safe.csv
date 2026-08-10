@@ -1,0 +1,12 @@
+pair_num,image_id,action,reason,n_patches
+1022,d2e99d97cea5ba41f7d2e30a221adee4,restore_train,user: not twin / safe,162
+1024,66197db203b87630238f7199434cccba,restore_train,user: not twin / safe,62
+1025,8b19e141c1741cb06bdff6bffc9503b1,restore_train,user: not twin / safe,93
+1026,06a7dc123ee1cd1a88b5563bb332666c,restore_train,user: not twin / safe,163
+1027,70fa73960db8729c176876aefff96562,restore_train,user: not twin / safe,174
+1028,ff1ca9ec7c9d1694dcacaf5176976967,restore_train,user: not twin / safe,146
+1029,65bf2cc6f9ed1eed86b8e7a908efe834,restore_train,user: not twin / safe,173
+1030,be4ed7eb6be88b0c859a7dbdea0c90fc,restore_train,user: not twin / safe,157
+1031,da610fb22e9ba742ebb7a9117b2f24cc,restore_train,user: not twin / safe,159
+1032,6549ae500a4a645d44efb7a611c5ab21,restore_train,user: not twin / safe,176
+-1,f90b38ef792d1763de8a25d33fdff1cc,confirm_not_twin_of_aaaf612,user: f90 vs aaaf not twins (no restore of aaaf; multi-drop separate),0

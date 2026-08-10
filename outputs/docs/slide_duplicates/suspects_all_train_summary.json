@@ -1,0 +1,28 @@
+{
+  "suspects_alive_forced_train": 1302,
+  "suspects_were_val": 105,
+  "suspects_were_test": 129,
+  "suspects_were_train": 1068,
+  "slide_counts": {
+    "train": 3413,
+    "val": 254,
+    "test": 251,
+    "total": 3918
+  },
+  "slide_pct": {
+    "train": 87.11,
+    "val": 6.48,
+    "test": 6.41
+  },
+  "patch_counts": {
+    "train": 407053,
+    "val": 30828,
+    "test": 29112,
+    "total": 466993
+  },
+  "patch_pct": {
+    "train": 87.16,
+    "val": 6.6,
+    "test": 6.23
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "policy": "Lower-IoU: user only listed NOT-twins; all other pairs on pages 1-31 are twins \u2192 drop one (keep cleaner).",
+  "n_lower_pairs": 364,
+  "n_not_same": 87,
+  "n_implied_twins": 277,
+  "n_new_drops": 270,
+  "n_already_one_gone": 7,
+  "n_both_already_gone": 0,
+  "final_splits": {
+    "train": 3143,
+    "val": 254,
+    "test": 251
+  },
+  "total_slides": 3648,
+  "slide_pct": {
+    "train": 86.16,
+    "val": 6.96,
+    "test": 6.88
+  }
+}

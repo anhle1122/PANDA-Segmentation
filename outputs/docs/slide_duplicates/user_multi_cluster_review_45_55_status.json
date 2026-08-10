@@ -1,0 +1,12 @@
+{
+  "C55": "already keep-1 (9d1bda\u2026)",
+  "C54": "drop b8aff; restored 4c25; keep 2a837+4c25 (train)",
+  "C53": "6303 already dropped; keep 2 (c2f90, 3eee)",
+  "C51": "dropped a48b; keep a1f79e",
+  "C50": "df41 already dropped; keep-1",
+  "C49": "keep e528 only (dropped dbf09 + prior 773d)",
+  "C48": "c614 already dropped; keep 2",
+  "C47": "620 already dropped; keep 2",
+  "C46": "already keep a21c only (dropped 94e1+6cbc; no id cbaa in cluster)",
+  "C45": "8b12 already dropped; keep-1 b4265. Closest outside: 7b7884\u2026 IoU=0.684 (NOT in any multi-cluster). No other multi-cluster \u22650.5."
+}

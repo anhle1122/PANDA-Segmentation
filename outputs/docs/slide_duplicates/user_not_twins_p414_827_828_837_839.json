@@ -1,0 +1,47 @@
+{
+  "p433_already_keep_92d2": true,
+  "restored": [
+    {
+      "pair_num": 414,
+      "source": "safe_iou70",
+      "keep_id": "c0dbbf2b29da2ef0cab6bc7032e7ac92",
+      "drop_id": "6e79fc78cf67358d3d16daec5573b5a3",
+      "shape_iou": 0.7465
+    },
+    {
+      "pair_num": 837,
+      "source": "multi_cluster",
+      "keep_id": "6a363e70baf98838b0093f9ae93052fd",
+      "drop_id": "7f8e10f3342e3763a4251fbde58ba92e",
+      "shape_iou": 0.9128
+    },
+    {
+      "pair_num": 839,
+      "source": "multi_cluster",
+      "keep_id": "1c4653246dc78308252d47160786ad15",
+      "drop_id": "8d5860e10e09ee25e066ee7fb699453d",
+      "shape_iou": 0.9076
+    },
+    {
+      "pair_num": 827,
+      "source": "multi_cluster",
+      "keep_id": "6edc4da86334190089f6a093bf258ab6",
+      "drop_id": "65fc1018a8862bdbe4d8a063c3130a0e",
+      "shape_iou": 0.9259
+    },
+    {
+      "pair_num": 828,
+      "source": "multi_cluster",
+      "keep_id": "6edc4da86334190089f6a093bf258ab6",
+      "drop_id": "7d5dbfb91ce9be33221e4ba9358326fd",
+      "shape_iou": 0.9259
+    }
+  ],
+  "splits": {
+    "train": 3162,
+    "val": 254,
+    "test": 251
+  },
+  "total": 3667,
+  "note": "user will recheck multi clusters; gallery labels may be stale vs applied keep/drop"
+}

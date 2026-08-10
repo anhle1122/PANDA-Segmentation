@@ -1,0 +1,8 @@
+cluster,keep_id,drop_id,keep_n_patches,drop_n_patches,action,reason
+multi_C1,f344628cd3bfd6e1cd80456bca9358ab,fe6984b9e99ee331bb510c61f9e5ccd4,167,164,drop_twin,user 2026-08-09: twins inside round-1 multi cluster
+multi_C2,478261713d5379009e2f1be1ad3deb63,500b90c3e7eba2e3b25818a8c1834d45,57,57,drop_twin,user 2026-08-09: twins inside round-1 multi cluster
+multi_C2,b13961504ea859ff34a150bc19fed335,b95035c00e6e99f3b4e3cd210700f6ce,109,98,drop_twin,user 2026-08-09: twins inside round-1 multi cluster
+multi_C2,a3794ec31a02fbf429486dd464f83d25,d2e8ff5257ef522c1d7bef30c96d06df,40,38,drop_twin,user 2026-08-09: twins inside round-1 multi cluster
+multi_C2,82c289e2fb53713789599f77cf368bc6,757b927de93c8083c392f2248529d29a,80,75,drop_twin,user 2026-08-09: twins inside round-1 multi cluster
+multi_C3,49764620319a820dfd2e6738861b1aa0,fe025faa4c6e6de2a71f964b56de7c9c,129,125,drop_twin,user 2026-08-09: twins inside round-1 multi cluster
+multi_C3,9e0fa510b3e5a89ab765dfa48957a4cc,a28b628b33608b2cdadff12fc6aa2537,134,128,drop_twin,user 2026-08-09: twins inside round-1 multi cluster

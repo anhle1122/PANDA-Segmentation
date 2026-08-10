@@ -1,0 +1,34 @@
+{
+  "restored_pair_nums": [
+    1022,
+    1024,
+    1025,
+    1026,
+    1027,
+    1028,
+    1029,
+    1030,
+    1031,
+    1032
+  ],
+  "restored_ids": [
+    "d2e99d97cea5ba41f7d2e30a221adee4",
+    "66197db203b87630238f7199434cccba",
+    "8b19e141c1741cb06bdff6bffc9503b1",
+    "06a7dc123ee1cd1a88b5563bb332666c",
+    "70fa73960db8729c176876aefff96562",
+    "ff1ca9ec7c9d1694dcacaf5176976967",
+    "65bf2cc6f9ed1eed86b8e7a908efe834",
+    "be4ed7eb6be88b0c859a7dbdea0c90fc",
+    "da610fb22e9ba742ebb7a9117b2f24cc",
+    "6549ae500a4a645d44efb7a611c5ab21"
+  ],
+  "skipped_p1023": "fb01a0a69517bb47d7f4699b6217f69d (user did not mark safe)",
+  "f90_vs_aaaf": "not twins per user; aaaf remains multi-dropped (not restored)",
+  "splits": {
+    "train": 3154,
+    "val": 254,
+    "test": 251
+  },
+  "total": 3659
+}

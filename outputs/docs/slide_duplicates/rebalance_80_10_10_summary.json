@@ -1,0 +1,56 @@
+{
+  "total": 3830,
+  "splits": {
+    "train": 3064,
+    "test": 383,
+    "val": 383
+  },
+  "pct": {
+    "train": 80.0,
+    "test": 10.0,
+    "val": 10.0
+  },
+  "n_suspects_all_train": 2669,
+  "n_clean_train": 395,
+  "n_clean_val": 383,
+  "n_clean_test": 383,
+  "patches": {
+    "train": 363829,
+    "val": 42811,
+    "test": 45370
+  },
+  "patch_slides": {
+    "train": 3064,
+    "val": 383,
+    "test": 383
+  },
+  "isup_pct": {
+    "train": {
+      "0": 18.9,
+      "1": 16.42,
+      "2": 13.87,
+      "3": 17.4,
+      "4": 15.37,
+      "5": 18.05
+    },
+    "val": {
+      "0": 22.19,
+      "1": 17.23,
+      "2": 11.23,
+      "3": 18.54,
+      "4": 14.36,
+      "5": 16.45
+    },
+    "test": {
+      "0": 22.19,
+      "1": 17.23,
+      "2": 11.23,
+      "3": 18.54,
+      "4": 14.36,
+      "5": 16.45
+    }
+  },
+  "suspect_definition": "curated safe/lower/multi/user lists \u222a alive mutual-NN pair edges",
+  "val_test_are_clean_only": true,
+  "suspect_leak_val_test": 0
+}

@@ -1,0 +1,15 @@
+page,row,global_idx,keep_id,drop_id,shape_iou,gleason,split_keep,split_drop,hints_matched,action
+1,3,2,2230a7655194054d5b1d2b52998d1585,b61a1c350af793cba5f2e936ed314627,0.6993,3+3,train,train,True,keep_both_force_train
+1,5,4,074c3e01525681a275a42282cd21cbde,6d9a037aa211ac62d0701d625de70904,0.6976,3+3,test,train,True,keep_both_force_train
+1,11,10,7790f122a65e43cbf84165a610eefcfd,e528d21e5e6c87a9a1579214f6ec345d,0.6946,3+4,train,train,True,keep_both_force_train
+2,5,16,fa74ab756f01ab6b562643955d297cba,cc749cec9e37b3e141e62a6a33c6eaf3,0.6923,3+4,train,train,True,keep_both_force_train
+2,8,19,eea0cd8ab449057ce50b7d411b63d6e3,d8530375294e4c94c9c2aa2c7f79c13c,0.692,4+3,train,train,True,keep_both_force_train
+3,3,26,66dc57a3320d9abd25eaf8b74c07c7bb,eaec64217afad712384c73f33591e422,0.6887,3+4,train,train,True,keep_both_force_train
+3,4,27,93b69d2902a418c407b43b1da3248c8d,be4ed7eb6be88b0c859a7dbdea0c90fc,0.6886,3+4,train,val,True,keep_both_force_train
+3,6,29,f534baed77c3ea8471dae9811cc235f1,30eb8e531d1c9116964b7fbf45bf95bc,0.6869,4+4,train,train,True,keep_both_force_train
+3,8,31,70fa73960db8729c176876aefff96562,ff1ca9ec7c9d1694dcacaf5176976967,0.6849,4+5,train,train,True,keep_both_force_train
+3,11,34,fa185cbfa3c6bb40a7dd0397b88539d9,997973f9f9c08b7eabd1d7fe09050f00,0.6826,3+3,train,val,True,keep_both_force_train
+3,12,35,24c0f0bf150365059c0e8a4e1fef058b,3f3aba7575fc6aed6c5512cfa3c11e86,0.6807,4+3,val,train,True,keep_both_force_train
+4,8,47,a48b27a0f0f78595b8d71a4b373acf81,fa1a79a5248bf5f5742fb14dabc070c6,0.6759,4+3,train,train,True,keep_both_force_train
+5,6,53,2fb49b4bb80d5c1f3b5b2fc44fa8a763,f462949a2cc511afbc4e842a44cbe83e,0.6743,4+4,train,val,True,keep_both_force_train
+6,12,71,3858dedc8e091fc0315c50e7f8d74a56,f90b38ef792d1763de8a25d33fdff1cc,0.6625,3+3,test,train,True,keep_both_force_train

@@ -1,0 +1,30 @@
+{
+  "policy": "C1-C35: only user-named twin pairs dropped; all other members kept (safe). C36-C55 unchanged.",
+  "drops": [
+    {
+      "cluster_id": 2,
+      "keep_id": "15be10044a3e4b704d0822432416fde4",
+      "drop_id": "eb9d4025d77205c0dda3d5f7431ce1b8",
+      "reason": "user: eb9d/15be twins, drop eb9d"
+    },
+    {
+      "cluster_id": 3,
+      "keep_id": "87a1d44e21700bd0eb3db27371eb3999",
+      "drop_id": "27f3dbbf2b9a5e59f508dc6b0c23d5cb",
+      "reason": "user: 87a1/27f3 twins; auto keep cleaner"
+    },
+    {
+      "cluster_id": 13,
+      "keep_id": "321b013478d7d444ba897b75e9f71805",
+      "drop_id": "464d35ac0644183c0891abde15a042c7",
+      "reason": "user: 464d/321 twins; auto keep cleaner"
+    }
+  ],
+  "splits": {
+    "train": 3325,
+    "val": 254,
+    "test": 251
+  },
+  "total": 3830,
+  "n_c1_35_kept": 210
+}

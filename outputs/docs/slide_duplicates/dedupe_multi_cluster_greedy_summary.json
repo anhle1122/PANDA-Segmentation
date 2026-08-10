@@ -1,0 +1,15 @@
+{
+  "policy": "Within each multi-cluster: sort by cleanliness (pen/dark) then n_keep; keep greedily; drop if direct shape_iou>=0.70 to any kept. Residual clusters with >=2 survivors forced to train.",
+  "iou_thr": 0.7,
+  "n_drop": 141,
+  "n_keep_multi_members": 131,
+  "n_force_train_residual": 118,
+  "clusters_residual_ge2": 42,
+  "final_splits": {
+    "train": 3252,
+    "test": 381,
+    "val": 359
+  },
+  "total_slides": 3992,
+  "patches_moved_to_train": 2432
+}

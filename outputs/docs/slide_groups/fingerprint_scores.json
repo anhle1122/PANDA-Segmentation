@@ -1,0 +1,26 @@
+{
+  "shape_iou": {
+    "signal": "shape_iou",
+    "AUC": 0.808,
+    "recall@0_FP": 0.509,
+    "FPR@99_recall": 1.0,
+    "hard_pos_min": 0.0,
+    "neg_median": 0.572
+  },
+  "phash": {
+    "signal": "phash",
+    "AUC": 0.798,
+    "recall@0_FP": 0.189,
+    "FPR@99_recall": 0.991,
+    "hard_pos_min": 0.781,
+    "neg_median": 0.75
+  },
+  "colorhist": {
+    "signal": "colorhist",
+    "AUC": 0.924,
+    "recall@0_FP": 0.457,
+    "FPR@99_recall": 0.774,
+    "hard_pos_min": 0.682,
+    "neg_median": 0.592
+  }
+}

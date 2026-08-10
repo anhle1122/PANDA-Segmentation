@@ -1,0 +1,29 @@
+{
+  "slide_splits_before": 3838,
+  "slide_splits_after": 3831,
+  "slide_splits_removed": 7,
+  "panda_train.csv": {
+    "patches_before": 364456,
+    "patches_after": 363771,
+    "slides_before": 3072,
+    "slides_after": 3065
+  },
+  "panda_val.csv": {
+    "patches_before": 42811,
+    "patches_after": 42811,
+    "slides_before": 383,
+    "slides_after": 383
+  },
+  "panda_test.csv": {
+    "patches_before": 45370,
+    "patches_after": 45370,
+    "slides_before": 383,
+    "slides_after": 383
+  },
+  "n_dropped_now": 7,
+  "split_counts": {
+    "train": 3065,
+    "test": 383,
+    "val": 383
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "policy": "keep cleaner twin only if clearly dirtier other: pen_dark>=5 vs 0, or pen delta>=10, or mean_dark delta>=1.0 with dark>=1.0, or delta>=0.5 with pen delta>2; else keep more n_keep patches",
+  "strong_safe_flips": 20,
+  "p238_keep": "ddbeff8437def5f80c4890b394711ec2",
+  "p238_drop": "62202e376a671af629cc7c309561ff56",
+  "final_splits": {
+    "train": 3335,
+    "test": 406,
+    "val": 393
+  },
+  "total_slides": 4134
+}

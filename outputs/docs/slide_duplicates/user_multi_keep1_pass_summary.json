@@ -1,0 +1,84 @@
+{
+  "notes": [
+    "C35 drop d85",
+    "C36 keep c4cd+d67; drop 850b; restore c4cd",
+    "C38 e10 already dropped",
+    "C39 keep 6f50; drop other alive",
+    "C40 already keep-1",
+    "C41 already keep a45c",
+    "C42 drop 971; restore other 2 (then keep-1)",
+    "C43 9a22 already dropped",
+    "C44 cbaa already dropped",
+    "C54 preserve user keep-2",
+    "C1 keep-1 fd05529859cf (clean/max tissue) drop 9",
+    "C2 keep-1 a3794ec31a02 (clean/max tissue) drop 7",
+    "C3 keep-1 87a1d44e2170 (clean/max tissue) drop 4",
+    "C4 keep-1 784c60e4447c (clean/max tissue) drop 3",
+    "C5 keep-1 8a327e4efafb (clean/max tissue) drop 3",
+    "C6 keep-1 4600b8e6025b (clean/max tissue) drop 3",
+    "C7 keep-1 c0910c1a35e0 (clean/max tissue) drop 4",
+    "C8 keep-1 f61ec97dd180 (clean/max tissue) drop 2",
+    "C9 keep-1 f6f6fd84d527 (clean/max tissue) drop 2",
+    "C10 keep-1 4aae2215d4d4 (clean/max tissue) drop 2",
+    "C11 keep-1 6edc4da86334 (clean/max tissue) drop 2",
+    "C12 keep-1 5456189d4e5c (clean/max tissue) drop 1",
+    "C13 keep-1 464d35ac0644 (clean/max tissue) drop 2",
+    "C14 keep-1 8b0f143a3425 (clean/max tissue) drop 2",
+    "C15 keep-1 d1766314b6c9 (clean/max tissue) drop 2",
+    "C16 keep-1 69ab9dae3fcb (clean/max tissue) drop 2",
+    "C17 keep-1 c4e0ad6ea862 (clean/max tissue) drop 1",
+    "C18 keep-1 70d813b5e09d (clean/max tissue) drop 1",
+    "C19 keep-1 462839866ad2 (clean/max tissue) drop 1",
+    "C20 keep-1 3858dedc8e09 (clean/max tissue) drop 1",
+    "C21 keep-1 93b69d2902a4 (clean/max tissue) drop 1",
+    "C23 keep-1 2102cdaee128 (clean/max tissue) drop 1",
+    "C24 keep-1 6cf483d54bba (clean/max tissue) drop 1",
+    "C25 keep-1 fb8886059879 (clean/max tissue) drop 1",
+    "C26 keep-1 50467a6acf3c (clean/max tissue) drop 1",
+    "C27 keep-1 66dc57a3320d (clean/max tissue) drop 1",
+    "C28 keep-1 4ba91dfdc9e3 (clean/max tissue) drop 1",
+    "C29 keep-1 0bce55d17bcc (clean/max tissue) drop 1",
+    "C30 keep-1 ef7e5ebd2375 (clean/max tissue) drop 1",
+    "C31 keep-1 53a053373822 (clean/max tissue) drop 1",
+    "C33 keep-1 cc749cec9e37 (clean/max tissue) drop 1",
+    "C37 keep-1 d375f524d50d (clean/max tissue) drop 1",
+    "C42 keep-1 1c4653246dc7 (clean/max tissue) drop 1",
+    "C43 keep-1 294017fb97e4 (clean/max tissue) drop 1",
+    "C47 keep-1 1141ca7040f9 (clean/max tissue) drop 1",
+    "C48 keep-1 6a363e70baf9 (clean/max tissue) drop 1",
+    "C52 keep-1 1496bd10b5eb (clean/max tissue) drop 1",
+    "C53 keep-1 c2f90bbc5200 (clean/max tissue) drop 1"
+  ],
+  "n_drop_this_pass": 75,
+  "n_all_drop_ids": 76,
+  "n_restore": 4,
+  "exceptions_keep_multi": {
+    "36": [
+      "c4cde1827d48",
+      "d676924aa4d2"
+    ],
+    "39": [
+      "6f50ffdccefb"
+    ],
+    "54": [
+      "2a837ababa0c",
+      "4c25d8ba4a2e"
+    ]
+  },
+  "clusters_ge2_after": {
+    "36": [
+      "c4cde1827d48",
+      "d676924aa4d2"
+    ],
+    "54": [
+      "2a837ababa0c",
+      "4c25d8ba4a2e"
+    ]
+  },
+  "final_splits": {
+    "train": 3179,
+    "test": 380,
+    "val": 359
+  },
+  "total_slides": 3918
+}

@@ -1,0 +1,3 @@
+source,keep_id,drop_id,action,reason
+scan3_safe_P1,49a2ed9b6af2a48a788b9dd6066bdb0a,9a4ba048c62623465d6a7a0d8549a657,keep_not_twin,"user 2026-08-09: scan3 safe pair reviewed, not twins"
+scan3_safe_P2,70f71c6fa7ad2baeaff157a299e276a0,63226114e772943ce7f8017d9f5d4b90,keep_not_twin,"user 2026-08-09: scan3 safe pair reviewed, not twins"

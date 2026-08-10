@@ -1,0 +1,29 @@
+{
+  "pairs": [
+    {
+      "pair_num": 476,
+      "keep_id": "fae6996aeed84a9a75cbe726be46bab3",
+      "drop_id": "3f0c4e9f8fb3b846e49bb1ca2b3021ef",
+      "shape_iou": 0.7241
+    },
+    {
+      "pair_num": 480,
+      "keep_id": "3ee16cef000a96c344248a90e5cfccd2",
+      "drop_id": "8d2d81395c6a14a4683d92b7db8bf18b",
+      "shape_iou": 0.7232
+    },
+    {
+      "pair_num": 511,
+      "keep_id": "b31d1678d2148a94702ffa5bd6ac3aba",
+      "drop_id": "8ca4eea53dab8fb41f2ba01deb4e84db",
+      "shape_iou": 0.7122
+    }
+  ],
+  "policy": "not twins \u2192 restore drop, force both train",
+  "splits": {
+    "train": 3157,
+    "val": 254,
+    "test": 251
+  },
+  "total": 3662
+}

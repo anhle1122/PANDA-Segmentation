@@ -1,0 +1,15 @@
+{
+  "action": "Restore multi-cluster C1-C35 to Friday pre-multi-dedupe state for re-review",
+  "review_gallery": "outputs/docs/slide_duplicates/galleries/multi_clusters/ (NOT multi_clusters_after)",
+  "n_restored_slides": 166,
+  "n_c1_35_members": 213,
+  "all_forced_train": true,
+  "splits": {
+    "train": 3327,
+    "val": 254,
+    "test": 251
+  },
+  "total_slides": 3832,
+  "backup": "*_pre_restore_multi_C1_35_friday.csv",
+  "left_unchanged": "C36-C55 decisions kept as-is"
+}

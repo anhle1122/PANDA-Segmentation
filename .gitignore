@@ -75,3 +75,8 @@ outputs/panda_plus/preview_patches/
 # Scratch/temp files from ad-hoc runs
 outputs/pseudo_label/_*.txt
 outputs/splits/_tmp_*.csv
+
+# Duplicate-detection intermediates (large, regenerate via build_slide_groups.py
+# and slide_content_fingerprints.py)
+outputs/docs/slide_groups/all_pairs_grade_agnostic.csv
+outputs/docs/slide_groups/content_similarity.npz

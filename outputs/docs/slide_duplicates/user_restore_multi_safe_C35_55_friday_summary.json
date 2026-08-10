@@ -1,0 +1,57 @@
+{
+  "restored_n": 28,
+  "restored_ids": [
+    "05b09773ad1b34275f0b5adee3c650ab",
+    "09a9f7497e6ba14eb0a12388ca17540d",
+    "2de0597cbb7af462bfdb7b1c4f935248",
+    "30703edaf3bf39b0d04685f0f0a1d43b",
+    "3eee912c7daba1d6c5c6968ef71b5570",
+    "49a2ed9b6af2a48a788b9dd6066bdb0a",
+    "620a6fbf50a7463ed0a8932782d7b969",
+    "6303244b26eef8e081298bfeac827403",
+    "63226114e772943ce7f8017d9f5d4b90",
+    "68a362123aff27d79dbc5284a948030c",
+    "6cbc6f7259cb45a4086cd584aec53857",
+    "773d5f35cb242573885d18d302a9157c",
+    "7fa4634ab59a7832bc877fef162eacaa",
+    "8596a2f7e68a0e11a5653fb2457db08f",
+    "8b126306391fa2af0f8bea265f2c9666",
+    "94e121bc4a7091b881e8dd9b6c2be6b5",
+    "9a22abb1da9fc91bb8ae7b91bfe1451e",
+    "9effeea56c413b92340b89d1240769c1",
+    "a1f79e44db2ca88a3c1b330af1343d61",
+    "b5343f9567df8a68c3276f8d8cdcc6a5",
+    "c614dc18ffa37f8007c2aead39e65342",
+    "cbaaf646e582b153aa87262de00bd4a0",
+    "dc10032bf598b0a3268074de4bb2d7b6",
+    "df4146c2cb4e97d9c227bdd90d4dc6f8",
+    "e10ebd20ef424d61222ccc5e97dcc76b",
+    "e9d628364cf51891028163e0cfca628c",
+    "eea47f9bc6d774e29cd36167365775bf",
+    "ff80dfefc41b8863b476c5840f88fec0"
+  ],
+  "still_dropped_explicit_user": [
+    "27f3dbbf2b9a5e59f508dc6b0c23d5cb",
+    "464d35ac0644183c0891abde15a042c7",
+    "5f554a63b2a187b75a1764282fbf10b6",
+    "850b9fffc6972f75431db42dd07845a9",
+    "9716b5d2e13a28be3dc836134153720c",
+    "a48b27a0f0f78595b8d71a4b373acf81",
+    "b19b678ac181c02332d1ba7acb6ba436",
+    "b8affdee909004e05802b957c7d6e61c",
+    "dbf09c7c30806ef30dca99273d05075b",
+    "eb9d4025d77205c0dda3d5f7431ce1b8"
+  ],
+  "friday_C1_35": "only 3 twin drops remain; other Friday-safe already alive",
+  "splits": {
+    "train": 3092,
+    "test": 383,
+    "val": 383
+  },
+  "total": 3858,
+  "pct": {
+    "train": 80.15,
+    "test": 9.93,
+    "val": 9.93
+  }
+}

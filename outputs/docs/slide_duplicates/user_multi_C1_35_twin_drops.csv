@@ -1,0 +1,4 @@
+cluster_id,keep_id,drop_id,reason
+2,15be10044a3e4b704d0822432416fde4,eb9d4025d77205c0dda3d5f7431ce1b8,"user: eb9d/15be twins, drop eb9d"
+3,87a1d44e21700bd0eb3db27371eb3999,27f3dbbf2b9a5e59f508dc6b0c23d5cb,user: 87a1/27f3 twins; auto keep cleaner
+13,321b013478d7d444ba897b75e9f71805,464d35ac0644183c0891abde15a042c7,user: 464d/321 twins; auto keep cleaner

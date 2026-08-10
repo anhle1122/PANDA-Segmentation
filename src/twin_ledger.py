@@ -136,6 +136,17 @@ def collect_not_twin_pairs() -> pd.DataFrame:
         for r in df.itertuples(index=False):
             add(r.keep_id, r.drop_id, f"rescan:{path.name}")
 
+    # Proposal A logged "not twin of cluster KEEP" per slide with no partner
+    # column, so the edge was invisible and those pairs kept resurfacing.
+    # Recover the partner from the SOFT-24 keep mapping.
+    keeps = RESCAN / "reconcile_confirmed_twins" / "user_proposalA_keeps_decisions.csv"
+    partners = RESCAN / "reconcile_confirmed_twins" / "soft24_gallery" / "soft24_with_keep_partner.csv"
+    if keeps.exists() and partners.exists():
+        pmap = pd.read_csv(partners, dtype=str).set_index("soft_drop_id").paired_keep_id.to_dict()
+        for i in _ids(pd.read_csv(keeps, dtype=str).image_id):
+            if i in pmap:
+                add(i, pmap[i], "proposalA_keep_vs_cluster_keep")
+
     return pd.DataFrame(rows, columns=["id_a", "id_b", "source"])
 
 

@@ -1,0 +1,22 @@
+{
+  "cluster": "C23",
+  "why_same_keep_twice": "twins gallery shows one KEEP vs each DROP as separate rows; P1033/P1034 share keep 2102cdae\u2026",
+  "user": "a8a951 and e8d79 not twins of cluster \u2014 safe; restore both to train",
+  "kept_unchanged": "2102cdaee1284c7da24effe67551ee87",
+  "restored": [
+    "a8a951c084f704fb77c2a3ab1c21b474",
+    "e8d79e4c9b85f70b581e3403241672e5"
+  ],
+  "still_dropped_not_mentioned": "6549ae500a4a645d44efb7a611c5ab21",
+  "sil_iou": {
+    "2102_vs_a8a951": 0.4606,
+    "2102_vs_e8d79": 0.7012,
+    "a8a951_vs_e8d79": 0.5532
+  },
+  "splits_after": {
+    "train": 3144,
+    "val": 254,
+    "test": 251
+  },
+  "total_slides": 3649
+}
