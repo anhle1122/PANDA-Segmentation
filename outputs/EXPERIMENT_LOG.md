@@ -189,6 +189,15 @@ A/B/C were sequential engineering runs (confounded). Cleaner grid:
 | **Result** | 96 judged edges cut. Safe **2** (both NEW), multi **35** clusters / 209 slides, lower **1833** (NEW 1789 / MIXED 43 / KEPT_NOT_TWIN 1). Out: `outputs/docs/slide_duplicates_scan3_clean/` |
 | **Decision** | `slide_duplicates_scan3_clean` is the review folder going forward; `slide_duplicates_rescan_alive` is superseded. Log every not-twin call as a pair so it never comes back |
 
+## Multi-cluster inner twins — the real dedupe gap (2026-08-09)
+
+| | |
+|--|--|
+| **Why** | User read old gallery C1/C2/C3 and named 9 twin pairs still alive. Detection was never the problem: all 9 sit on IoU 0.715–0.859 edges the scan found |
+| **What** | The C1–35 multi review adjudicated **whole clusters** (207 `keep_safe` vs 3 `drop_user_twin`), so a cluster judged "safe to keep" kept every twin pair inside it. Old C1: 26 members, 0 dropped, ever |
+| **Result** | 7 drops applied (2 pairs were already resolved). Slides **3831** (3065/383/383); ledger 852 drops / 385 not-twins / 102 pairs, clean. 5 of the 7 had been marked `keep_safe` — tier 4 correctly overrode tier 3 |
+| **Decision** | Cluster-level "keep" is not a dedupe decision. Every multi-cluster needs a pairwise pass; 32 of the 35 scan3 clusters (~183 slides) are still unreviewed at pair level |
+
 ## Slide near-duplicate audit (2026-08-07)
 
 | | |

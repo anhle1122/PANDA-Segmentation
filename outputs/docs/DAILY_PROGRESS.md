@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-09
 
+- **19:05 PDT** | **Root cause found: multi-cluster review never split twins *inside* a cluster** | User called 9 twin pairs off old gallery C1/C2/C3 — all 9 had been *detected* (IoU 0.715–0.859 edges), none resolved | The C1–35 review logged **207 keep_safe** vs only **3 drop_user_twin**, i.e. clusters were cleared wholesale. Old C1 = 26 members, **0** ever dropped. Applied 7 drops (2 pairs already resolved), kept scan3 safe P1+P2 as not-twins. Slides **3831** (3065/383/383). Ledger **852** drops / 385 not-twins / 102 pairs, verify clean. `user_multi_C1_C2_C3_inner_twins_decisions.csv`. **Open: the other 32 scan3 multi-clusters (≈183 slides) need the same inner-pair pass.**
+
 - **18:51 PDT** | **Clean scan #3 done — confirmed twins AND already-judged not-twin pairs are out** | User: "keep those completely out, show me a clean folder" | Job **5393362** on all **3838** alive. Ledger first: folded the 2 pre-ledger forced drops in → `CANONICAL_twin_drops.csv` **845** (= exact 4683→3838 delta), `CANONICAL_not_twins.csv` **390**, new `CANONICAL_not_twin_pairs.csv` **100** adjudicated edges. Scan cut **96** already-judged edges *before* clustering. Result: safe **2** (both NEW, 0 kept-not-twin), multi **35** clusters / 209 slides, lower **1833** (NEW 1789 / MIXED 43 / KEPT_NOT_TWIN 1). Folder: `outputs/docs/slide_duplicates_scan3_clean/galleries/index.html`.
 
 - **18:47 PDT** | Recorded the `b426` not-twin edges the SOFT-24 regroup never logged | Old safe P3 (`8b126`↔`b426`, IoU 0.705) came back because only the slide-level keep was stored, not the pair | `user_marked_not_same_soft24_regroup.csv`; scan3 safe re-rendered 3 → **2** pairs (job **5393436**).

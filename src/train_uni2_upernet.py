@@ -114,20 +114,22 @@ def train(args: argparse.Namespace) -> None:
             allow_missing_cache=args.allow_missing_cache,
             mode=args.mode,
             allow_missing_h5=args.allow_missing_h5,
-            ink_loss_mask=False,
+            augment=bool(args.augment),
+            augment_mode="patch",
         )
     else:
         train_ds = BaselinePatchDataset(
             train_csv,
             mode=args.mode,
             allow_missing_h5=args.allow_missing_h5,
-            ink_loss_mask=False,
+            augment=bool(args.augment),
+            augment_mode="patch",
         )
     val_ds = BaselinePatchDataset(
         val_csv,
         mode=args.mode,
         allow_missing_h5=args.allow_missing_h5,
-        ink_loss_mask=False,
+        augment=False,
     )
     if is_main_process(rank):
         (train_ds.base if use_pseudo else train_ds).run_sanity_check(n=5)

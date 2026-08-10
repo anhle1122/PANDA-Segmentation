@@ -44,9 +44,13 @@ class BaselinePatchDataset(Dataset):
         allow_missing_h5: bool = False,
         mask_suffix: str = "_mask.tiff",
         prefer_h5_masks: bool = True,
+        augment: bool = False,
+        augment_mode: str = "both",
     ) -> None:
         if mode not in TRAIN_MODES:
             raise ValueError(f"Unknown mode: {mode}")
+        if augment_mode not in ("patch", "slide", "both"):
+            raise ValueError("augment_mode must be patch|slide|both")
         self.mode = mode
         self.df = pd.read_csv(split_csv)
         self.slide_dir = Path(slide_dir)
@@ -54,6 +58,8 @@ class BaselinePatchDataset(Dataset):
         self.allow_missing_h5 = allow_missing_h5
         self.mask_suffix = mask_suffix
         self.prefer_h5_masks = prefer_h5_masks
+        self.augment = bool(augment)
+        self.augment_mode = augment_mode
         mode_cfg = TRAIN_MODES[mode]
         self.h5_dir = Path(h5_dir) if h5_dir is not None else mode_cfg["h5_dir"]
         self.h5_stem = h5_stem or mode_cfg["h5_stem"]
@@ -68,6 +74,20 @@ class BaselinePatchDataset(Dataset):
         self._mask_cache: OrderedDict[str, openslide.OpenSlide] = OrderedDict()
         self._png_mask_cache: OrderedDict[str, np.ndarray] = OrderedDict()
         self._slide_cache: OrderedDict[str, openslide.OpenSlide] = OrderedDict()
+        self._slide_aug_params = None  # set per bag for slide-consistent aug
+        self._patch_augmentor = None
+        self._patch_extra_augmentor = None
+        if self.augment:
+            from train.augmentations import build_patch_extra_augmentor, build_train_augmentor
+
+            # Independent patch-level (Teacher A / non-bag)
+            self._patch_augmentor = build_train_augmentor()
+            # Extra per-patch after slide-consistent (Option 3 bags)
+            self._patch_extra_augmentor = build_patch_extra_augmentor()
+
+    def set_slide_aug_params(self, params) -> None:
+        """Bind slide-consistent aug for the current bag (or None to clear)."""
+        self._slide_aug_params = params
 
     def _cache_put(self, cache: OrderedDict, key: str, value, *, close_fn=None) -> None:
         """Insert into an open-handle cache, evicting oldest entries if over cap."""
@@ -215,9 +235,25 @@ class BaselinePatchDataset(Dataset):
         x, y = int(row["x"]), int(row["y"])
         rgb = self._read_image(image_id, x, y)
         mask = self._read_mask(image_id, x, y)
+        weight = self._artifact_weight_map(image_id, x, y)
+        if self.augment:
+            from train.augmentations import apply_augment, apply_slide_consistent
+
+            # Slide-level: same params for every patch in the current bag
+            if self.augment_mode in ("slide", "both") and self._slide_aug_params is not None:
+                rgb, mask, weight = apply_slide_consistent(
+                    rgb, mask, weight, self._slide_aug_params
+                )
+                if self.augment_mode == "both" and self._patch_extra_augmentor is not None:
+                    rgb, mask, weight = apply_augment(
+                        self._patch_extra_augmentor, rgb, mask, weight
+                    )
+            # Patch-level only (no bag context): independent draw per patch
+            elif self.augment_mode in ("patch", "both") and self._patch_augmentor is not None:
+                rgb, mask, weight = apply_augment(self._patch_augmentor, rgb, mask, weight)
         image_t = _preprocess_image(rgb)
         mask_t = torch.from_numpy(mask)
-        weight_t = torch.from_numpy(self._artifact_weight_map(image_id, x, y))
+        weight_t = torch.from_numpy(weight)
         return image_t, mask_t, weight_t
 
     def run_sanity_check(self, n: int = 5) -> None:

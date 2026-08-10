@@ -106,12 +106,18 @@ def train(args: argparse.Namespace) -> None:
         mode=args.mode,
         allow_missing_h5=args.allow_missing_h5,
         seed=args.seed,
+        # slide-consistent + light per-patch (see BaselinePatchDataset.augment_mode)
+        augment=bool(args.augment),
+        augment_mode="both",
     )
     val_csv = SPLITS_DIR / "panda_val.csv"
     if args.max_val_patches:
         val_csv = subsample_split_csv(val_csv, args.max_val_patches, args.seed)
     val_ds = BaselinePatchDataset(
-        val_csv, mode=args.mode, allow_missing_h5=args.allow_missing_h5
+        val_csv,
+        mode=args.mode,
+        allow_missing_h5=args.allow_missing_h5,
+        augment=False,
     )
 
     if is_main_process(rank):
@@ -252,6 +258,14 @@ def train(args: argparse.Namespace) -> None:
             # Omar 2026-08-06: hard-skip dual ISUP on tiny bags (n < 5).
             # Pixel loss still runs; L_slide / L_grade are skipped.
             apply_slide_isup = n_patches >= int(args.min_slide_patches)
+
+            # One slide-level aug draw for the whole bag (then optional per-patch extra).
+            if args.augment:
+                from train.augmentations import sample_slide_aug_params
+
+                train_ds.base.set_slide_aug_params(sample_slide_aug_params())
+            else:
+                train_ds.base.set_slide_aug_params(None)
 
             optimizer.zero_grad(set_to_none=True)
             logits_chunks: list[torch.Tensor] = []
@@ -478,6 +492,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--adjacent-soft-alpha", type=float, default=0.15)
     p.add_argument("--grad-clip", type=float, default=1.0)
     p.add_argument("--amp", action="store_true")
+    p.add_argument(
+        "--augment",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Train-time HED/flip/rotate aug (default on; val never augments)",
+    )
     p.add_argument("--allow-missing-h5", action="store_true")
     p.add_argument("--uni2-checkpoint", type=str, default="")
     p.add_argument("--resume", type=str, default="")

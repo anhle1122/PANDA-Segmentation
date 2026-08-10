@@ -165,13 +165,52 @@ def cluster(pairs: pd.DataFrame) -> list[list[str]]:
     return [sorted(v) for v in groups.values() if len(v) >= 2]
 
 
+def _v33_dark_stats(sid: str) -> tuple[float, int, int]:
+    """Return (mean_dark_v32, n_pen_dark_drops, n_keep) from pen_filter_v33 CSV if present."""
+    pen = PROJECT / "outputs" / "pen_filter_v33" / f"pen_filter_v33_{sid[:12]}.csv"
+    if not pen.exists():
+        return 0.0, 0, 0
+    df = pd.read_csv(pen)
+    mean_dark = float(df["dark_v32"].mean()) if "dark_v32" in df.columns else 0.0
+    pen_n = int((df["v33_reason"] == "pen_dark").sum()) if "v33_reason" in df.columns else 0
+    n_keep = int((df["v33_action"] == "keep").sum()) if "v33_action" in df.columns else 0
+    return mean_dark, pen_n, n_keep
+
+
+def clearly_dirtier(a: str, b: str) -> bool:
+    """True if slide a is clearly dirtier than b (green/pen/dark artifacts)."""
+    da, pa, _ = _v33_dark_stats(a)
+    db, pb, _ = _v33_dark_stats(b)
+    if pa >= 5 and pb == 0:
+        return True
+    if pa - pb >= 10:
+        return True
+    if da - db >= 1.0 and da >= 1.0:
+        return True
+    if da - db >= 0.5 and pa > pb + 2:
+        return True
+    return False
+
+
 def choose_keep_drop(members: list[str], patch_counts: dict[str, int], meta: pd.DataFrame) -> tuple[str, list[str]]:
+    """Prefer cleaner twin (fewer pen/dark artifacts); else more kept patches / area."""
     area = {
         str(r.image_id): int(r.width) * int(r.height)
         for r in meta.itertuples(index=False)
     }
+
+    # For size-2: if one is clearly dirtier, drop it.
+    if len(members) == 2:
+        a, b = members[0], members[1]
+        if clearly_dirtier(a, b):
+            return b, [a]
+        if clearly_dirtier(b, a):
+            return a, [b]
+
     def key(sid: str):
-        return (patch_counts.get(sid, 0), area.get(sid, 0), sid)
+        mean_dark, pen_n, n_keep = _v33_dark_stats(sid)
+        # higher is better; only mild dark penalty when not "clearly dirtier"
+        return (n_keep or patch_counts.get(sid, 0), -pen_n, -mean_dark, area.get(sid, 0), sid)
 
     keep = max(members, key=key)
     drop = [m for m in members if m != keep]

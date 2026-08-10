@@ -105,6 +105,7 @@ CMD=(
   --grad-clip 1.0
   --num-workers 4
   --amp
+  --augment
   --allow-missing-h5
 )
 if [[ "${MAX_PATCHES_PER_SLIDE}" != "0" ]]; then

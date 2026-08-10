@@ -60,6 +60,7 @@ def collect_not_twins() -> pd.DataFrame:
         "user_marked_not_same_safe_pairs.csv",
         "user_marked_not_same_lower_iou_forced_train.csv",
         "user_marked_not_same_soft24_regroup.csv",
+        "user_marked_not_same_scan3_safe.csv",
     ):
         path = DUP / name
         if path.exists():
@@ -112,6 +113,7 @@ def collect_not_twin_pairs() -> pd.DataFrame:
         "user_marked_not_same_lower_iou_forced_train.csv",
         "user_restore_multi_not_twins.csv",
         "user_marked_not_same_soft24_regroup.csv",
+        "user_marked_not_same_scan3_safe.csv",
     ):
         path = DUP / name
         if path.exists():
@@ -173,6 +175,10 @@ def collect_drops() -> pd.DataFrame:
     legacy = DUP / "legacy_forced_twin_drops_decisions.csv"
     if legacy.exists():
         add(pd.read_csv(legacy, dtype=str).image_id, "legacy_forced_drop", tier=TIER_MULTI)
+
+    inner = DUP / "user_multi_C1_C2_C3_inner_twins_decisions.csv"
+    if inner.exists():
+        add(pd.read_csv(inner, dtype=str).drop_id, "user_multi_inner_twin", tier=TIER_LATEST)
 
     friday = DUP / "user_restore_multi_safe_C35_55_friday_summary.json"
     if friday.exists():
