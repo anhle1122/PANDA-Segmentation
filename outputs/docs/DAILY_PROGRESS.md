@@ -1,13 +1,100 @@
 # Daily progress — PANDA Gleason project
 
-**How to use:** Open this file each day (also mirrored at `docs/DAILY_PROGRESS.md`). Newest date at the top.  
+**For Dr. Omar:** this is the day-by-day log at  
+`/common/omarmlab/members/anh/panda_project/DAILY_PROGRESS.md`  
+Newest date at the top. Mirrored at `outputs/DAILY_PROGRESS.md` and `outputs/docs/DAILY_PROGRESS.md`.
+
 Agents auto-append when training/eval/protocol work lands (see `.cursor/rules/daily-progress.mdc`).
 
 Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-08-09
+
+- **18:51 PDT** | **Clean scan #3 done — confirmed twins AND already-judged not-twin pairs are out** | User: "keep those completely out, show me a clean folder" | Job **5393362** on all **3838** alive. Ledger first: folded the 2 pre-ledger forced drops in → `CANONICAL_twin_drops.csv` **845** (= exact 4683→3838 delta), `CANONICAL_not_twins.csv` **390**, new `CANONICAL_not_twin_pairs.csv` **100** adjudicated edges. Scan cut **96** already-judged edges *before* clustering. Result: safe **2** (both NEW, 0 kept-not-twin), multi **35** clusters / 209 slides, lower **1833** (NEW 1789 / MIXED 43 / KEPT_NOT_TWIN 1). Folder: `outputs/docs/slide_duplicates_scan3_clean/galleries/index.html`.
+
+- **18:47 PDT** | Recorded the `b426` not-twin edges the SOFT-24 regroup never logged | Old safe P3 (`8b126`↔`b426`, IoU 0.705) came back because only the slide-level keep was stored, not the pair | `user_marked_not_same_soft24_regroup.csv`; scan3 safe re-rendered 3 → **2** pairs (job **5393436**).
+
+- **18:25 PDT** | **Closed the Friday resurrection loop for good** | My earlier reconcile called these 24 "SOFT / do-not-drop", so "0 leaks" was measured against a rule that excluded them — that is why they kept reappearing | Applied Proposal A: dropped **15** (honouring your not-twin-of-KEEP marks, propagated across twin pairs), kept **7**. Slides **3838** (3072/383/383). Froze `CANONICAL_twin_drops.csv` (843) + `CANONICAL_not_twins.csv` (389) with precedence tiers; `src/twin_ledger.py --rebuild` verifies, and `rescan_twins_alive.py` now refuses to run if a confirmed twin is alive. Ledger **clean**.
+
+- **18:10 PDT** | G13/C38 re-drop `e10…` (S21) | Round1 twin drop resurrected by Friday C35–55 restore | Keep `6b4c…`. Note: `dc10…` (S19) also round1-drop + Friday-restored, still alive — awaiting user. Slides **3853**.
+
+- **18:06 PDT** | SOFT-24 **regrouped** (fix mispaired DROP↔KEEP presentation) | User: 68a↔8b126 twins hidden across S10/S13 | New view by twin-set groups G1–G13. Dropped `68a…`, kept `8b126…` (+ `b426…` not twin). `reconcile_confirmed_twins/soft24_regrouped/`. Slides **3854**.
+
+- **17:53 PDT** | SOFT-24 gallery + **NEW-only** rescan view | Unmix Friday restores vs fresh pairs | SOFT-24: `reconcile_confirmed_twins/soft24_gallery/`. NEW-only (excl. confirmed not-twins; twin drops already gone): safe **1** / multi **37** / lower **1750** → `galleries_NEW_only/`.
+
+- **17:50 PDT** | Reconcile Friday→today twin truth (HARD vs SOFT) | User: rescan mixed/confusing | HARD policy (safe/lower/user/today drops): **0 leaks** left. Confusion = Friday multi “safe” restores + rescan re-showing KEPT_NOT_TWIN. SOFT gallery drops still alive: **24** (do not auto-drop). Guide: `slide_duplicates_rescan_alive/reconcile_confirmed_twins/`.
+
+- **17:47 PDT** | Rescan multi **C47**: re-drop `9a22…` (twin of `2940…`) | User; never marked not-twins | Round1 already drop `9a22` (legacy multi **C43** / twins **P1021**); Friday C35–55 restore brought it back. Keep `2940…`. Slides **3855**. No not-twin page exists for this pair.
+
+- **17:45 PDT** | Rescan multi **C48**: drop `fb01a0…` (twin of `53a05…`) | User callout | Keep `53a053…` (+ `d2e99d…` still alive). Slides **3856** (3090/383/383). `slide_duplicates_rescan_alive/user_rescan_multi_c48_fb01_*`.
+
+- **17:44 PDT** | Rescan safe P1: **P1+P3 twins drop**; **P2,P4–P10 not twins keep** | User review | Dropped `bfc5…` (vs keep `15be…`) + `773d…` (vs keep `e528…`). Kept 8 pairs both+train. Slides **3857** (3091/383/383). Log: `slide_duplicates_rescan_alive/user_rescan_safe_page1_*.csv/json`.
+
+- **17:35 PDT** | Marked rescan pairs **NEW vs KEPT_NOT_TWIN vs MIXED** | User review clarity | Safe: NEW5 / KEPT4 / MIXED1. Lower: NEW1750 / KEPT74 / MIXED19. CSVs ready now; safe PNG refreshed; Slurm **5393107** re-render lower+multi badges. Indexes: `slide_duplicates_rescan_alive/galleries/*/pair_index_*`.
+
+- **16:54 PDT** | Twin **rescan #2 done** (`5392157` COMPLETED 16:07) | Detect-only on all alive | safe **10** / multi **49** / lower **1843** (pairs 2216, alive 3859). Galleries ready: `outputs/docs/slide_duplicates_rescan_alive/galleries/`. Aug parked (no train aug for now).
+
+- **16:35 PDT** | n&lt;32 mask↔clinical mismatch audit | Check if tiny bags drive ISUP fails | Train audit: **147** slides n&lt;32, **8** mismatches (**94.6%** match vs 92.1% overall). Reasons: **5× ISUP2↔3**, +1 mask0 vs clin 3+3, +1 ISUP5→4, +1 ISUP2→4. Gallery: `audit_after_dedupe/mismatch_nlt32/`.
+
+- **16:30 PDT** | Regenerated aug previews with **mask-verified tissue** (not pen tissue_pct) | Prior previews were glass/ink | `slide_and_patch_preview/two_slides_REAL_tissue_before_after.png` (+ per-slide REAL_tissue_aug).
+
+- **16:09 PDT** | Slide+patch aug wired; preview 2 slides | Opt3: slide-consistent then light patch; UPerNet: patch-level | Previews: `outputs/augmentation_examples/slide_and_patch_preview/`.
+
+- **16:02 PDT** | Opt3/baseline: **augment default ON** for future trains | Match Teacher A (HED+flip+rot); val unaugmented | `BaselinePatchDataset(augment=…)`, Opt3 `--augment` default True + Slurm `--augment`. Rescan **5392157** still rendering galleries (scan done: safe10 / multi49 / lower1843).
+
+- **15:53 PDT** | Twin **rescan job `5392157`** (all alive, incl. prior not-twins) | Catch remaining dups; exclusive safe/lower/multi | Out: `outputs/docs/slide_duplicates_rescan_alive/` (+ galleries). Detect-only. Removed so far **824** (4683→3859).
+
+- **15:43 PDT** | Confirm not-twin recovery: lower **86** pairs + safe **4** (P414/476/480/511) | Had missed `dd11c914…` (P245) → restored to train | All user not-twin IDs now alive. Splits **3093/383/383** (3859).
+
+- **15:42 PDT** | Restore multi **safe C35–55** (+ Friday C1–35 already OK) | User: most cluster pages safe; only explicit twin/drops stay out | Restored **28** → train; still dropped **10** user callouts (3 Friday twins + 7 C36–55). Slides **3092/383/383** (3858). Summary: `user_restore_multi_safe_C35_55_friday_summary.json`.
+
+- **15:35 PDT** | Rebalance splits **80/10/10**; all **2669** suspects → train | Val/test = clean-only (ISUP-stratified); moved clean train→val/test | Slides **3064/383/383** (80/10/10). Patches **364k/43k/45k**. 0 suspect leak into val/test. Summary: `rebalance_80_10_10_summary.json`.
+
+- **14:24 PDT** | Multi **C1–C35 restored to Friday** for re-review | User hadn’t reviewed pages 1–35 | Restored **166** slides; all C1–35 → train. Use `galleries/multi_clusters/` (not `_after`). C36–55 unchanged. Splits **3328/254/251** (3833).
+
+- **14:22 PDT** | Not-twins: safe **P414**; multi **P827/P828/P837/P839** → restore drops + train | P433 already keeps `92d2…` (gallery page may still show old KEEP). Restored 5 drops. Splits **3162/254/251** (3667). User will recheck multi clusters.
+
+- **14:10 PDT** | Safe pairs **P476, P480, P511 = not twins** → restore drops + both **train** | User callout on safe gallery | Restored `3f0c4e…`,`8d2d81…`,`8ca4ee…`. Splits **3157/254/251** (3662). `user_marked_not_same_safe_pairs.csv`.
+
+- **13:51 PDT** | Twins page86–87: restore **10** safe (not twins) P1022,1024–1032 → train | User: d2e99d,66197,8b19,06a7dc,70fa7,ff1ca,+P1029–1032 drops | +1465 patches; **skipped P1023** `fb01a0…`. f90/aaaf **not twins** (aaaf stays multi-dropped). Splits **3154/254/251** (3659). Log: `user_restore_p1022_1032_safe.csv`.
+
+- **13:46 PDT** | C23 restore: **`a8a951` + `e8d79` not twins** (user) → back to **train** | Twins page87 P1033/P1034 looked like same slide twice because gallery repeats KEEP `2102cdae…` vs each DROP | Restored 167+111 patches; sil IoU keep–a8 only **0.46**. Still dropped `6549ae…` (not mentioned). Splits **3144/254/251** (3649). Note: `user_multi_C23_restore_note.json`.
+
+- **13:41 PDT** | Not-twins gallery corrections: **P44→twin** (drop `69a682…`, keep `991d3d…`); **3858↔b61a** true twin IoU **0.867** (b61a already multi-dropped); **f90↔aaaf** side-by-side (shape IoU only **0.16**, aaaf already gone) | User found cross-pair miss: gallery NN paired 3858–f90 (0.66) instead of 3858–b61a | Splits **3142/254/251** (3647). PNGs: `galleries/cross_pair_checks/`. Not-same **86**.
+
+- **13:22 PDT** | Lower-IoU policy fix: **unmarked = twins** | User only listed not-twins; rest are duplicates | Pages 1–31: **87** not-same (keep both+train); **277** implied twins → drop one (keep cleaner). New drops **270** (7 already half-gone). Splits **3143/254/251** (3648 slides, ~86/7/7%). Lists: `lower_iou_implied_twins_decisions.csv`, `lower_iou_implied_twins_summary.json`.
+
+- **13:08 PDT** | Mask-ISUP audit **DONE** (job `5383663`) | Train bags n≥5, thr=0 vs clinical | **3141/3412 = 92.1%** match. Per ISUP: 0/1/4/5 ≈**100%**; weak on **2 (73.2%)** and **3 (73.7%)**. 3412/3413 train slides have ≥5 patches. Out: `outputs/docs/slide_duplicates/audit_after_dedupe/mask_isup_train_nge5_thr0_summary.json`.
+
 ## 2026-08-07
+
+- **16:05 PDT** | Dedupe audit: ISUP mix + leakage (+ ISUP n≥5 job **5383663**) | Quantify before/after + val leak risk | Slide ISUP% before→after mostly stable (Δ≤0.8pp). **Before leak:** val **40.6%** / test **41.8%** slides had a train twin edge; after **0%**. Dice proxy: if twins score ~0.85, reported val cancer Dice 0.703 could be ~**+0.10** inflated (clean ~0.60). Full mask-ISUP@thr0 for train n≥5 running on `defq`. Artifacts: `outputs/docs/slide_duplicates/audit_after_dedupe/`.
+
+- **16:00 PDT** | All dup **suspects → train** (safe + lower-IoU + multi kept/alive) | Block leakage if any twin remains | Forced **1302** alive suspects to train (moved 105 val + 129 test). Final slides **3413 / 254 / 251** = **87.1% / 6.5% / 6.4%** (not 80/10/10; train heavy). Patches **407k / 31k / 29k**. Backups `*_pre_suspects_all_train.csv`.
+
+- **15:59 PDT** | Multi-cluster user pass C35–44 + **keep-1** on all remaining | Cleaner + max tissue survivor | Explicit: C35 drop d85; C36 keep `c4cd`+`d67`; C39 keep `6f50`; C42 drop `971`; others already satisfied. Remaining multi ≥2 → keep 1 (pen/dark then tissue%). Exceptions still 2: **C36, C54**. Dropped ~75 this pass. Splits **3179/359/380** (3918 slides). Summary `user_multi_keep1_pass_summary.json`.
+
+- **15:53 PDT** | User multi review C45–55 applied | Manual keep/drop on residual clusters | New drops: C54 `b8aff`, C51 `a48b`, C49 `dbf09` (keep `e528`). Restored C54 `4c25` (greedy had wrong twin). Many requests already satisfied by greedy. **C45** not another multi-cluster — closest outside `7b7884…` IoU **0.684**. View: `galleries/multi_clusters_after/` (not old `multi_clusters/`). Splits **3250/359/381**.
+
+- **15:43 PDT** | Multi-cluster **redundant drop** (greedy IoU≥0.70) | Remove direct twins inside 55 multi groups without nuking false chains | Dropped **141** / kept **131** multi members (−14218 patches). Prefer cleaner then more kept patches. Residual clusters still ≥2 (**42**, 118 slides) → force train. Splits **3252/359/381** (total 3992). Lists: `dedupe_multi_cluster_greedy_iou70.csv`, `dedupe_drop_ids_multi_cluster_iou70.txt`. Backups `*_pre_multi_cluster_dedupe.csv`.
+
+- **15:41 PDT** | P351 not-same; P358 **keep clean `6ae97…`, drop dirty `f0bb…`** | User callout page 30 | Marked **87** not-same. P358 already labeled keep=6ae97 in pair_index; removed dirty twin from splits (−train patches). Twin-drop log `lower_iou_twin_drops_clean_keep.csv`. Splits **3345/384/404**.
+
+- **15:39 PDT** | Lower-IoU not-same +**32** (P244–P346, pages 21–29) → keep both + force train | Continue review | Marked total **86** pairs. 1 ID already in twin-drop list. Splits **3346/384/404**. Next: finish pages 30–31 + multi clusters.
+
+- **15:26 PDT** | Not-same +**6** (P223,229,234–237); twin keep/drop → **prefer cleaner** | Avoid dropping clean twin when other has green/pen | Marked total **54**. P238: keep clean `ddbeff…`, drop dirty `62202…`. Re-audited safe pairs: **20** strong cleanliness flips (not 240 tiny-dark noise). Policy in `dedupe_slides_shape_isup.py`. Splits **3335/393/406** (4134 slides). Gallery `pair_index` relabeled; page PNGs still show old KEEP/DROP until re-render.
+
+- **15:19 PDT** | Lower-IoU review: +**34** not-same pairs (P77–P212 batch) → keep both + force train | Continue leakage-safe review | Marked total **48** pairs (`user_marked_not_same_lower_iou.csv`). Moved more val/test into train → splits **3333/393/409**. Note: user said page8 for P77/P78 but those are **page 7**. P208 drop-side `4abd945d…` has green marks — v33 already drops many tiles as `pen_dark` (126 patches still in train bag).
+
+- **15:07 PDT** | Added **pair numbers (P#)** on lower-IoU + safe gallery pages | Easier callouts during review | Yellow left badge `P73`… per row; page header shows range. Lookup: `galleries/lower_iou/pair_index.csv` (+ `safe_pairs/pair_index.csv`). Reopen page PNGs to refresh. Renderer `src/render_dedupe_galleries.py` updated for future regenerations.
+
+- **15:00 PDT** | Canonical **Omar day log** pinned at project root | So Dr. Omar can open one file and see today’s work | Primary: `/common/omarmlab/members/anh/panda_project/DAILY_PROGRESS.md` (README points here). Mirrors stay in sync under `outputs/` + `outputs/docs/`. Cursor rule updated to edit root first.
+
+- **14:50 PDT** | User confirmed **safe pairs** are true twins | Lock drop-one policy for IoU≥0.70 size-2 | Already applied (keep more patches); drop list still clean (**0** of 548 drop IDs remain in splits). No further change. Continue lower-IoU + multi-cluster review.
+
+- **14:23 PDT** | Lower-IoU visual review in progress; **keep both + force train** for user “not same” | Prevent leakage even when cores look similar but are not twins | User marked **14** pairs so far (pages 1–6 of `galleries/lower_iou/`) as not the same slide — list `user_marked_not_same_lower_iou.csv`, verify collage `galleries/user_not_same_verify/`. Policy: **do not drop**; move both IDs into **train** (6 were val/test → +575 patches into train). Backups `outputs/splits/*_pre_lower_iou_train_align.csv`. Slide splits now train/val/test **3318/400/417**. User still verifying remaining lower-IoU pages (+ multi clusters next).
 
 - **13:12 PDT** | **Safe dedupe applied** (shape+ISUP, ignore pale/dark) | User: rematch + remove one twin | Dry-run IoU≥0.30 mutual-NN too aggressive (drop 2604). **Applied:** size-2 pairs with shape IoU≥**0.70** + same ISUP/gleason → drop **545** IDs (185 cross-split). Also force-dropped confirmed twins `6e6c…`(val), `dd11…`, `507a…`. Backups `outputs/splits/*_pre_dedupe.csv`. Slides 4683→**4135**. Held 55 multi-member clusters (273 slides) for review. Lists: `dedupe_safe_pairs_iou70.csv`, `dedupe_drop_ids_safe_iou70.txt`.
 
