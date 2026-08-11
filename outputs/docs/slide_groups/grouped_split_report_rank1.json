@@ -1,0 +1,15 @@
+{
+  "rank": 1,
+  "max_eval_group": 2,
+  "n_slides": 4683,
+  "n_groups": 1474,
+  "val_groups": 236,
+  "test_groups": 237,
+  "largest_group_in_test": 2,
+  "confirmed_twin_pairs_checked": 841,
+  "confirmed_twin_pairs_leaking_across_splits": 0,
+  "groups_split_across_splits": 0,
+  "val": 472,
+  "test": 474,
+  "train": 3737
+}

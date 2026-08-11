@@ -126,7 +126,9 @@ def train(args: argparse.Namespace) -> None:
             f"λ_slide={args.lambda_slide} λ_grade={args.lambda_grade} "
             f"micro_bs={args.micro_batch_size} slides/ep={args.slides_per_epoch} "
             f"min_slide_patches={args.min_slide_patches} "
-            f"min_area_pct={args.min_area_pct}"
+            f"min_area_pct={args.min_area_pct} "
+            f"adj_soft={args.adjacent_soft_alpha} "
+            f"benign_soft={args.include_benign_soft}"
         )
 
     train_sampler = (
@@ -291,6 +293,7 @@ def train(args: argparse.Namespace) -> None:
                         weights_b[:n_real],
                         class_weights,
                         adjacent_soft_alpha=args.adjacent_soft_alpha,
+                        include_benign_soft=args.include_benign_soft,
                     )
                     scaled = p_loss * (n_real / n_patches)
                 scaler.scale(scaled).backward()
@@ -371,6 +374,7 @@ def train(args: argparse.Namespace) -> None:
                         weights_v,
                         class_weights,
                         adjacent_soft_alpha=args.adjacent_soft_alpha,
+                        include_benign_soft=args.include_benign_soft,
                     )
                 val_loss_sum += float(vloss.item())
                 val_n += 1
@@ -489,7 +493,13 @@ def build_parser() -> argparse.ArgumentParser:
         default=0.0,
         help="Hard derive_grade area gate for logging (Omar: 0 = no 5%% threshold).",
     )
-    p.add_argument("--adjacent-soft-alpha", type=float, default=0.15)
+    p.add_argument("--adjacent-soft-alpha", type=float, default=0.1)
+    p.add_argument(
+        "--include-benign-soft",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Soft-label chain includes benign↔G3 (Omar default on).",
+    )
     p.add_argument("--grad-clip", type=float, default=1.0)
     p.add_argument("--amp", action="store_true")
     p.add_argument(

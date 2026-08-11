@@ -1,0 +1,9 @@
+{
+  "rank": 1,
+  "n_edges": 3243,
+  "n_groups": 1474,
+  "largest_group": 45,
+  "singletons": 1,
+  "confirmed_twins_split_across_groups": 0,
+  "enough_per_grade_for_val_test": false
+}

@@ -61,11 +61,21 @@ def collect_not_twins() -> pd.DataFrame:
         "user_marked_not_same_lower_iou_forced_train.csv",
         "user_marked_not_same_soft24_regroup.csv",
         "user_marked_not_same_scan3_safe.csv",
+        "user_marked_not_same_scan3_page153.csv",
+        "user_marked_not_same_uni2_group1123.csv",
+        "user_marked_not_same_rank1_unreviewed.csv",
+        # rank25 unknown: pair-level only (see collect_not_twin_pairs). Do not
+        # promote both IDs to slide-level not_twins — many are twin-drops of
+        # someone else, which trips verify(clean).
     ):
         path = DUP / name
         if path.exists():
             df = pd.read_csv(path, dtype=str)
-            for col in df.columns:
+            # Prefer keep_id/drop_id columns so we don't ingest cos/reason junk
+            cols = [c for c in ("keep_id", "drop_id", "image_id") if c in df.columns]
+            if not cols:
+                cols = [c for c in df.columns if c.endswith("_id") or c == "image_id"]
+            for col in cols:
                 add(df[col].dropna(), name)
 
     for path in DUP.glob("user_*not_twin*.json"):
@@ -114,6 +124,10 @@ def collect_not_twin_pairs() -> pd.DataFrame:
         "user_restore_multi_not_twins.csv",
         "user_marked_not_same_soft24_regroup.csv",
         "user_marked_not_same_scan3_safe.csv",
+        "user_marked_not_same_scan3_page153.csv",
+        "user_marked_not_same_uni2_group1123.csv",
+        "user_marked_not_same_rank1_unreviewed.csv",
+        "user_marked_not_same_rank25_unknown.csv",
     ):
         path = DUP / name
         if path.exists():

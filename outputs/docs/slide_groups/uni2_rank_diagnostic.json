@@ -1,0 +1,9 @@
+{
+  "n_mutual_pairs": 1605,
+  "twin_mutual_recall": 0.6825208085612366,
+  "twin_rank1_recall": 0.8014268727705113,
+  "not_twin_mutual_rate": 0.008928571428571428,
+  "free_pool": 1473,
+  "free_pool_enough_per_grade": true,
+  "confirmed_twins_with_a_slide_in_free_pool": 254
+}

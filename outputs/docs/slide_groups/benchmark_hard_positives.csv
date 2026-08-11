@@ -3,3 +3,12 @@ id_a,id_b,shape_iou,label,note
 89afbbdd7813f149b3a047bc544046a8,a288e70d5f393dd6d804ad5e024cb5d3,0.312,TWIN,"user 2026-08-09: scan3 lower P1830, identical biopsy"
 a04846524f108bb046c4e39f3dcce5d3,a288e70d5f393dd6d804ad5e024cb5d3,,TWIN,transitive: same block as 89afb serial cuts
 90b662751c94e02232830cc4b5d2db16,f17470445cda06cb72f8c016bfcd4e79,0.3167,TWIN,"user 2026-08-09: scan3 lower P1828, identical biopsy"
+531ce6a7fd3f8699de151e1f07b57970,630ead3f5eee9ca3d292d65a785d480b,,TWIN,"user 2026-08-10: UNI2 group 663 triplet, all three same specimen"
+531ce6a7fd3f8699de151e1f07b57970,b790c95b8efb85a4e600533cf0444937,,TWIN,"user 2026-08-10: UNI2 group 663 triplet, all three same specimen"
+3e52207d9b9e15dd09d12b56f67d00b4,e4ca3da3ff10350afd296ec9cc5b4ce5,,TWIN,user 2026-08-10: UNI2 group 1123 — these two are twins
+275adc34d57f1e6ce223e7a462569fbe,738aeefd8bc05ac71e2ea552828e97da,,TWIN,"user 2026-08-11: rank25_unknown p1_R2_rank2_pair (UNI2 best_rank=2, cos=0.9862)"
+6aea011ff6ec9fe22091bb4cc83fe56c,c2edf539162ecaea59933196e84de2f5,,TWIN,"user 2026-08-11: rank25_unknown p1_R7_rank2_pair (UNI2 best_rank=2, cos=0.9846)"
+136cae2844e9f6fd15f09ccc9453e0b6,1d33889037497d32695ac48a786af6d5,,TWIN,"user 2026-08-11: rank25_unknown p1_R8_rank2_pair (UNI2 best_rank=2, cos=0.9842)"
+6e320ef7485ec6c55962007956985821,a45b686526ef8327fbd9e8b770984567,,TWIN,"user 2026-08-11: rank25_unknown cross_a45b_6e320 (UNI2 best_rank=1, cos=0.9891)"
+5e063bb2352ec2d6dfefa038d9bcb70d,d8b48c0404394e83af61c15ad7eea1a3,,TWIN,"user 2026-08-11: rank25_unknown cross_5e063_d8b48 (UNI2 best_rank=1, cos=0.9868)"
+318cb948ba8cb28995204b0a7ebba6d4,79538de71a078ec7348f0340f8a7e995,,TWIN,"user 2026-08-11: rank25_unknown cross_318cb_79538 (UNI2 best_rank=1, cos=0.9852)"

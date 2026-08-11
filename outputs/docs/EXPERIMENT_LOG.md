@@ -13,8 +13,10 @@ Format: **Why → What → Result → Decision**
 |------|--------|
 | Architecture | UNI2-h + UPerNet |
 | Input | raw 512² (ImageNet norm) |
-| Loss | 0.5 CE + 0.5 soft Dice; adj soft α=0.15; optional g45 α=0.22 |
+| Loss | 0.5 CE + 0.5 soft Dice; adj soft **α=0.1** on **benign↔G3↔G4↔G5** (Omar 2026-08-11); optional legacy g45 / cancer-only via flags |
 | Classes | 0 bg, 1 stroma, 2 benign, 3 G3, 4 G4, 5 G5 |
+| **Live split** | Grouped fusion (2026-08-11): **4683** slides; train **3739** / val **472** / test **472**; groups = ledger twins ∪ UNI2 mutual-NN ∪ (rank2–5 + IoU≥0.29); `max-eval-group=2` (larger → train); **0** confirmed twin cross-split leaks |
+| Eval scoring | Prefer **per-group** average on val/test (twins share one vote) |
 | **Teacher / external report** | `…/h200x4/epoch_042_cancer_0.7420.pth` (PANDA+ cancer **0.554**) |
 | PANDA+ protocol | `gt≥2` only; benign/G3/G4/G5; `--panda-plus-eval` |
 | ISUP diagnostic `min_area_pct` | **0.0** (Omar 2026-08-06: remove 5% gate; any positive grade counts) |
@@ -48,6 +50,29 @@ A/B/C were sequential engineering runs (confounded). Cleaner grid:
 |--|--|--|
 | **40k** | A-like (messy history) | **R4** |
 | **10k** | **R5** (pending resubmit) | **B** |
+
+---
+
+## Opt3 — grouped split + soft α=0.1+benign (2026-08-11)
+
+| | |
+|--|--|
+| **Why** | Retrain under clean grouped split; Omar soft labels (benign+G3–G5, α=0.1); keep separate pix / L_slide / L_grade logs for ablation |
+| **What** | `scripts/slurm_train_opt3_slidebag.sh` tag `opt3_grouped_soft01_benign`; `--min-slide-patches 5`; `--min-area-pct 0`; `--include-benign-soft`; λ_slide=λ_grade=0.3 |
+| **Result** | Job submitted (see DAILY_PROGRESS for id). |
+| **Decision** | Prefer PANDA+ over val; report pix/slide/grade curves; score val/test per group. |
+
+---
+
+## Split — grouped fusion applied (2026-08-11)
+
+
+| | |
+|--|--|
+| **Why** | Drop-era live set (3,831) still leaked risk; user signed off: keep all related slides together, large groups → train |
+| **What** | `src/make_grouped_splits.py --use-fusion --max-eval-group 2 --apply`. Groups = ledger twins ∪ UNI2 mutual-NN ∪ (rank 2–5 + silhouette IoU ≥ 0.29). Patch CSVs rebuilt from `panda_*_pre_dedupe.csv`. |
+| **Result** | Live train **3739** / val **472** / test **472** (4683 total). Val/test max group size **2**; train max **113**. Confirmed twin cross-split leaks **0**/850. Grade shares within ~0.4% of 80/10/10. |
+| **Decision** | Live default is grouped fusion. Drop-era backups tagged `pre_grouped_fusion_iou0.29_rank2to5_maxeval2_2026-08-11`. Re-train/eval on this split; score val/test **per group**. |
 
 ---
 
@@ -197,6 +222,27 @@ A/B/C were sequential engineering runs (confounded). Cleaner grid:
 | **What** | The C1–35 multi review adjudicated **whole clusters** (207 `keep_safe` vs 3 `drop_user_twin`), so a cluster judged "safe to keep" kept every twin pair inside it. Old C1: 26 members, 0 dropped, ever |
 | **Result** | 7 drops applied (2 pairs were already resolved). Slides **3831** (3065/383/383); ledger 852 drops / 385 not-twins / 102 pairs, clean. 5 of the 7 had been marked `keep_safe` — tier 4 correctly overrode tier 3 |
 | **Decision** | Cluster-level "keep" is not a dedupe decision. Every multi-cluster needs a pairwise pass; 32 of the 35 scan3 clusters (~183 slides) are still unreviewed at pair level |
+
+## Grouped split replaces dropping (2026-08-10, job 5394252)
+
+| | |
+|--|--|
+| **Why** | Dropping duplicates cost 852 slides and still resurrected pairs weekly. Grouping keeps every slide and just confines duplicates to one split, so a false merge is free and only a missed twin is expensive |
+| **What** | Full 4683 UNI2 embed (67 min). Edges = 841 ledger twin pairs ∪ UNI2 rank-1 neighbours, minus 112 adjudicated not-twin pairs; connected components → groups; groups assigned whole to train/val/test, greedy large-first against per-grade quotas |
+| **Result (signal)** | Absolute cosine useless at scale: median top-1 **0.977** vs twin median 0.976 in the 315-slide smoke pool; min over all 4683 is 0.833. Rank is clean: twins median rank **1** (80.1% rank-1, 89.8% ≤5) vs not-twins median rank **1282** (1.8% rank-1). Mutual-NN: 1605 pairs, 574 confirmed twins, **1** confirmed not-twin |
+| **Result (split)** | **1474 groups**, largest 45, 0 confirmed twins split. train 3738 / val 472 / test 473, every ISUP grade within 0.3% of 80/10/10, 0 groups straddling splits. Rank-2 → largest group 4467; mutual-top3 → 1744; both collapse, rank-1 is the only usable setting |
+| **Result (eval-set quality)** | First assignment was backwards: greedy filled val/test first while they sat furthest below quota, so the *largest* clusters landed there — test's biggest group was 38 slides, 8% of the set from one specimen. Pinning groups >2 to train gives train 3737 / val 472 (236 groups) / test 474 (237 groups), largest eval group 2, grades within 0.3%, 0 leaks |
+| **Decision** | Adopt rank-1 grouping with `--max-eval-group 2`; restore all 4683 slides. Proposal lives in `outputs/docs/slide_groups/grouped_split_rank1.csv` and is **not** applied to `outputs/splits/` pending user sign-off. Residual 1: the ~10% of twin relationships at rank 2–5 are not caught and cannot be without chain collapse. Residual 2: test still holds 107 confirmed twin pairs internally (≤367 distinct specimens in 474 slides) — **report val/test metrics per group, not per slide**, so each specimen gets one vote |
+
+## Dedupe signal search — shape → cheap descriptors → UNI2 (2026-08-09)
+
+| | |
+|--|--|
+| **Why** | User found true twins at silhouette IoU 0.30–0.32, including a 3-cut serial block. Shape can't be the signal, and reviewing every flagged pair by hand is thousands of comparisons |
+| **What** | Three signals benchmarked on 841 confirmed twins / 106 confirmed not-twins: grade-agnostic full 4683² shape IoU (job 5393604), phash + tissue colour-histogram (5393691), UNI2-h mean-pooled patch tokens (5393822, 315 slides) |
+| **Result** | AUC: UNI2 **0.973**, colour-hist 0.924, shape 0.808, phash 0.766. MAX-fusion 0.871 (worse than hist alone). AUC is the wrong metric — operationally colour-hist at 80% recall puts **4,664/4,683 slides in one blob** (19 isolated); 11M pairs vs ~1k twins needs FPR ≲1e-5. UNI2 gets **39/44** twin pairs as mutual nearest neighbours and 3 of 4 serial cuts at rank 1 |
+| **Result (limits)** | Absolute cosine does not separate: twin min 0.828 < not-twin max 0.942. Margin (top1−top2) ranks better but also fails — `a0f29ff1`↔`a576f47b`, both ISUP 0 benign, scored twin-like and the user overruled it |
+| **Decision** | Stop trying to threshold anything into drops. Restore all 852 dropped slides to train and select **val/test from the most isolated slides per ISUP grade** (job 5394252, `src/embed_all_uni2.py`). Asymmetry does the work: a false group costs nothing (both slides train), only a missed twin split across train/val is expensive. Judge the run on isolated-slide count per grade, not AUC |
 
 ## Slide near-duplicate audit (2026-08-07)
 

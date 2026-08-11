@@ -1,0 +1,35 @@
+{
+  "groups_csv": "/common/omarmlab/members/anh/panda_project/outputs/docs/slide_groups/slide_groups_fusion_iou0.29_rank2to5.csv",
+  "tag": "fusion_iou0.29_rank2to5",
+  "max_eval_group": 2,
+  "seed": 0,
+  "n_slides": 4683,
+  "n_groups": 2011,
+  "val_groups": 304,
+  "test_groups": 295,
+  "largest_group_in_val": 2,
+  "largest_group_in_test": 2,
+  "largest_group_in_train": 113,
+  "confirmed_twin_pairs_checked": 850,
+  "confirmed_twin_pairs_leaking_across_splits": 0,
+  "groups_split_across_splits": 0,
+  "val": 472,
+  "test": 472,
+  "train": 3739,
+  "applied_to_live_splits": true,
+  "backup_tag": "pre_grouped_fusion_iou0.29_rank2to5_maxeval2_2026-08-11",
+  "live_patch_stats": {
+    "train": {
+      "rows": 437944,
+      "slides": 3739
+    },
+    "val": {
+      "rows": 55516,
+      "slides": 472
+    },
+    "test": {
+      "rows": 56688,
+      "slides": 472
+    }
+  }
+}

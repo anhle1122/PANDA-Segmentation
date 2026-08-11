@@ -4,6 +4,8 @@ HPC project for **pixel-level Gleason grading** on Radboud PANDA WSIs, with exte
 
 **Primary contact use of this README:** hand off to Dr. Omar for designing the **in-loss pseudo-label / ISUP feedback loop**.
 
+**Day-by-day status (Omar):** open [`DAILY_PROGRESS.md`](DAILY_PROGRESS.md) in this folder — newest date at the top.
+
 ---
 
 ## Where things live (HPC)
@@ -11,6 +13,7 @@ HPC project for **pixel-level Gleason grading** on Radboud PANDA WSIs, with exte
 | Path | What |
 |------|------|
 | `/common/omarmlab/members/anh/panda_project/` | Code, scripts, checkpoints, logs, docs |
+| `DAILY_PROGRESS.md` | **Omar day log** (mirrored under `outputs/` / `outputs/docs/`) |
 | `/common/omarmlab/members/anh/panda_data/` | Raw `slides/`, `masks/`, downloads |
 | `outputs/kept_extract/raw/` | Production kept patches (H5, ~432G) |
 | `outputs/pen_filter_v33/` | Per-slide keep/drop decisions (tag **v33**) |
@@ -147,9 +150,9 @@ python src/isup_diagnostic.py --checkpoint outputs/checkpoints/uni2_upernet_raw_
 
 | Doc | Purpose |
 |-----|---------|
+| **`DAILY_PROGRESS.md`** (repo root) | **Omar: day-by-day status** (start here) |
 | `outputs/docs/TECH_NARRATIVE.md` | Full pipeline story (QC → patches → train → ISUP) |
 | `outputs/docs/EXPERIMENT_LOG.md` | Why → what → result → decision |
-| `outputs/docs/DAILY_PROGRESS.md` | Day-by-day status |
 | `outputs/docs/PRESENTATION_OUTLINE.md` | Slide outline |
 
 ---

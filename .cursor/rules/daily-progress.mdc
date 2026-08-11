@@ -15,12 +15,13 @@ Before any new work on this path: run `git status` and check for modified/untrac
 
 | File | Purpose |
 |------|---------|
-| `outputs/DAILY_PROGRESS.md` | Day-by-day what / why / result with **date + time** — user checks this each day |
-| `outputs/EXPERIMENT_LOG.md` | Technical run log (Why→What→Result→Decision). **Never** put resume bullets or presentation copy here |
+| **`DAILY_PROGRESS.md`** (project root) | **Omar-facing** day-by-day log — keep this current so Dr. Omar can open `/common/omarmlab/members/anh/panda_project/DAILY_PROGRESS.md` and see today’s work immediately |
+| `outputs/DAILY_PROGRESS.md` + `outputs/docs/DAILY_PROGRESS.md` | Mirrors of the root file (same content; sync whenever root changes) |
+| `outputs/EXPERIMENT_LOG.md` (+ `outputs/docs/` mirror) | Technical run log (Why→What→Result→Decision). **Never** put resume bullets or presentation copy here |
 
 ## When to update (mandatory)
 
-After **any** of these, update **both** files in the same turn (do not wait to be asked):
+After **any** of these, update **daily progress (root + mirrors) and experiment log** in the same turn (do not wait to be asked):
 
 1. Submit, cancel, resume, or finish a Slurm train/eval/QC job
 2. New best checkpoint or important metric (val or PANDA+)
@@ -29,10 +30,12 @@ After **any** of these, update **both** files in the same turn (do not wait to b
 
 ## How to write `DAILY_PROGRESS.md`
 
+- Edit **`/common/omarmlab/members/anh/panda_project/DAILY_PROGRESS.md` first**, then copy to both `outputs/` mirrors
 - Newest **date section at the top** (`## YYYY-MM-DD`)
 - Each bullet: `- **HH:MM TZ** | What | Why | Result (numbers + job id + key path)`
 - Use real local time from the cluster (`date` or log timestamps)
 - Keep bullets short; link to ckpt/CSV paths, not long dumps
+- Write so Omar can skim today’s section without opening other files
 - Update the day’s “Open tonight / tomorrow” checklist when priorities change
 
 ## How to write `EXPERIMENT_LOG.md`

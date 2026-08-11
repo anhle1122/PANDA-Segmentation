@@ -1,0 +1,10 @@
+pair,row,a,b,shape_iou,uni2_cos,rank_of_b_for_a,a_top1,a_top1_is_b,verdict
+1830,6,89afbbdd,a288e70d,0.312,0.9705,1,a288e70d,True,TWIN
+1828,4,90b66275,f1747044,0.3167,0.9685,1,f1747044,True,TWIN
+1833,9,89afbbdd,a0484652,0.3018,0.9447,2,a288e70d,False,TWIN
+1827,3,d1de8d4b,a0f29ff1,0.3168,0.9413,38,cee7b275,False,borderline
+1826,2,b133f974,6210281e,0.3173,0.919,8,0e46418f,False,borderline
+1831,7,eab6d4ea,c3f6dfc5,0.3108,0.9054,94,e17b5597,False,borderline
+1832,8,6ca88a3b,84b1bdc0,0.3053,0.8719,119,4f066c32,False,not twin
+1829,5,3db32216,51b79eb6,0.3133,0.8465,117,d12d9f20,False,not twin
+1825,1,eab6d4ea,cd11306b,0.3175,0.7054,260,e17b5597,False,not twin

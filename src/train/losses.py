@@ -30,21 +30,24 @@ def gleason_adjacent_soft_targets(
     labels: Tensor,
     num_classes: int = 6,
     *,
-    alpha: float = 0.15,
+    alpha: float = 0.1,
     g45_alpha: float | None = None,
+    include_benign: bool = True,
     cancer_classes: tuple[int, ...] = (3, 4, 5),
+    benign_class: int = 2,
 ) -> Tensor:
     """
-    Soft labels for noisy Gleason masks: spread mass only to adjacent cancer grades.
+    Soft labels for noisy Gleason masks: spread mass only to adjacent grades.
 
-    G3 ↔ G4 ↔ G5 chain only — stroma/benign stay hard 0/1.
-    Example α=0.15: G4 pixel → 0.85 G4, 0.075 G3, 0.075 G5.
+    Default (Omar 2026-08-11): chain **benign ↔ G3 ↔ G4 ↔ G5** with α=0.1.
+      benign → 0.90 ben + 0.10 G3
+      G3     → 0.05 ben + 0.90 G3 + 0.05 G4
+      G4     → 0.05 G3 + 0.90 G4 + 0.05 G5
+      G5     → 0.10 G4 + 0.90 G5
+    Stroma / ignore stay hard.
 
-    ``g45_alpha`` can make only the harder G4↔G5 boundary softer. For
-    alpha=0.15, g45_alpha=0.22:
-      G3 → 0.85 G3 + 0.15 G4
-      G4 → 0.78 G4 + 0.075 G3 + 0.145 G5
-      G5 → 0.78 G5 + 0.22 G4
+    Legacy cancer-only (`include_benign=False`): G3↔G4↔G5; optional ``g45_alpha``
+    softens only the G4↔G5 edge (e.g. α=0.15, g45=0.22).
     """
     if alpha <= 0.0:
         return _one_hot(labels, num_classes)
@@ -55,6 +58,37 @@ def gleason_adjacent_soft_targets(
         device=labels.device,
         dtype=torch.float32,
     )
+
+    if include_benign:
+        chain = (benign_class, *cancer_classes)
+        soft_set = set(chain)
+        for c in chain:
+            mask = labels == c
+            if not mask.any():
+                continue
+            i = chain.index(c)
+            neigh: list[int] = []
+            if i > 0:
+                neigh.append(chain[i - 1])
+            if i < len(chain) - 1:
+                neigh.append(chain[i + 1])
+            if len(neigh) == 1:
+                out[..., c][mask] = 1.0 - alpha
+                out[..., neigh[0]][mask] = alpha
+            else:
+                share = alpha / 2.0
+                out[..., c][mask] = 1.0 - alpha
+                for n in neigh:
+                    out[..., n][mask] = share
+        # Hard labels for stroma and any class outside the soft chain.
+        for c in range(num_classes):
+            if c in soft_set or c == 0:
+                continue
+            mask = labels == c
+            if mask.any():
+                out[..., c][mask] = 1.0
+        return out.permute(0, 3, 1, 2)
+
     cancer = set(cancer_classes)
     g45 = float(alpha if g45_alpha is None else g45_alpha)
     for c in cancer_classes:
@@ -92,6 +126,7 @@ def _resolve_soft_targets(
     label_smoothing: float = 0.0,
     adjacent_soft_alpha: float = 0.0,
     g45_soft_alpha: float | None = None,
+    include_benign_soft: bool = True,
 ) -> Tensor:
     if adjacent_soft_alpha > 0.0:
         return gleason_adjacent_soft_targets(
@@ -99,6 +134,7 @@ def _resolve_soft_targets(
             num_classes,
             alpha=adjacent_soft_alpha,
             g45_alpha=g45_soft_alpha,
+            include_benign=include_benign_soft,
         )
     labels_safe = labels.clone()
     return _smoothed_one_hot(
@@ -135,6 +171,7 @@ def soft_dice_per_sample(
     label_smoothing: float = 0.0,
     adjacent_soft_alpha: float = 0.0,
     g45_soft_alpha: float | None = None,
+    include_benign_soft: bool = True,
     soft_targets: Tensor | None = None,
     eps: float = 1e-6,
 ) -> Tensor:
@@ -151,6 +188,7 @@ def soft_dice_per_sample(
             label_smoothing=label_smoothing,
             adjacent_soft_alpha=adjacent_soft_alpha,
             g45_soft_alpha=g45_soft_alpha,
+            include_benign_soft=include_benign_soft,
         )
     else:
         target_oh = soft_targets
@@ -251,6 +289,7 @@ def segmentation_loss(
     label_smoothing: float = 0.0,
     adjacent_soft_alpha: float = 0.0,
     g45_soft_alpha: float | None = None,
+    include_benign_soft: bool = True,
     soft_targets: Tensor | None = None,
 ) -> Tensor:
     """Combined weighted CE (with per-pixel weight map) + custom soft Dice.
@@ -270,6 +309,7 @@ def segmentation_loss(
             label_smoothing=label_smoothing,
             adjacent_soft_alpha=adjacent_soft_alpha,
             g45_soft_alpha=g45_soft_alpha,
+            include_benign_soft=include_benign_soft,
         )
 
     cw = class_weights.to(device=logits.device, dtype=logits.dtype)
@@ -410,8 +450,9 @@ def isup_informed_segmentation_loss(
     class_weights: Tensor,
     loss_weight_map: Tensor,
     *,
-    adjacent_soft_alpha: float = 0.15,
+    adjacent_soft_alpha: float = 0.1,
     g45_soft_alpha: float | None = None,
+    include_benign_soft: bool = True,
     label_smoothing: float = 0.0,
     ce_weight: float = 0.5,
     dice_weight: float = 0.5,
@@ -436,6 +477,7 @@ def isup_informed_segmentation_loss(
         label_smoothing=label_smoothing,
         adjacent_soft_alpha=adjacent_soft_alpha,
         g45_soft_alpha=g45_soft_alpha,
+        include_benign_soft=include_benign_soft,
     )
     flag = flag_mask.to(dtype=soft.dtype).unsqueeze(1)
     soft = soft * (1.0 - flag) + corrected_target.to(dtype=soft.dtype) * flag
@@ -471,7 +513,7 @@ def combined_loss(
     *,
     w_seg: float = 0.70,
     w_pseudo: float = 0.30,
-    adjacent_soft_alpha: float = 0.15,
+    adjacent_soft_alpha: float = 0.1,
     ce_weight: float = 0.5,
     dice_weight: float = 0.5,
     num_classes: int = 6,

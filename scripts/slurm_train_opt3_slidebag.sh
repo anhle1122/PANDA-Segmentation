@@ -66,7 +66,7 @@ export TORCH_CUDNN_ENABLED="${TORCH_CUDNN_ENABLED:-0}"
 EPOCHS="${1:-100}"
 RESUME="${2:-}"
 NGPU="${SLURM_GPUS_ON_NODE:-${SLURM_JOB_NUM_GPUS:-2}}"
-RUN_TAG="${RUN_TAG:-pseudo_r1_opt3_slidebag}"
+RUN_TAG="${RUN_TAG:-opt3_grouped_soft01_benign}"
 UNI2_CKPT="${UNI2_CKPT:-${PANDA_PROJECT}/assets/ckpts/uni2-h/pytorch_model.bin}"
 LAMBDA_SLIDE="${LAMBDA_SLIDE:-0.3}"
 LAMBDA_GRADE="${LAMBDA_GRADE:-0.3}"
@@ -76,6 +76,8 @@ FREEZE_EPOCHS="${FREEZE_EPOCHS:-5}"
 MAX_VAL_PATCHES="${MAX_VAL_PATCHES:-20000}"
 # 160 ≈ covers median 119; caps worst-case 323 for speed. Set 0 = no cap.
 MAX_PATCHES_PER_SLIDE="${MAX_PATCHES_PER_SLIDE:-160}"
+ADJ_SOFT="${ADJ_SOFT:-0.1}"
+INCLUDE_BENIGN_SOFT="${INCLUDE_BENIGN_SOFT:-1}"
 CKPT_DIR="${PANDA_PROJECT}/outputs/checkpoints/uni2_upernet_raw_${RUN_TAG}"
 LATEST="${CKPT_DIR}/latest.pth"
 
@@ -87,7 +89,7 @@ fi
 
 echo "=== $(date) | OPTION 3 slide-bag | ${NGPU}x H200 | tag=${RUN_TAG} ==="
 echo "λ_slide=${LAMBDA_SLIDE} λ_grade=${LAMBDA_GRADE} micro_bs=${MICRO_BS} slides/ep=${SLIDES_PER_EPOCH}"
-echo "max_patches/slide=${MAX_PATCHES_PER_SLIDE} resume=${RESUME:-none} lazy=1"
+echo "adj_soft=${ADJ_SOFT} include_benign_soft=${INCLUDE_BENIGN_SOFT} max_patches/slide=${MAX_PATCHES_PER_SLIDE} resume=${RESUME:-none} lazy=1"
 
 CMD=(
   torchrun --standalone --nproc_per_node="${NGPU}"
@@ -101,13 +103,20 @@ CMD=(
   --slides-per-epoch "${SLIDES_PER_EPOCH}"
   --freeze-backbone-epochs "${FREEZE_EPOCHS}"
   --max-val-patches "${MAX_VAL_PATCHES}"
-  --adjacent-soft-alpha 0.15
+  --adjacent-soft-alpha "${ADJ_SOFT}"
+  --min-slide-patches 5
+  --min-area-pct 0.0
   --grad-clip 1.0
   --num-workers 4
   --amp
   --augment
   --allow-missing-h5
 )
+if [[ "${INCLUDE_BENIGN_SOFT}" == "1" || "${INCLUDE_BENIGN_SOFT}" == "true" ]]; then
+  CMD+=(--include-benign-soft)
+else
+  CMD+=(--no-include-benign-soft)
+fi
 if [[ "${MAX_PATCHES_PER_SLIDE}" != "0" ]]; then
   CMD+=(--max-patches-per-slide "${MAX_PATCHES_PER_SLIDE}")
 fi

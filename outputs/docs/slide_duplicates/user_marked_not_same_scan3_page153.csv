@@ -1,0 +1,7 @@
+keep_id,drop_id,action,reason
+eab6d4eae42fed6ed8ce52aa6b313a1c,cd11306b822ad900babf0497b524d8d9,keep_not_twin,user 2026-08-09: scan3 lower P1825 page153 - look different by eye
+3db32216102af6f7106c9124bf71d097,51b79eb617718f11e64587422e6877b0,keep_not_twin,user 2026-08-09: scan3 lower P1829 page153 - look different by eye
+eab6d4eae42fed6ed8ce52aa6b313a1c,c3f6dfc5c801b1f2aed4c9e318bd015d,keep_not_twin,user 2026-08-09: scan3 lower P1831 page153 - look different by eye
+6ca88a3bb8a632f16616864d13fd4f92,84b1bdc06545ca9128c924dbc0b87715,keep_not_twin,user 2026-08-09: scan3 lower P1832 page153 - look different by eye
+d1de8d4b1b39a0daeb0038f93931665d,a0f29ff13fb03dd08b6aaeaf4bcac6ed,keep_not_twin,user 2026-08-09: scan3 lower P1827 - similar shape but a0f29 has less tissue; CROSS-SPLIT test/train
+a0f29ff13fb03dd08b6aaeaf4bcac6ed,a576f47b644facaa1aa60db9c41d9db1,keep_not_twin,user 2026-08-09: UNI2 mutual top-1 cos .9857 margin .0201 but user says different slides - margin-rule FALSE POSITIVE (benign ISUP0)

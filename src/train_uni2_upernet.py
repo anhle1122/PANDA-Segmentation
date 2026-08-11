@@ -328,6 +328,7 @@ def train(args: argparse.Namespace) -> None:
                         weights,
                         adjacent_soft_alpha=args.adjacent_soft_alpha,
                         g45_soft_alpha=args.g45_soft_alpha,
+                        include_benign_soft=args.include_benign_soft,
                         label_smoothing=args.label_smoothing,
                     )
                     seg_losses.append(loss_parts["seg"])
@@ -341,6 +342,7 @@ def train(args: argparse.Namespace) -> None:
                         label_smoothing=args.label_smoothing,
                         adjacent_soft_alpha=args.adjacent_soft_alpha,
                         g45_soft_alpha=args.g45_soft_alpha,
+                        include_benign_soft=args.include_benign_soft,
                     )
             scaler.scale(loss).backward()
             if args.grad_clip and args.grad_clip > 0:
@@ -372,6 +374,7 @@ def train(args: argparse.Namespace) -> None:
                         label_smoothing=args.label_smoothing,
                         adjacent_soft_alpha=args.adjacent_soft_alpha,
                         g45_soft_alpha=args.g45_soft_alpha,
+                        include_benign_soft=args.include_benign_soft,
                     )
                 bs = images.size(0)
                 val_loss_sum += loss.item() * bs
@@ -508,6 +511,7 @@ def train(args: argparse.Namespace) -> None:
             "label_smoothing": args.label_smoothing,
             "adjacent_soft_alpha": args.adjacent_soft_alpha,
             "g45_soft_alpha": args.g45_soft_alpha,
+            "include_benign_soft": args.include_benign_soft,
             "freeze_backbone_epochs": args.freeze_backbone_epochs,
         }
         done_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
@@ -552,7 +556,19 @@ def main() -> None:
         help="Random UNI2-h init (debug only)",
     )
     parser.add_argument("--label-smoothing", type=float, default=0.0)
-    parser.add_argument("--adjacent-soft-alpha", type=float, default=0.15)
+    parser.add_argument("--adjacent-soft-alpha", type=float, default=0.1)
+    parser.add_argument(
+        "--include-benign-soft",
+        action="store_true",
+        default=True,
+        help="Soft-label chain includes benign↔G3 (default on).",
+    )
+    parser.add_argument(
+        "--no-include-benign-soft",
+        action="store_false",
+        dest="include_benign_soft",
+        help="Cancer-only adjacent soft (legacy).",
+    )
     parser.add_argument(
         "--g45-soft-alpha",
         type=float,
