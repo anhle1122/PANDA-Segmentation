@@ -1,0 +1,14 @@
+{
+  "source": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/diagnostic_report.csv",
+  "min_area_pct": 0.05,
+  "total_slides": 3746,
+  "counts": {
+    "match": 2018,
+    "A": 623,
+    "D": 476,
+    "C_pure": 300,
+    "B": 249,
+    "C_two_class_unresolved": 80
+  },
+  "note": "Rebuilt from diagnostic_report.csv after the original phase3 classification script was lost (never committed). C_two_class_unresolved slides get NO correction (same as D) per the Model 2 loss design doc PART 5 -- not yet validated."
+}

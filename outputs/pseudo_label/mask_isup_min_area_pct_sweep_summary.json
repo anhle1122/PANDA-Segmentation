@@ -1,0 +1,298 @@
+{
+  "split": "panda_train",
+  "source": "raw_mask_patches (NOT model predictions)",
+  "n_slides": 3746,
+  "thresholds": [
+    0.01,
+    0.02,
+    0.03,
+    0.05,
+    0.07,
+    0.1,
+    0.15
+  ],
+  "curve": [
+    {
+      "min_area_pct": 0.01,
+      "n_slides": 3746,
+      "matches": 3290,
+      "mismatches": 456,
+      "match_rate": 0.8782701548318206,
+      "by_clinical_isup": {
+        "0": {
+          "n": 758,
+          "matches": 758,
+          "match_rate": 1.0
+        },
+        "1": {
+          "n": 615,
+          "matches": 614,
+          "match_rate": 0.9983739837398374
+        },
+        "2": {
+          "n": 490,
+          "matches": 328,
+          "match_rate": 0.6693877551020408
+        },
+        "3": {
+          "n": 650,
+          "matches": 431,
+          "match_rate": 0.6630769230769231
+        },
+        "4": {
+          "n": 583,
+          "matches": 574,
+          "match_rate": 0.9845626072041166
+        },
+        "5": {
+          "n": 650,
+          "matches": 585,
+          "match_rate": 0.9
+        }
+      }
+    },
+    {
+      "min_area_pct": 0.02,
+      "n_slides": 3746,
+      "matches": 3210,
+      "mismatches": 536,
+      "match_rate": 0.8569140416444208,
+      "by_clinical_isup": {
+        "0": {
+          "n": 758,
+          "matches": 758,
+          "match_rate": 1.0
+        },
+        "1": {
+          "n": 615,
+          "matches": 614,
+          "match_rate": 0.9983739837398374
+        },
+        "2": {
+          "n": 490,
+          "matches": 309,
+          "match_rate": 0.6306122448979592
+        },
+        "3": {
+          "n": 650,
+          "matches": 400,
+          "match_rate": 0.6153846153846154
+        },
+        "4": {
+          "n": 583,
+          "matches": 568,
+          "match_rate": 0.9742710120068611
+        },
+        "5": {
+          "n": 650,
+          "matches": 561,
+          "match_rate": 0.8630769230769231
+        }
+      }
+    },
+    {
+      "min_area_pct": 0.03,
+      "n_slides": 3746,
+      "matches": 3148,
+      "mismatches": 598,
+      "match_rate": 0.8403630539241858,
+      "by_clinical_isup": {
+        "0": {
+          "n": 758,
+          "matches": 758,
+          "match_rate": 1.0
+        },
+        "1": {
+          "n": 615,
+          "matches": 614,
+          "match_rate": 0.9983739837398374
+        },
+        "2": {
+          "n": 490,
+          "matches": 290,
+          "match_rate": 0.5918367346938775
+        },
+        "3": {
+          "n": 650,
+          "matches": 379,
+          "match_rate": 0.583076923076923
+        },
+        "4": {
+          "n": 583,
+          "matches": 566,
+          "match_rate": 0.9708404802744426
+        },
+        "5": {
+          "n": 650,
+          "matches": 541,
+          "match_rate": 0.8323076923076923
+        }
+      }
+    },
+    {
+      "min_area_pct": 0.05,
+      "n_slides": 3746,
+      "matches": 3054,
+      "mismatches": 692,
+      "match_rate": 0.8152696209289909,
+      "by_clinical_isup": {
+        "0": {
+          "n": 758,
+          "matches": 758,
+          "match_rate": 1.0
+        },
+        "1": {
+          "n": 615,
+          "matches": 614,
+          "match_rate": 0.9983739837398374
+        },
+        "2": {
+          "n": 490,
+          "matches": 270,
+          "match_rate": 0.5510204081632653
+        },
+        "3": {
+          "n": 650,
+          "matches": 349,
+          "match_rate": 0.536923076923077
+        },
+        "4": {
+          "n": 583,
+          "matches": 560,
+          "match_rate": 0.9605488850771869
+        },
+        "5": {
+          "n": 650,
+          "matches": 503,
+          "match_rate": 0.7738461538461539
+        }
+      }
+    },
+    {
+      "min_area_pct": 0.07,
+      "n_slides": 3746,
+      "matches": 2981,
+      "mismatches": 765,
+      "match_rate": 0.7957821676454885,
+      "by_clinical_isup": {
+        "0": {
+          "n": 758,
+          "matches": 758,
+          "match_rate": 1.0
+        },
+        "1": {
+          "n": 615,
+          "matches": 614,
+          "match_rate": 0.9983739837398374
+        },
+        "2": {
+          "n": 490,
+          "matches": 255,
+          "match_rate": 0.5204081632653061
+        },
+        "3": {
+          "n": 650,
+          "matches": 317,
+          "match_rate": 0.4876923076923077
+        },
+        "4": {
+          "n": 583,
+          "matches": 554,
+          "match_rate": 0.9502572898799314
+        },
+        "5": {
+          "n": 650,
+          "matches": 483,
+          "match_rate": 0.7430769230769231
+        }
+      }
+    },
+    {
+      "min_area_pct": 0.1,
+      "n_slides": 3746,
+      "matches": 2865,
+      "mismatches": 881,
+      "match_rate": 0.7648158035237587,
+      "by_clinical_isup": {
+        "0": {
+          "n": 758,
+          "matches": 758,
+          "match_rate": 1.0
+        },
+        "1": {
+          "n": 615,
+          "matches": 614,
+          "match_rate": 0.9983739837398374
+        },
+        "2": {
+          "n": 490,
+          "matches": 220,
+          "match_rate": 0.4489795918367347
+        },
+        "3": {
+          "n": 650,
+          "matches": 268,
+          "match_rate": 0.4123076923076923
+        },
+        "4": {
+          "n": 583,
+          "matches": 548,
+          "match_rate": 0.9399656946826758
+        },
+        "5": {
+          "n": 650,
+          "matches": 457,
+          "match_rate": 0.703076923076923
+        }
+      }
+    },
+    {
+      "min_area_pct": 0.15,
+      "n_slides": 3746,
+      "matches": 2728,
+      "mismatches": 1018,
+      "match_rate": 0.7282434596903363,
+      "by_clinical_isup": {
+        "0": {
+          "n": 758,
+          "matches": 758,
+          "match_rate": 1.0
+        },
+        "1": {
+          "n": 615,
+          "matches": 614,
+          "match_rate": 0.9983739837398374
+        },
+        "2": {
+          "n": 490,
+          "matches": 185,
+          "match_rate": 0.37755102040816324
+        },
+        "3": {
+          "n": 650,
+          "matches": 222,
+          "match_rate": 0.3415384615384615
+        },
+        "4": {
+          "n": 583,
+          "matches": 537,
+          "match_rate": 0.9210977701543739
+        },
+        "5": {
+          "n": 650,
+          "matches": 412,
+          "match_rate": 0.6338461538461538
+        }
+      }
+    }
+  ],
+  "best_threshold": 0.01,
+  "best_match_rate": 0.8782701548318206,
+  "at_current_default_0.05": 0.8152696209289909,
+  "match_rate_range": [
+    0.7282434596903363,
+    0.8782701548318206
+  ],
+  "max_neighbor_delta": 0.03657234383342234,
+  "note": "PANDA+ independent clinical ISUP: blocked pending Della Corte reply; not run here."
+}

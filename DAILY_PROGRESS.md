@@ -10,9 +10,35 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-08-12
+
+- **15:27 PDT** | **Opt3 resubmitted 4×H200 `gpu` after DDP fix** | User go-ahead | **5430882** PENDING. Slurm ETA ~**Thu 01:26 PDT** on `cp098`. Same tag `opt3_grouped_soft01_benign`, cold start. `no_sync` + dummy sync + ckpt every 8 slides.
+
+- **15:18 PDT** | **Restored Opt3 DDP parity** | 5428051 NCCL timeout; last fix never made it into git | `no_sync` on pixel micros; **one** synced backward per bag; dummy sync for empty and **n&lt;5** (ISUP skipped, pixel still runs). Mid-epoch `latest.pth` every 8 slides. Omar soft labels already match: G3 = 0.05 ben / 0.90 G3 / 0.05 G4.
+
+- **12:41 PDT** | **Opt3 5428051 FAILED — NCCL ALLREDUCE timeout (DDP desync)** | Rank 1 stopped entering collectives; others waited 600s | Elapsed **2h30m** on `cp098` 4×H200. Never finished ep1 — `training_log.csv` header only, **no ckpt**. Same class as prior Opt3 DDP bugs (variable micro-batch / empty-bag skip path). Need sync fix then resubmit.
+
+- **10:11 PDT** | **Opt3 RUNNING 4×H200 on `gpu`** | `gpu`+normal queued instantly | **5428051** on `cp098`, tag `opt3_grouped_soft01_benign` (cold start). Dual-queue 2× **5428052** cancelled so both don’t write the same ckpt dir. No H100 needed.
+
+- **10:10 PDT** | **Opt3 moved off preemptable → `gpu`+`normal`** | Preemptable H200 got kicked by higher-tier `gpu` jobs; `gpu`+H200 schedules again | Cancelled **5413005** / **5416539**. Script now `#SBATCH --partition=gpu --qos=normal`. Resubmitted dual-queue: **5428051** (4×H200) + **5428052** (2×H200), same tag `opt3_grouped_soft01_benign`.
+
+### Open tonight / tomorrow
+- [x] Fix Opt3 DDP desync; resubmitted **5430882** 4×H200 `gpu`
+- [ ] Watch val cancer + pix/slide/grade; then PANDA+
+- [ ] Score val/test **per group** (pair → one vote)
+- [x] Soft-label α=0.1 including benign (wired)
+- [x] Leave preemptable for multi-day Opt3
+- [x] Move Opt3 to `gpu`+normal
+
+---
+
 ## 2026-08-11
 
-- **13:37 PDT** | **Opt3 retrain submitted: grouped split + soft α=0.1 incl. benign** | Omar recipe; monitor pix / L_slide / L_grade separately (already in log) | Soft chain benign↔G3↔G4↔G5 @0.1; `n≥5` ISUP skip; `min_area_pct=0`. Tag `opt3_grouped_soft01_benign`. **Job `5412995`** (preemptable H200×2). Live splits: 3739/472/472. Git: commit `7fc8a31` local; push needed strip of >100MB `all_pairs_*.csv` from unpushed history.
+- **14:31 PDT** | **Dual-queue Opt3: 2×H200 + 4×H200** | 4× stuck PENDING; start sooner on 2× | Kept **5413005** (4×H200). Submitted **5416539** (2×H200, `opt3_2xh200`). Same tag `opt3_grouped_soft01_benign` — if 4× starts while 2× runs, monitor cancels 2× and 4× resumes `latest.pth`. Prune still off.
+
+- **13:41 PDT** | **Opt3 bumped 2→4 H200** | User asked for 4 GPU | Cancelled **5412995** (2×H200, ~3 min in, no ckpt). Resubmitted **`5413005`** with `--gres=gpu:h200:4 --mem=400G --cpus-per-task=16`. Same tag `opt3_grouped_soft01_benign` (fresh start).
+
+- **13:37 PDT** | **Opt3 retrain submitted: grouped split + soft α=0.1 incl. benign** | Omar recipe; monitor pix / L_slide / L_grade separately (already in log) | Soft chain benign↔G3↔G4↔G5 @0.1; `n≥5` ISUP skip; `min_area_pct=0`. Tag `opt3_grouped_soft01_benign`. **Job `5412995`** (preemptable H200×2 → superseded by 4-GPU). Live splits: 3739/472/472. Git: `17321b2` on `origin/main`. Large pair/embed caches HPC-only.
 
 - **12:47 PDT** | **Applied grouped fusion split to live `panda_*.csv`** | User: related slides together, large groups → train | Fusion groups (ledger ∪ mutual-NN ∪ rank2–5+IoU0.29) + `max-eval-group=2`. Live: train **3739** / val **472** / test **472** (all **4683**), ISUP within ~0.4% of 80/10/10, val/test largest group **2**, **0**/850 confirmed twin cross-split leaks. Patches rebuilt from `*_pre_dedupe.csv`. Backup: `outputs/splits/panda_*_pre_grouped_fusion_iou0.29_rank2to5_maxeval2_2026-08-11.csv`. Report: `outputs/docs/slide_groups/grouped_split_report_fusion_iou0.29_rank2to5_maxeval2.json`.
 

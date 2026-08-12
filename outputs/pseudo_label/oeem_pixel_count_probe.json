@@ -1,0 +1,85 @@
+{
+  "n_items": 320,
+  "flagged_pixels": 3090193,
+  "recommended_min_pixels": 8,
+  "by_class": {
+    "bg": {
+      "presence_rate": 0.534375,
+      "median_when_present": 56864.0,
+      "p10_when_present": 2384.0,
+      "p90_when_present": 142512.0,
+      "frac_all_present_lt_2": 0.0,
+      "frac_all_present_lt_8": 0.0,
+      "frac_all_present_lt_16": 0.003125,
+      "frac_all_present_lt_32": 0.00625,
+      "frac_of_present_lt_8": 0.0,
+      "frac_of_present_lt_16": 0.005847953216374269,
+      "frac_of_present_lt_32": 0.011695906432748537
+    },
+    "stroma": {
+      "presence_rate": 0.971875,
+      "median_when_present": 177772.0,
+      "p10_when_present": 97948.0,
+      "p90_when_present": 258811.0,
+      "frac_all_present_lt_2": 0.0,
+      "frac_all_present_lt_8": 0.0,
+      "frac_all_present_lt_16": 0.0,
+      "frac_all_present_lt_32": 0.0,
+      "frac_of_present_lt_8": 0.0,
+      "frac_of_present_lt_16": 0.0,
+      "frac_of_present_lt_32": 0.0
+    },
+    "benign": {
+      "presence_rate": 0.403125,
+      "median_when_present": 13084.0,
+      "p10_when_present": 406.4,
+      "p90_when_present": 79892.00000000001,
+      "frac_all_present_lt_2": 0.0,
+      "frac_all_present_lt_8": 0.0,
+      "frac_all_present_lt_16": 0.003125,
+      "frac_all_present_lt_32": 0.00625,
+      "frac_of_present_lt_8": 0.0,
+      "frac_of_present_lt_16": 0.007751937984496124,
+      "frac_of_present_lt_32": 0.015503875968992248
+    },
+    "G3": {
+      "presence_rate": 0.225,
+      "median_when_present": 55533.5,
+      "p10_when_present": 10487.600000000002,
+      "p90_when_present": 154200.4,
+      "frac_all_present_lt_2": 0.0,
+      "frac_all_present_lt_8": 0.0,
+      "frac_all_present_lt_16": 0.0,
+      "frac_all_present_lt_32": 0.003125,
+      "frac_of_present_lt_8": 0.0,
+      "frac_of_present_lt_16": 0.0,
+      "frac_of_present_lt_32": 0.013888888888888888
+    },
+    "G4": {
+      "presence_rate": 0.3375,
+      "median_when_present": 51478.0,
+      "p10_when_present": 3037.5,
+      "p90_when_present": 149248.69999999998,
+      "frac_all_present_lt_2": 0.0,
+      "frac_all_present_lt_8": 0.0,
+      "frac_all_present_lt_16": 0.0,
+      "frac_all_present_lt_32": 0.0,
+      "frac_of_present_lt_8": 0.0,
+      "frac_of_present_lt_16": 0.0,
+      "frac_of_present_lt_32": 0.0
+    },
+    "G5": {
+      "presence_rate": 0.078125,
+      "median_when_present": 19956.0,
+      "p10_when_present": 4408.8,
+      "p90_when_present": 146869.2,
+      "frac_all_present_lt_2": 0.0,
+      "frac_all_present_lt_8": 0.0,
+      "frac_all_present_lt_16": 0.0,
+      "frac_all_present_lt_32": 0.0,
+      "frac_of_present_lt_8": 0.0,
+      "frac_of_present_lt_16": 0.0,
+      "frac_of_present_lt_32": 0.0
+    }
+  }
+}

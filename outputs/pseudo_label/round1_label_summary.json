@@ -1,0 +1,26 @@
+{
+  "corrected_slides": 629,
+  "scanned_slides": 629,
+  "flagged_pixels": 5405871294,
+  "cancer_pixels_on_corrected_slides": 10520877444,
+  "flagged_frac_of_split_pixels": 0.04682815726635605,
+  "by_rule": {
+    "rule1_soft_tie": {
+      "slides": 62,
+      "flagged_pixels": 936094515
+    },
+    "rule1_wide_margin": {
+      "slides": 187,
+      "flagged_pixels": 1451794001
+    },
+    "rule2_adjacent_invented": {
+      "slides": 9,
+      "flagged_pixels": 99694920
+    },
+    "rule3_invented_default": {
+      "slides": 371,
+      "flagged_pixels": 2918287858
+    }
+  },
+  "slides_fully_rewritten": 0
+}

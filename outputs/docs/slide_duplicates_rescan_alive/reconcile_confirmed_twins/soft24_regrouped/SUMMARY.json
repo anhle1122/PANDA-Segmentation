@@ -1,0 +1,35 @@
+{
+  "presentation_bug": "SOFT gallery paired each resurrected DROP with KEEP partner; real twins often DROP\u2194DROP in same group",
+  "regrouped_dir": "outputs/docs/slide_duplicates_rescan_alive/reconcile_confirmed_twins/soft24_regrouped",
+  "n_groups": 13,
+  "applied_now": {
+    "drop": "68a362123aff27d79dbc5284a948030c",
+    "keep_twin": "8b126306391fa2af0f8bea265f2c9666",
+    "keep_non_twin_partner": "b4265cba12f772b5bb29989f775f8906"
+  },
+  "drop_report": {
+    "slide_splits_before": 3855,
+    "slide_splits_after": 3854,
+    "slide_splits_removed": 1,
+    "panda_train.csv": {
+      "patches_before": 365655,
+      "patches_after": 365542,
+      "slides_before": 3089,
+      "slides_after": 3088
+    },
+    "panda_val.csv": {
+      "patches_before": 42811,
+      "patches_after": 42811,
+      "slides_before": 383,
+      "slides_after": 383
+    },
+    "panda_test.csv": {
+      "patches_before": 45370,
+      "patches_after": 45370,
+      "slides_before": 383,
+      "slides_after": 383
+    }
+  },
+  "slides_after": 3854,
+  "next": "Review group_G*.png \u2014 for each group decide which members are true twins; do not interpret vs-KEEP alone"
+}

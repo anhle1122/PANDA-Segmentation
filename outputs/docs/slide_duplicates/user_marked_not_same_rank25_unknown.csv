@@ -1,0 +1,38 @@
+keep_id,drop_id,action,reason
+264e5e8732450598190acec51da65cdc,85b7018a9e5287342a1392fb02ce24a1,keep_not_twin,user 2026-08-11: rank25_unknown page2 R1 (global R9) not twins
+66f5cc9041b6485114cf9555c31e908d,bacad594d4d9ad882eda3a6738326d52,keep_not_twin,user 2026-08-11: rank25_unknown page2 R2 (global R10) not twins
+a3fa13e9535729ec9cb08f17bc8c03cc,a45b686526ef8327fbd9e8b770984567,keep_not_twin,user 2026-08-11: rank25_unknown page2 R3 (global R11) not twins
+66cad79a848b2b9476a2517a80314327,af6fbe10ab6b3bb50812e4c44b54438f,keep_not_twin,user 2026-08-11: rank25_unknown page2 R4 (global R12) not twins
+318cb948ba8cb28995204b0a7ebba6d4,5e063bb2352ec2d6dfefa038d9bcb70d,keep_not_twin,user 2026-08-11: rank25_unknown page2 R5 (global R13) not twins
+38a49c3566f387a867629c5f6c31a72a,6e320ef7485ec6c55962007956985821,keep_not_twin,user 2026-08-11: rank25_unknown page2 R6 (global R14) not twins
+5edc82d679cc29b4d7720bdc45c1ad45,6e320ef7485ec6c55962007956985821,keep_not_twin,user 2026-08-11: rank25_unknown page2 R7 (global R15) not twins
+79538de71a078ec7348f0340f8a7e995,d8b48c0404394e83af61c15ad7eea1a3,keep_not_twin,user 2026-08-11: rank25_unknown page2 R8 (global R16) not twins
+66f5cc9041b6485114cf9555c31e908d,a3fa13e9535729ec9cb08f17bc8c03cc,keep_not_twin,user 2026-08-11: rank25_unknown page3 R1 (global R17) not twins
+a3fa13e9535729ec9cb08f17bc8c03cc,c6441fa162ce23651c241f1014f96681,keep_not_twin,user 2026-08-11: rank25_unknown page3 R2 (global R18) not twins
+21f3767f9a827e5b9f64d2a47594ad27,cee7b2752a60314af93ae14dae4124ec,keep_not_twin,user 2026-08-11: rank25_unknown page3 R3 (global R19) not twins
+8fb12946881047895dd14ed095a99367,fc841358b1ae7c119b6224d0076046f4,keep_not_twin,user 2026-08-11: rank25_unknown page3 R4 (global R20) not twins
+1894dd1e67ddfc62a309e78ef7ffc5e3,a45b686526ef8327fbd9e8b770984567,keep_not_twin,user 2026-08-11: rank25_unknown page3 R5 (global R21) not twins
+265e7f265773d27e1770a3cd3ce05677,a45b686526ef8327fbd9e8b770984567,keep_not_twin,user 2026-08-11: rank25_unknown page3 R6 (global R22) not twins
+621f180f39962cf8dc87f62cf681200b,8ca4eea53dab8fb41f2ba01deb4e84db,keep_not_twin,user 2026-08-11: rank25_unknown page3 R7 (global R23) not twins
+0c4c5c0598098cb221d34dc154cca14f,8ca4eea53dab8fb41f2ba01deb4e84db,keep_not_twin,user 2026-08-11: rank25_unknown page3 R8 (global R24) not twins
+265e7f265773d27e1770a3cd3ce05677,4d1dc70143798d122476599ffc3df68b,keep_not_twin,user 2026-08-11: rank25_unknown page4 R1 (global R25) not twins
+1894dd1e67ddfc62a309e78ef7ffc5e3,66f5cc9041b6485114cf9555c31e908d,keep_not_twin,user 2026-08-11: rank25_unknown page4 R2 (global R26) not twins
+21f3767f9a827e5b9f64d2a47594ad27,265e7f265773d27e1770a3cd3ce05677,keep_not_twin,user 2026-08-11: rank25_unknown page4 R3 (global R27) not twins
+6e320ef7485ec6c55962007956985821,cee7b2752a60314af93ae14dae4124ec,keep_not_twin,user 2026-08-11: rank25_unknown page4 R4 (global R28) not twins
+11312ffaf33b8252eef70f9274d540ac,a45b686526ef8327fbd9e8b770984567,keep_not_twin,user 2026-08-11: rank25_unknown page4 R5 (global R29) not twins
+5edc82d679cc29b4d7720bdc45c1ad45,c20411ec6a9141978e0712711bdfe0f0,keep_not_twin,user 2026-08-11: rank25_unknown page4 R6 (global R30) not twins
+38a49c3566f387a867629c5f6c31a72a,cee7b2752a60314af93ae14dae4124ec,keep_not_twin,user 2026-08-11: rank25_unknown page4 R7 (global R31) not twins
+621f180f39962cf8dc87f62cf681200b,66cad79a848b2b9476a2517a80314327,keep_not_twin,user 2026-08-11: rank25_unknown page4 R8 (global R32) not twins
+06eda4a6faca84e84a781fee2d5f47e1,264e5e8732450598190acec51da65cdc,keep_not_twin,user 2026-08-11: rank25_unknown page5 R1 (global R33) not twins
+1894dd1e67ddfc62a309e78ef7ffc5e3,21f3767f9a827e5b9f64d2a47594ad27,keep_not_twin,user 2026-08-11: rank25_unknown page5 R2 (global R34) not twins
+310c156419ea422872c92052fddd902b,91dd982fbff7aa72802fbd7391cd2eff,keep_not_twin,user 2026-08-11: rank25_unknown page5 R3 (global R35) not twins
+3d334ec1be0544fd6fff794a77631eef,6f5722cf3b8e5a90dc1e0eff127c4632,keep_not_twin,user 2026-08-11: rank25_unknown page5 R4 (global R36) not twins
+11312ffaf33b8252eef70f9274d540ac,80645c22c26e113e14fd16a0fa837f54,keep_not_twin,user 2026-08-11: rank25_unknown page5 R5 (global R37) not twins
+4a3e6e77b42a7e8f8b2dec472667bdbe,5e063bb2352ec2d6dfefa038d9bcb70d,keep_not_twin,user 2026-08-11: rank25_unknown page5 R6 (global R38) not twins
+07106a451fdebeaa73f2db13f295bfb1,149fd3c5d3ede543589633ea0e711c24,keep_not_twin,user 2026-08-11: rank25_unknown page5 R7 (global R39) not twins
+66f5cc9041b6485114cf9555c31e908d,85b7018a9e5287342a1392fb02ce24a1,keep_not_twin,user 2026-08-11: rank25_unknown page5 R8 (global R40) not twins
+265e7f265773d27e1770a3cd3ce05677,a3fa13e9535729ec9cb08f17bc8c03cc,keep_not_twin,user 2026-08-11: rank25_unknown page1 R1 not twins
+66cad79a848b2b9476a2517a80314327,8ca4eea53dab8fb41f2ba01deb4e84db,keep_not_twin,user 2026-08-11: rank25_unknown page1 R3 not twins
+265e7f265773d27e1770a3cd3ce05677,c6441fa162ce23651c241f1014f96681,keep_not_twin,user 2026-08-11: rank25_unknown page1 R4 not twins
+318cb948ba8cb28995204b0a7ebba6d4,d8b48c0404394e83af61c15ad7eea1a3,keep_not_twin,user 2026-08-11: rank25_unknown page1 R5 not twins
+995b9aea3d7f6ccda0440b9ec2bfc058,9e1d450a04253ab097601c9934fb5e6a,keep_not_twin,user 2026-08-11: rank25_unknown page1 R6 not twins

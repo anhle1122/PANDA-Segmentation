@@ -1,0 +1,90 @@
+{
+  "created": "2026-08-03",
+  "protocol": "PANDA+ labeled pixels (gt>=2); same confusion CSVs as --panda-plus-eval",
+  "definition": {
+    "true_G3_to_pred_G4_rate": "confusion[G3,G4]/sum(confusion[G3,:])",
+    "bias_ratio_favor_g4_rates": "G3\u2192G4 rate / G4\u2192G3 rate (matches teacher_a_baseline_characterization.json)",
+    "g3_to_g4_count_ratio": "confusion[G3,G4]/confusion[G4,G3] (round_control.g3_to_g4_leak_ratio_from_confusion)"
+  },
+  "models": [
+    {
+      "name": "teacher_A_ep42",
+      "cancer_dice": 0.554,
+      "true_G3_to_pred_G4_rate": 0.18915945427821262,
+      "true_G4_to_pred_G3_rate": 0.09202774927098832,
+      "bias_ratio_favor_g4_rates": 2.0554610514401115,
+      "g3_to_g4_count_ratio": 2.0289402055202332,
+      "pred_g4_pool_pct": {
+        "from_true_G4": 65.45554117103428,
+        "from_true_G3_leak": 25.98192468945895,
+        "from_true_G5_leak": 2.456388561804567,
+        "from_true_benign_leak": 6.106145577702206
+      },
+      "model_cancer_mix_g3_g4_g5_pct": [
+        41.27185056081093,
+        50.30879120337646,
+        8.419358235812608
+      ],
+      "true_cancer_mix_g3_g4_g5_pct": [
+        44.79421459379235,
+        45.379732323744044,
+        9.826053082463606
+      ],
+      "g5_to_g4_rate": 0.08152609102916906,
+      "g5_to_g3_rate": 0.004728093122067742
+    },
+    {
+      "name": "opt3_ep12",
+      "cancer_dice": 0.551,
+      "true_G3_to_pred_G4_rate": 0.16591766782598166,
+      "true_G4_to_pred_G3_rate": 0.09740585907553846,
+      "bias_ratio_favor_g4_rates": 1.7033643499546791,
+      "g3_to_g4_count_ratio": 1.6813864762124786,
+      "pred_g4_pool_pct": {
+        "from_true_G4": 68.29125612040167,
+        "from_true_G3_leak": 25.85135636112388,
+        "from_true_G5_leak": 1.7427790256467424,
+        "from_true_benign_leak": 4.114608492827706
+      },
+      "model_cancer_mix_g3_g4_g5_pct": [
+        43.17707003335788,
+        43.959651358487385,
+        12.863278608154742
+      ],
+      "true_cancer_mix_g3_g4_g5_pct": [
+        44.79421459379235,
+        45.379732323744044,
+        9.826053082463606
+      ],
+      "g5_to_g4_rate": 0.050991107523751834,
+      "g5_to_g3_rate": 0.003442913818926716
+    },
+    {
+      "name": "opt3_ep15",
+      "cancer_dice": 0.451,
+      "true_G3_to_pred_G4_rate": 0.2935080452587955,
+      "true_G4_to_pred_G3_rate": 0.034038552667900575,
+      "bias_ratio_favor_g4_rates": 8.622812142526342,
+      "g3_to_g4_count_ratio": 8.511555219381155,
+      "pred_g4_pool_pct": {
+        "from_true_G4": 53.00535376200931,
+        "from_true_G3_leak": 41.51947413582248,
+        "from_true_G5_leak": 0.4120250854123597,
+        "from_true_benign_leak": 5.063147016755857
+      },
+      "model_cancer_mix_g3_g4_g5_pct": [
+        26.557237049685035,
+        45.79203694419829,
+        27.650726006116678
+      ],
+      "true_cancer_mix_g3_g4_g5_pct": [
+        44.79421459379235,
+        45.379732323744044,
+        9.826053082463606
+      ],
+      "g5_to_g4_rate": 0.013278060529154211,
+      "g5_to_g3_rate": 0.0005732307214651549
+    }
+  ],
+  "verdict_ep12_vs_A": "Opt3 ep12 slightly better G3\u2192G4 rate bias (1.70 vs 2.06) and closer cancer mix to GT; pred_G4 still ~26% from true G3 (same as A). Dice\u2248tie + modest leak improve \u2014 not a strong dual-ISUP win, but not leak-stuck worse than A."
+}

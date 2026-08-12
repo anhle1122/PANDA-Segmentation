@@ -1,0 +1,2 @@
+cluster_id,shape_iou,keep_id,drop_id,keep_n_patches,drop_n_patches,split_keep,split_drop,cross_split,isup,gleason,image_id_a,image_id_b,split_a,split_b,prior_not_twin_flag,pair_kind
+1,0.8558,15be10044a3e4b704d0822432416fde4,bfc5aa2abac6018b587819bf87cb1f9a,100,97,train,train,False,4,4+4,15be10044a3e4b704d0822432416fde4,bfc5aa2abac6018b587819bf87cb1f9a,train,train,,NEW

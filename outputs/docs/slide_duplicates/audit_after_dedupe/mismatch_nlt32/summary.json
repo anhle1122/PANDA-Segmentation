@@ -1,0 +1,18 @@
+{
+  "train_audit_nlt32": 147,
+  "mismatch": 8,
+  "match_pct": 94.56,
+  "overall_match_pct": 92.06,
+  "reasons": {
+    "ISUP2\u21943 (3+4 vs mask 4+3)": 3,
+    "ISUP2\u21943 (4+3 vs mask 3+4)": 2,
+    "mask0 but clinical ISUP1 (3+3)": 1,
+    "adjacent 5\u21924 (5+4 vs 4+4)": 1,
+    "2\u21924 (3+4 vs 4+4)": 1
+  },
+  "current_split_nlt32": {
+    "test": 21,
+    "train": 123,
+    "val": 28
+  }
+}

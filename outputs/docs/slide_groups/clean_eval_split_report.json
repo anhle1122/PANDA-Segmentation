@@ -1,0 +1,18 @@
+{
+  "n_slides": 4683,
+  "n_suspect": 3589,
+  "n_clean": 1095,
+  "train": 3757,
+  "val": 463,
+  "test": 463,
+  "confirmed_twin_edges_touching_eval": 0,
+  "mutual_nn_edges_touching_eval": 0,
+  "shortfall": {
+    "0": {
+      "need": 190,
+      "have": 180,
+      "short": 10
+    }
+  },
+  "applied_to_live_splits": false
+}

@@ -1,0 +1,18 @@
+{
+  "slide_id": "0bb772b06c9e3cd1914e31b509556ebf",
+  "filter_csv": "outputs/pen_filter_v33/pen_filter_v33_0bb772b06c9e.csv",
+  "window_xywh_level0": [
+    1536,
+    4096,
+    2560,
+    2560
+  ],
+  "stats": {
+    "pen_drop": 17,
+    "low_tissue": 0,
+    "keep": 6,
+    "max_dark_keep_pct": 0.7702,
+    "n_tiles_in_window": 23
+  },
+  "note": "Real v33 keep/drop. Dropped tiles whitened for viz only; training simply never extracts those tiles. Grid in step4 only on keep."
+}

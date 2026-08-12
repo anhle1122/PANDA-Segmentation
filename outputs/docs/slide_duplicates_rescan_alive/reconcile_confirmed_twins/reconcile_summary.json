@@ -1,0 +1,20 @@
+{
+  "alive_slides_now": 3855,
+  "splits": {
+    "train": 3089,
+    "test": 383,
+    "val": 383
+  },
+  "n_confirmed_drop_ids_logged": 969,
+  "n_should_be_gone": 954,
+  "n_already_gone": 825,
+  "n_leaks_still_alive": 129,
+  "n_protected_not_twin_alive_in_drop_logs": 14,
+  "leak_source_counts": {
+    "confirmed_twins_keep_drop": 24,
+    "multi_greedy_drop": 123,
+    "lower_iou_implied_twins": 4
+  },
+  "out_dir": "outputs/docs/slide_duplicates_rescan_alive/reconcile_confirmed_twins",
+  "clearest_fix": "Re-drop all IDs in LEAKS_confirmed_twins_still_alive.csv (not in not-twin protect set). Then rescan again on cleaned alive set."
+}

@@ -1,0 +1,6 @@
+pair_num,page,row,pair_kind,prior_not_twin_flag,keep_id,drop_id,shape_iou,gleason,split_keep,split_drop,cross_split
+1,1,1,NEW,,15be10044a3e4b704d0822432416fde4,bfc5aa2abac6018b587819bf87cb1f9a,0.8558,4+4,train,train,False
+6,1,6,NEW,,d676924aa4d2c3259e47e91955fe161f,c4cde1827d4895957ca8507e37a3cf76,0.717,negative,train,train,False
+7,1,7,NEW,,1c4653246dc78308252d47160786ad15,8d5860e10e09ee25e066ee7fb699453d,0.7169,4+4,train,train,False
+8,1,8,NEW,,2a837ababa0cb124818a3b4852244711,4c25d8ba4a2ecabe2b69b901c994e2dd,0.7162,3+3,train,train,False
+10,1,10,NEW,,7fa4634ab59a7832bc877fef162eacaa,a1f79e44db2ca88a3c1b330af1343d61,0.7105,4+3,train,train,False

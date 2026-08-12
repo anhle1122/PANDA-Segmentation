@@ -1,0 +1,2 @@
+cluster_id,keep_id,drop_id,action,reason
+48,53a053373822079628726191fc5b76d6,fb01a0a69517bb47d7f4699b6217f69d,drop_twin,"user: rescan multi C48 fb01a0 twin with 53a05, drop fb01a0"

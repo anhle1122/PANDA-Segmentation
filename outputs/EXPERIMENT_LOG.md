@@ -53,14 +53,14 @@ A/B/C were sequential engineering runs (confounded). Cleaner grid:
 
 ---
 
-## Opt3 — grouped split + soft α=0.1+benign (2026-08-11)
+## Opt3 — grouped split + soft α=0.1+benign (2026-08-11; queue fix 2026-08-12)
 
 | | |
 |--|--|
 | **Why** | Retrain under clean grouped split; Omar soft labels (benign+G3–G5, α=0.1); keep separate pix / L_slide / L_grade logs for ablation |
 | **What** | `scripts/slurm_train_opt3_slidebag.sh` tag `opt3_grouped_soft01_benign`; `--min-slide-patches 5`; `--min-area-pct 0`; `--include-benign-soft`; λ_slide=λ_grade=0.3 |
-| **Result** | Job submitted (see DAILY_PROGRESS for id). |
-| **Decision** | Prefer PANDA+ over val; report pix/slide/grade curves; score val/test per group. |
+| **Result** | First queue on **preemptable** (5412995→5413005/5416539): preempted, no ckpt. 2026-08-12 `gpu`+`normal` **5428051** 4×H200 `cp098`: ran **2h30m**, then **FAILED** — NCCL ALLREDUCE timeout 600s (rank1 desynced; ranks 0/2/3 waited). No ep1 / no `latest.pth`. DDP parity restored; resubmitted **5430882** 4×H200 `gpu` (ETA ~Thu 01:26 PDT). |
+| **Decision** | Stay on `gpu`+normal. Omar soft chain already correct (G3 0.05/0.90/0.05). Prefer PANDA+ over val; score val/test per group. |
 
 ---
 

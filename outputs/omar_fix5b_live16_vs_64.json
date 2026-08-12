@@ -1,0 +1,19 @@
+{
+  "results": [
+    {
+      "live_n": 16,
+      "n_chunks": 4,
+      "time_s": 2.2039079004898667,
+      "peak_cuda_gib": 24.987617015838623,
+      "host_rss_gib": 6.268230438232422
+    },
+    {
+      "live_n": 64,
+      "n_chunks": 16,
+      "time_s": 8.691294985823333,
+      "peak_cuda_gib": 25.97865056991577,
+      "host_rss_gib": 6.268230438232422
+    }
+  ],
+  "guide": "prefer_64_if_host_lt_80G"
+}

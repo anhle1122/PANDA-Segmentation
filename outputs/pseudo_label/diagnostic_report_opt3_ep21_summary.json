@@ -1,0 +1,45 @@
+{
+  "checkpoint": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_pseudo_r1_opt3_slidebag/epoch_021_cancer_0.6356.pth",
+  "checkpoint_epoch": 21,
+  "checkpoint_val_cancer_dice": 0.6356279008858197,
+  "split": "/common/omarmlab/members/anh/panda_project/outputs/splits/panda_train.csv",
+  "total_slides": 3746,
+  "total_patches": 440371,
+  "matches": 2145,
+  "mismatches": 1601,
+  "match_rate": 0.5726107848371597,
+  "min_area_pct": 0.05,
+  "smoke_test": false,
+  "by_metadata_isup": {
+    "0": {
+      "count": 758,
+      "matches": 400,
+      "match_rate": 0.5277044854881267
+    },
+    "1": {
+      "count": 615,
+      "matches": 365,
+      "match_rate": 0.5934959349593496
+    },
+    "2": {
+      "count": 490,
+      "matches": 326,
+      "match_rate": 0.6653061224489796
+    },
+    "3": {
+      "count": 650,
+      "matches": 324,
+      "match_rate": 0.49846153846153846
+    },
+    "4": {
+      "count": 583,
+      "matches": 194,
+      "match_rate": 0.33276157804459694
+    },
+    "5": {
+      "count": 650,
+      "matches": 536,
+      "match_rate": 0.8246153846153846
+    }
+  }
+}

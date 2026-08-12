@@ -1,0 +1,1 @@
+cluster_id,shape_iou,keep_id,drop_id,keep_n_patches,drop_n_patches,split_keep,split_drop,cross_split,isup,gleason,image_id_a,image_id_b,split_a,split_b,prior_not_twin_flag

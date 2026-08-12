@@ -1,0 +1,3 @@
+group,action,keep_id,drop_id,also_keep_not_twin_of_68a,reason,S,also_still_alive_round1_drop
+multi_C45,drop_twin_between_soft_drops,8b126306391fa2af0f8bea265f2c9666,68a362123aff27d79dbc5284a948030c,b4265cba12f772b5bb29989f775f8906,user: 68a and 8b126 are twins; old SOFT gallery mispaired each with b426 (not twin),,
+G13_multi_C38,re_drop_round1_twin,6b4c77b671e8412d65773f9614816db0,e10ebd20ef424d61222ccc5e97dcc76b,,user: G13 S21 e10 was dropped round1; Friday C35-55 restore resurrected it,21.0,dc10032bf598b0a3268074de4bb2d7b6

@@ -1,0 +1,61 @@
+{
+  "tag": "rescan_safe_p1",
+  "twins_dropped": [
+    "773d5f35cb242573885d18d302a9157c",
+    "bfc5aa2abac6018b587819bf87cb1f9a"
+  ],
+  "twin_keeps": [
+    "15be10044a3e4b704d0822432416fde4",
+    "e528d21e5e6c87a9a1579214f6ec345d"
+  ],
+  "not_twin_pair_nums": [
+    2,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "n_not_twin_slides": 16,
+  "moved_to_train": [],
+  "splits_after": {
+    "train": 3091,
+    "test": 383,
+    "val": 383
+  },
+  "slides_total": 3857,
+  "patches": {
+    "train": 365940,
+    "val": 42811,
+    "test": 45370,
+    "train_slides": 3091,
+    "val_slides": 383,
+    "test_slides": 383
+  },
+  "drop_report": {
+    "slide_splits_before": 3859,
+    "slide_splits_after": 3857,
+    "slide_splits_removed": 2,
+    "panda_train.csv": {
+      "patches_before": 366141,
+      "patches_after": 365940,
+      "slides_before": 3093,
+      "slides_after": 3091
+    },
+    "panda_val.csv": {
+      "patches_before": 42811,
+      "patches_after": 42811,
+      "slides_before": 383,
+      "slides_after": 383
+    },
+    "panda_test.csv": {
+      "patches_before": 45370,
+      "patches_after": 45370,
+      "slides_before": 383,
+      "slides_after": 383
+    }
+  },
+  "decisions_csv": "/common/omarmlab/members/anh/panda_project/outputs/docs/slide_duplicates_rescan_alive/user_rescan_safe_page1_decisions.csv"
+}

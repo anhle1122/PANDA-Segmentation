@@ -1,0 +1,11 @@
+pair_num,page,row,pair_kind,prior_not_twin_flag,keep_id,drop_id,shape_iou,gleason,split_keep,split_drop,cross_split
+1,1,1,NEW,,15be10044a3e4b704d0822432416fde4,bfc5aa2abac6018b587819bf87cb1f9a,0.8558,4+4,train,train,False
+2,1,2,KEPT_NOT_TWIN,both_prior_not_twin,c0dbbf2b29da2ef0cab6bc7032e7ac92,6e79fc78cf67358d3d16daec5573b5a3,0.7465,4+5,train,train,False
+3,1,3,MIXED,one_prior_not_twin,e528d21e5e6c87a9a1579214f6ec345d,773d5f35cb242573885d18d302a9157c,0.7259,3+4,train,train,False
+4,1,4,KEPT_NOT_TWIN,both_prior_not_twin,fae6996aeed84a9a75cbe726be46bab3,3f0c4e9f8fb3b846e49bb1ca2b3021ef,0.7241,3+4,train,train,False
+5,1,5,KEPT_NOT_TWIN,both_prior_not_twin,3ee16cef000a96c344248a90e5cfccd2,8d2d81395c6a14a4683d92b7db8bf18b,0.7232,3+4,train,train,False
+6,1,6,NEW,,d676924aa4d2c3259e47e91955fe161f,c4cde1827d4895957ca8507e37a3cf76,0.717,negative,train,train,False
+7,1,7,NEW,,1c4653246dc78308252d47160786ad15,8d5860e10e09ee25e066ee7fb699453d,0.7169,4+4,train,train,False
+8,1,8,NEW,,2a837ababa0cb124818a3b4852244711,4c25d8ba4a2ecabe2b69b901c994e2dd,0.7162,3+3,train,train,False
+9,1,9,KEPT_NOT_TWIN,both_prior_not_twin,b31d1678d2148a94702ffa5bd6ac3aba,8ca4eea53dab8fb41f2ba01deb4e84db,0.7122,3+3,train,train,False
+10,1,10,NEW,,7fa4634ab59a7832bc877fef162eacaa,a1f79e44db2ca88a3c1b330af1343d61,0.7105,4+3,train,train,False

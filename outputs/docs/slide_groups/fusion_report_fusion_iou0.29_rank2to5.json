@@ -1,0 +1,37 @@
+{
+  "n_slides": 4683,
+  "iou_thr": 0.29,
+  "max_rank": 5,
+  "n_groups": 2011,
+  "largest_group": 113,
+  "singletons": 700,
+  "fusion_edges": 1129,
+  "option_b_exact_801010": false,
+  "option_b_shortfall": {
+    "0": {
+      "have": 126,
+      "need": 190
+    },
+    "1": {
+      "have": 130,
+      "need": 154
+    },
+    "2": {
+      "have": 94,
+      "need": 122
+    },
+    "3": {
+      "have": 129,
+      "need": 162
+    },
+    "4": {
+      "have": 84,
+      "need": 146
+    },
+    "5": {
+      "have": 137,
+      "need": 162
+    }
+  },
+  "confirmed_twin_leaks_option_a": 0
+}

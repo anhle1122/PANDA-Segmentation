@@ -1,0 +1,35 @@
+{
+  "tag": "rescan_multi_c48_fb01",
+  "cluster_id": 48,
+  "keep_id": "53a053373822079628726191fc5b76d6",
+  "drop_id": "fb01a0a69517bb47d7f4699b6217f69d",
+  "splits_after": {
+    "train": 3090,
+    "test": 383,
+    "val": 383
+  },
+  "slides_total": 3856,
+  "drop_report": {
+    "slide_splits_before": 3857,
+    "slide_splits_after": 3856,
+    "slide_splits_removed": 1,
+    "panda_train.csv": {
+      "patches_before": 365940,
+      "patches_after": 365778,
+      "slides_before": 3091,
+      "slides_after": 3090
+    },
+    "panda_val.csv": {
+      "patches_before": 42811,
+      "patches_after": 42811,
+      "slides_before": 383,
+      "slides_after": 383
+    },
+    "panda_test.csv": {
+      "patches_before": 45370,
+      "patches_after": 45370,
+      "slides_before": 383,
+      "slides_after": 383
+    }
+  }
+}

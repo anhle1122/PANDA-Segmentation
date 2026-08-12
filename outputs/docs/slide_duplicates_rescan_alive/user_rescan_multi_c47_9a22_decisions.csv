@@ -1,0 +1,2 @@
+cluster_id_rescan,cluster_id_legacy,keep_id,drop_id,shape_iou,action,reason
+47,43,294017fb97e4fec299eb8e83fd2d3be2,9a22abb1da9fc91bb8ae7b91bfe1451e,0.7191,drop_twin,user: rescan C47 9a22 twin with 2940; re-drop 9a22 (Friday restore mistake)

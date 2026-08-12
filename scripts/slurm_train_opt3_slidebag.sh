@@ -7,10 +7,11 @@
 #   sbatch --gres=gpu:h200:4 scripts/slurm_train_opt3_slidebag.sh
 # Auto-resumes from outputs/checkpoints/.../latest.pth when present (unless $2 set).
 #SBATCH --job-name=opt3_slidebag
-# H200 currently needs preemptable + part_preemptable (gpu+normal →
-# ReqNodeNotAvail on cp095-098). Preemptable ⇒ requeue + auto-resume.
-#SBATCH --partition=preemptable
-#SBATCH --qos=part_preemptable
+# Prefer gpu+normal for H200 (PriorityTier 1000) — preemptable gets kicked by
+# gpu jobs. 2026-08-12: gpu+h200 schedules again; do not use preemptable for
+# multi-day Opt3. --requeue still covers node failure (not partition preemption).
+#SBATCH --partition=gpu
+#SBATCH --qos=normal
 #SBATCH -o logs/train_opt3_slidebag_%j.out
 #SBATCH -e logs/train_opt3_slidebag_%j.err
 #SBATCH --time=7-00:00:00
@@ -106,6 +107,7 @@ CMD=(
   --adjacent-soft-alpha "${ADJ_SOFT}"
   --min-slide-patches 5
   --min-area-pct 0.0
+  --ckpt-every-slides 8
   --grad-clip 1.0
   --num-workers 4
   --amp

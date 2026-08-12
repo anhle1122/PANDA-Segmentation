@@ -1,0 +1,36 @@
+{
+  "drop_id": "e10ebd20ef424d61222ccc5e97dcc76b",
+  "keep_id": "6b4c77b671e8412d65773f9614816db0",
+  "why_was_here": "Round1 greedy+confirmed twins DROP e10 (and dc10/S19); keep1 note \"C38 e10 already dropped\"; Friday restore_train put e10+dc10 back",
+  "s19_dc10_still_alive": true,
+  "s19_note": "also round1 DROP / Friday restored \u2014 say if drop too",
+  "slides_total": 3853,
+  "splits": {
+    "train": 3087,
+    "test": 383,
+    "val": 383
+  },
+  "drop_report": {
+    "slide_splits_before": 3854,
+    "slide_splits_after": 3853,
+    "slide_splits_removed": 1,
+    "panda_train.csv": {
+      "patches_before": 365542,
+      "patches_after": 365481,
+      "slides_before": 3088,
+      "slides_after": 3087
+    },
+    "panda_val.csv": {
+      "patches_before": 42811,
+      "patches_after": 42811,
+      "slides_before": 383,
+      "slides_after": 383
+    },
+    "panda_test.csv": {
+      "patches_before": 45370,
+      "patches_after": 45370,
+      "slides_before": 383,
+      "slides_after": 383
+    }
+  }
+}

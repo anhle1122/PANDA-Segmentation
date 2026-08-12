@@ -1,0 +1,40 @@
+{
+  "checkpoint": "outputs/checkpoints/uni2_upernet_raw_pseudo_r1_opt3_slidebag/epoch_021_cancer_0.6356.pth",
+  "checkpoint_epoch": 21,
+  "checkpoint_val_cancer_dice": 0.6356279008858197,
+  "split": "outputs/splits/panda_plus_isup.csv",
+  "total_slides": 48,
+  "total_patches": 4688,
+  "matches": 28,
+  "mismatches": 20,
+  "match_rate": 0.5833333333333334,
+  "min_area_pct": 0.05,
+  "smoke_test": false,
+  "by_metadata_isup": {
+    "1": {
+      "count": 7,
+      "matches": 4,
+      "match_rate": 0.5714285714285714
+    },
+    "2": {
+      "count": 11,
+      "matches": 8,
+      "match_rate": 0.7272727272727273
+    },
+    "3": {
+      "count": 15,
+      "matches": 6,
+      "match_rate": 0.4
+    },
+    "4": {
+      "count": 6,
+      "matches": 1,
+      "match_rate": 0.16666666666666666
+    },
+    "5": {
+      "count": 9,
+      "matches": 9,
+      "match_rate": 1.0
+    }
+  }
+}

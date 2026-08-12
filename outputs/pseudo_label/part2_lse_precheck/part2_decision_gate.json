@@ -1,0 +1,75 @@
+{
+  "part2_status": "PARTIAL \u2014 ep12 ckpt missing; cannot score differing-pixel confidence",
+  "ep21_frac_cancer_pixels_low_conf": 0.49859346406201316,
+  "interpretation_hint": "If ep21 cancer pixels are mostly HIGH conf on divergent slides, that leans against noise-padding as the sole driver (confident disagreement / systematic shift more likely). Full Part2 gate still needs ep12 maps.",
+  "confidence_gating_build": "DO NOT auto-build into training until full Part2 differing-pixel test is possible OR Omar explicitly overrides the gate given this partial evidence.",
+  "lse_precheck": {
+    "conf_gate": 0.7,
+    "min_area_pct_working": 0.05,
+    "n_slides_with_confident_pixels": 120,
+    "plain_mean_g5_share_mean": 0.2258812640358557,
+    "by_r": {
+      "2.0": {
+        "lse_g5_share_mean": 0.20775422415087258,
+        "mean_delta_vs_plain": -0.01812703988498316,
+        "n_slides": 120
+      },
+      "4.0": {
+        "lse_g5_share_mean": 0.19555500179239516,
+        "mean_delta_vs_plain": -0.030326262243460564,
+        "n_slides": 120
+      },
+      "8.0": {
+        "lse_g5_share_mean": 0.1888968357973963,
+        "mean_delta_vs_plain": -0.03698442823845945,
+        "n_slides": 120
+      },
+      "16.0": {
+        "lse_g5_share_mean": 0.19363535899693124,
+        "mean_delta_vs_plain": -0.0322459050389245,
+        "n_slides": 120
+      },
+      "32.0": {
+        "lse_g5_share_mean": 0.19127184473988137,
+        "mean_delta_vs_plain": -0.03460941929597438,
+        "n_slides": 120
+      }
+    },
+    "adjacent_r_deltas": [
+      {
+        "r_from": 2.0,
+        "r_to": 4.0,
+        "abs_delta_g5": 0.012199222358477424
+      },
+      {
+        "r_from": 4.0,
+        "r_to": 8.0,
+        "abs_delta_g5": 0.006658165994998855
+      },
+      {
+        "r_from": 8.0,
+        "r_to": 16.0,
+        "abs_delta_g5": 0.004738523199534939
+      },
+      {
+        "r_from": 16.0,
+        "r_to": 32.0,
+        "abs_delta_g5": 0.0023635142570498646
+      }
+    ]
+  },
+  "offline_frac_shift": {
+    "n_divergent": 871,
+    "frac_divergent": 0.23251468232781633,
+    "ep12_ckpt_available": false,
+    "ep12_ckpt_note": "epoch_012_cancer_0.6190.pth deleted by prune_checkpoints; Part2 differing-pixel analysis requires re-inference with BOTH ckpts \u2014 ep12 side BLOCKED",
+    "max_abs_d_frac_median": 0.15334268613745533,
+    "pct_max_abs_d_frac_lt_0.05": 0.12055109070034443,
+    "pct_max_abs_d_frac_lt_0.10": 0.3593570608495982,
+    "n_improved_match": 407,
+    "n_worsened_match": 232,
+    "gpu_sample_n": 120,
+    "gpu_sample_csv": "outputs/pseudo_label/opt3_ep12_ep21_divergent_gpu_sample.csv",
+    "min_area_pct_working": 0.05
+  }
+}

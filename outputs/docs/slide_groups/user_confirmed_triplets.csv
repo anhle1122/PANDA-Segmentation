@@ -1,0 +1,3 @@
+group_id,image_ids,verdict,note,twin_ids,fp_id
+663,531ce6a7fd3f8699de151e1f07b57970;630ead3f5eee9ca3d292d65a785d480b;b790c95b8efb85a4e600533cf0444937,true_triplet,user 2026-08-10: all 3 are triplets,,
+1123,2ea5a65f8c7316df537b5f8caf4146d3;3e52207d9b9e15dd09d12b56f67d00b4;e4ca3da3ff10350afd296ec9cc5b4ce5,pair_plus_fp,user 2026-08-10: 2ea5a false positive; 3e52207d and e4ca3da3 are twins,3e52207d9b9e15dd09d12b56f67d00b4;e4ca3da3ff10350afd296ec9cc5b4ce5,2ea5a65f8c7316df537b5f8caf4146d3

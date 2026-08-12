@@ -1,0 +1,22 @@
+{
+  "scope": "all_alive_including_prior_not_twins",
+  "n_alive": 3859,
+  "n_with_fingerprints": 3859,
+  "n_missing_fingerprints": 0,
+  "n_prior_not_twin_alive_included": 180,
+  "iou_min": 0.3,
+  "top_k": 3,
+  "n_pairs": 2216,
+  "n_safe_iou70": 10,
+  "n_lower_30_70_exclusive": 1843,
+  "n_multi_clusters": 49,
+  "n_in_high_iou_components": 271,
+  "membership_overlap": {
+    "safe\u2229lower": 0,
+    "safe\u2229multi": 0,
+    "lower\u2229multi": 0
+  },
+  "applied": false,
+  "out_dir": "outputs/docs/slide_duplicates_rescan_alive",
+  "note": "Detect-only. Safe/lower/multi are membership-disjoint by construction."
+}

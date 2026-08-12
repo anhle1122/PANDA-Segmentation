@@ -1,0 +1,58 @@
+{
+  "before": {
+    "tag": "pre_dedupe",
+    "n_cross_split_edges": 411,
+    "n_val_slides": 468,
+    "n_test_slides": 469,
+    "n_leaked_val_slides": 190,
+    "n_leaked_test_slides": 196,
+    "pct_val_slides_leaked": 40.6,
+    "pct_test_slides_leaked": 41.79,
+    "pct_val_patches_leaked": 40.28,
+    "pct_test_patches_leaked": 41.71,
+    "leaked_val_patches": 22380,
+    "leaked_test_patches": 22618,
+    "mean_iou_cross_edges": 0.7194,
+    "by_source": {
+      "lower_iou": 133,
+      "multi_edge_iou70": 93,
+      "safe_iou70": 185
+    }
+  },
+  "after": {
+    "tag": "current_after_suspects_train",
+    "n_cross_split_edges": 0,
+    "n_val_slides": 254,
+    "n_test_slides": 251,
+    "n_leaked_val_slides": 0,
+    "n_leaked_test_slides": 0,
+    "pct_val_slides_leaked": 0.0,
+    "pct_test_slides_leaked": 0.0,
+    "pct_val_patches_leaked": 0.0,
+    "pct_test_patches_leaked": 0.0,
+    "leaked_val_patches": 0,
+    "leaked_test_patches": 0,
+    "mean_iou_cross_edges": null,
+    "by_source": {}
+  },
+  "dice_inflation_proxy_before": {
+    "val_cancer_dice_reported": 0.702824,
+    "f_val_patches_leaked": 0.4028,
+    "twin_equals_reported": {
+      "assumed_twin_dice": 0.702824,
+      "implied_clean_val_dice": 0.7028,
+      "approx_inflation_points": -0.0
+    },
+    "twin_dice_0.85": {
+      "assumed_twin_dice": 0.85,
+      "implied_clean_val_dice": 0.6036,
+      "approx_inflation_points": 0.0993
+    },
+    "twin_dice_0.90": {
+      "assumed_twin_dice": 0.9,
+      "implied_clean_val_dice": 0.5698,
+      "approx_inflation_points": 0.133
+    }
+  },
+  "note": "No per-slide Dice exists for the leaked-era val set; proxy estimates clean val Dice if leaked patches scored like near-duplicates (assumed twin Dice)."
+}

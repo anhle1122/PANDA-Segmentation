@@ -1,0 +1,25 @@
+soft_drop_id,paired_keep_id,keep_alive,drop_alive,source,pair_id,pair_num,shape_iou,legacy_note
+05b09773ad1b34275f0b5adee3c650ab,294017fb97e4fec299eb8e83fd2d3be2,True,True,multi_cluster,multi_C43,1020,0.7326,Friday/multi restore kept this ID; twins-gallery had it as DROP
+09a9f7497e6ba14eb0a12388ca17540d,a45c077803194bf256f58964f457d5cb,True,True,multi_cluster,multi_C41,936,0.8551,Friday/multi restore kept this ID; twins-gallery had it as DROP
+2de0597cbb7af462bfdb7b1c4f935248,9d1bda4d28af5a9f5d1d96833cec1728,True,True,multi_cluster,multi_C55,832,0.9231,Friday/multi restore kept this ID; twins-gallery had it as DROP
+30703edaf3bf39b0d04685f0f0a1d43b,1141ca7040f9f32bf84531cc1b1d9f51,True,True,multi_cluster,multi_C47,1000,0.7583,Friday/multi restore kept this ID; twins-gallery had it as DROP
+3eee912c7daba1d6c5c6968ef71b5570,c2f90bbc5200609817a0745279582e72,True,True,multi_cluster,multi_C53,1016,0.7371,Friday/multi restore kept this ID; twins-gallery had it as DROP
+49a2ed9b6af2a48a788b9dd6066bdb0a,9a4ba048c62623465d6a7a0d8549a657,True,True,multi_cluster,multi_C44,969,0.8099,Friday/multi restore kept this ID; twins-gallery had it as DROP
+620a6fbf50a7463ed0a8932782d7b969,1141ca7040f9f32bf84531cc1b1d9f51,True,True,multi_cluster,multi_C47,1001,0.7583,Friday/multi restore kept this ID; twins-gallery had it as DROP
+6303244b26eef8e081298bfeac827403,c2f90bbc5200609817a0745279582e72,True,True,multi_cluster,multi_C53,1017,0.7371,Friday/multi restore kept this ID; twins-gallery had it as DROP
+63226114e772943ce7f8017d9f5d4b90,70f71c6fa7ad2baeaff157a299e276a0,True,True,multi_cluster,multi_C50,904,0.8819,Friday/multi restore kept this ID; twins-gallery had it as DROP
+68a362123aff27d79dbc5284a948030c,b4265cba12f772b5bb29989f775f8906,True,True,multi_cluster,multi_C45,978,0.7908,Friday/multi restore kept this ID; twins-gallery had it as DROP
+6cbc6f7259cb45a4086cd584aec53857,a21c88c3d7c1a95eec2fdc7300fdfee0,True,True,multi_cluster,multi_C46,822,0.9322,Friday/multi restore kept this ID; twins-gallery had it as DROP
+8596a2f7e68a0e11a5653fb2457db08f,1496bd10b5eb474af7b764aed67309ba,True,True,multi_cluster,multi_C52,1018,0.733,Friday/multi restore kept this ID; twins-gallery had it as DROP
+8b126306391fa2af0f8bea265f2c9666,b4265cba12f772b5bb29989f775f8906,True,True,multi_cluster,multi_C45,979,0.7908,Friday/multi restore kept this ID; twins-gallery had it as DROP
+94e121bc4a7091b881e8dd9b6c2be6b5,a21c88c3d7c1a95eec2fdc7300fdfee0,True,True,multi_cluster,multi_C46,823,0.9322,Friday/multi restore kept this ID; twins-gallery had it as DROP
+9effeea56c413b92340b89d1240769c1,367f122e80bcd0bffc02f6a04c1d8234,True,True,multi_cluster,multi_C40,818,0.9665,Friday/multi restore kept this ID; twins-gallery had it as DROP
+b5343f9567df8a68c3276f8d8cdcc6a5,367f122e80bcd0bffc02f6a04c1d8234,True,True,multi_cluster,multi_C40,819,0.9665,Friday/multi restore kept this ID; twins-gallery had it as DROP
+c614dc18ffa37f8007c2aead39e65342,6a363e70baf98838b0093f9ae93052fd,True,True,multi_cluster,multi_C48,838,0.9128,Friday/multi restore kept this ID; twins-gallery had it as DROP
+cbaaf646e582b153aa87262de00bd4a0,9a4ba048c62623465d6a7a0d8549a657,True,True,multi_cluster,multi_C44,970,0.8099,Friday/multi restore kept this ID; twins-gallery had it as DROP
+dc10032bf598b0a3268074de4bb2d7b6,6b4c77b671e8412d65773f9614816db0,True,True,multi_cluster,multi_C38,874,0.8928,Friday/multi restore kept this ID; twins-gallery had it as DROP
+df4146c2cb4e97d9c227bdd90d4dc6f8,70f71c6fa7ad2baeaff157a299e276a0,True,True,multi_cluster,multi_C50,905,0.8819,Friday/multi restore kept this ID; twins-gallery had it as DROP
+e10ebd20ef424d61222ccc5e97dcc76b,6b4c77b671e8412d65773f9614816db0,True,True,multi_cluster,multi_C38,875,0.8928,Friday/multi restore kept this ID; twins-gallery had it as DROP
+e9d628364cf51891028163e0cfca628c,9d1bda4d28af5a9f5d1d96833cec1728,True,True,multi_cluster,multi_C55,833,0.9231,Friday/multi restore kept this ID; twins-gallery had it as DROP
+eea47f9bc6d774e29cd36167365775bf,a45c077803194bf256f58964f457d5cb,True,True,multi_cluster,multi_C41,937,0.8551,Friday/multi restore kept this ID; twins-gallery had it as DROP
+ff80dfefc41b8863b476c5840f88fec0,1496bd10b5eb474af7b764aed67309ba,True,True,multi_cluster,multi_C52,1019,0.733,Friday/multi restore kept this ID; twins-gallery had it as DROP

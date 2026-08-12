@@ -1,0 +1,3 @@
+cluster_id,shape_iou,keep_id,drop_id,keep_n_patches,drop_n_patches,split_keep,split_drop,cross_split,isup,gleason,image_id_a,image_id_b,split_a,split_b,prior_not_twin_flag
+1,0.7237,49a2ed9b6af2a48a788b9dd6066bdb0a,9a4ba048c62623465d6a7a0d8549a657,28,9,train,train,False,4,4+4,49a2ed9b6af2a48a788b9dd6066bdb0a,9a4ba048c62623465d6a7a0d8549a657,train,train,
+2,0.722,70f71c6fa7ad2baeaff157a299e276a0,63226114e772943ce7f8017d9f5d4b90,119,68,train,train,False,2,3+4,63226114e772943ce7f8017d9f5d4b90,70f71c6fa7ad2baeaff157a299e276a0,train,train,

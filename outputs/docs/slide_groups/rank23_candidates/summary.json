@@ -1,0 +1,14 @@
+{
+  "n_candidates": 2355,
+  "ranks": [
+    2,
+    3
+  ],
+  "min_cos": 0.94,
+  "cross_split": 871,
+  "mutual_top3": 534,
+  "by_best_rank": {
+    "2": 1185,
+    "3": 1170
+  }
+}

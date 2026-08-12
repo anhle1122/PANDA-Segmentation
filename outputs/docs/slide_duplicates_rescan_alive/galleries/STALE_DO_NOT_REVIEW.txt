@@ -1,0 +1,7 @@
+STALE — round-1 gallery (2026-08-07). Do not review from here.
+
+These pages still show slides that were dropped days ago, and they do not know
+about any not-twin call you have made since.
+
+Current review folder:
+  outputs/docs/slide_duplicates_scan3_clean/galleries/index.html

@@ -1,0 +1,16 @@
+slide_id,clinical_isup,gleason_05,gleason_01,secondary_class,second_largest_frac,patch_x,patch_y,n_secondary_pixels_in_patch,image
+173b49fe81aff971168dc5d7ef4124d8,2,3+3,3+4,4,0.0101752706182643,10752,2560,43372,outputs/pseudo_label/flip_secondary_vis/flip_2_G4_173b49fe81af_f0.010.png
+8cf19589a1981643086e40e44940a4c5,2,3+3,3+4,4,0.0101918034431612,5632,26112,23704,outputs/pseudo_label/flip_secondary_vis/flip_2_G4_8cf19589a198_f0.010.png
+8546b73cb1496ba85aed909ee151290b,2,3+3,3+4,4,0.0178377447521833,15872,4608,21184,outputs/pseudo_label/flip_secondary_vis/flip_2_G4_8546b73cb149_f0.018.png
+20f97907e71dbc8c945a87ecbe31a781,2,3+3,3+4,4,0.0485939897431809,2560,6656,114808,outputs/pseudo_label/flip_secondary_vis/flip_2_G4_20f97907e71d_f0.049.png
+1d46f4df1dfdf3fa0a06b21e9f9ae99a,2,3+3,3+4,4,0.0482535337694497,4608,6656,100584,outputs/pseudo_label/flip_secondary_vis/flip_2_G4_1d46f4df1dfd_f0.048.png
+13676e50355c7661e2e2745ecbe2cb7a,3,4+4,4+3,3,0.0104481577163377,12800,4608,24472,outputs/pseudo_label/flip_secondary_vis/flip_3_G3_13676e50355c_f0.010.png
+3b270128881636a1af2e73865943fb1f,3,4+4,4+3,3,0.0108678901766991,3072,16896,17296,outputs/pseudo_label/flip_secondary_vis/flip_3_G3_3b2701288816_f0.011.png
+7f57053f651025603c6b4246acd0ba54,3,4+4,4+3,3,0.01159929655031,26112,3072,20876,outputs/pseudo_label/flip_secondary_vis/flip_3_G3_7f57053f6510_f0.012.png
+4e5805c117559a84553665683578f1be,3,4+4,4+3,3,0.0497461881297956,2048,19968,35392,outputs/pseudo_label/flip_secondary_vis/flip_3_G3_4e5805c11755_f0.050.png
+21da367ab5b9d2b74882cbd626042608,3,4+4,4+3,3,0.0495392169299535,2560,10240,27612,outputs/pseudo_label/flip_secondary_vis/flip_3_G3_21da367ab5b9_f0.050.png
+15d988a363c6d81572a8ed9ccc3f46f6,5,4+4,4+5,5,0.0104028268461319,1536,6144,21616,outputs/pseudo_label/flip_secondary_vis/flip_5_G5_15d988a363c6_f0.010.png
+145ae6f948b36cb450a7eeb9cbac4cfa,5,4+4,4+5,5,0.010587208384734,13824,5120,11056,outputs/pseudo_label/flip_secondary_vis/flip_5_G5_145ae6f948b3_f0.011.png
+66fb8b64a9acb2fbf59d4f002db34bf8,5,4+4,4+5,5,0.0235437096106341,5632,20992,98300,outputs/pseudo_label/flip_secondary_vis/flip_5_G5_66fb8b64a9ac_f0.024.png
+1d735506b1d8339520792d6e8ccb2194,5,4+4,4+5,5,0.0490222578316223,7168,2560,61988,outputs/pseudo_label/flip_secondary_vis/flip_5_G5_1d735506b1d8_f0.049.png
+151fd14ad2dee1c8292dfc3d211873ed,5,4+4,4+5,5,0.0483517716734965,5120,25088,74620,outputs/pseudo_label/flip_secondary_vis/flip_5_G5_151fd14ad2de_f0.048.png

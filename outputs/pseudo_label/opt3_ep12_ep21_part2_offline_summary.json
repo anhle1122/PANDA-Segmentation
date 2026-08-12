@@ -1,0 +1,14 @@
+{
+  "n_divergent": 871,
+  "frac_divergent": 0.23251468232781633,
+  "ep12_ckpt_available": false,
+  "ep12_ckpt_note": "epoch_012_cancer_0.6190.pth deleted by prune_checkpoints; Part2 differing-pixel analysis requires re-inference with BOTH ckpts \u2014 ep12 side BLOCKED",
+  "max_abs_d_frac_median": 0.15334268613745533,
+  "pct_max_abs_d_frac_lt_0.05": 0.12055109070034443,
+  "pct_max_abs_d_frac_lt_0.10": 0.3593570608495982,
+  "n_improved_match": 407,
+  "n_worsened_match": 232,
+  "gpu_sample_n": 120,
+  "gpu_sample_csv": "outputs/pseudo_label/opt3_ep12_ep21_divergent_gpu_sample.csv",
+  "min_area_pct_working": 0.05
+}

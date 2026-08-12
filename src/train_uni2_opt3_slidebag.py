@@ -14,6 +14,7 @@ import csv
 import math
 import sys
 import time
+from contextlib import nullcontext
 from pathlib import Path
 
 import torch
@@ -174,6 +175,9 @@ def train(args: argparse.Namespace) -> None:
     grade_head = ISUPGradeHead(DEFAULT_FPN_CHANNELS[-1], num_isup=6)
     model: nn.Module = SegPlusGrade(seg, grade_head).to(device)
     if world_size > 1:
+        # find_unused=True: pixel micro-loss does not produce grade-head grads.
+        # Collective *counts* are matched separately (no_sync + one synced
+        # backward per bag, dummy if empty or n<min_slide_patches).
         model = DDP(model, device_ids=[local_rank], find_unused_parameters=True)
 
     def _build_optim(lr: float, backbone_on: bool) -> torch.optim.Optimizer:
@@ -247,6 +251,23 @@ def train(args: argparse.Namespace) -> None:
                 return t, n
             return torch.cat([t, t], dim=0), n
 
+        def _ddp_no_sync():
+            if world_size > 1 and isinstance(model, DDP):
+                return model.no_sync()
+            return nullcontext()
+
+        def _dummy_synced_backward() -> None:
+            """Zero-loss backward that still touches seg + grade head (DDP parity)."""
+            dummy = torch.zeros(2, 3, 512, 512, device=device)
+            with torch.cuda.amp.autocast(enabled=use_amp):
+                logits_d, feats_d, grade_d = model(dummy)
+                z = (
+                    logits_d.float().sum()
+                    + feats_d.float().sum()
+                    + grade_d.float().sum()
+                ) * 0.0
+            scaler.scale(z).backward()
+
         for bag in train_loader:
             if args.slides_per_epoch and n_slides >= args.slides_per_epoch:
                 break
@@ -255,10 +276,7 @@ def train(args: argparse.Namespace) -> None:
             patch_idxs = [int(i) for i in bag["patch_indices"].tolist()]
             isup = int(bag["isup"].item())
             n_patches = len(patch_idxs)
-            if n_patches == 0:
-                continue
-            # Omar 2026-08-06: hard-skip dual ISUP on tiny bags (n < 5).
-            # Pixel loss still runs; L_slide / L_grade are skipped.
+            # Omar: n<5 → skip only ISUP (L_slide/L_grade); pixel seg still runs.
             apply_slide_isup = n_patches >= int(args.min_slide_patches)
 
             # One slide-level aug draw for the whole bag (then optional per-patch extra).
@@ -273,71 +291,87 @@ def train(args: argparse.Namespace) -> None:
             logits_chunks: list[torch.Tensor] = []
             feat_chunks: list[torch.Tensor] = []
             pixel_loss_acc = 0.0
-
-            n_micro = int(math.ceil(n_patches / micro))
-            for m_i in range(n_micro):
-                sl = slice(m_i * micro, min((m_i + 1) * micro, n_patches))
-                n_real = sl.stop - sl.start
-                images, masks, weights = load_patch_batch(train_ds.base, patch_idxs[sl])
-                images = images.to(device, non_blocking=True)
-                masks = masks.to(device, non_blocking=True)
-                weights = weights.to(device, non_blocking=True)
-                imgs_b, _ = _bn_safe(images)
-                masks_b, _ = _bn_safe(masks)
-                weights_b, _ = _bn_safe(weights)
-                with torch.cuda.amp.autocast(enabled=use_amp):
-                    logits, feats, _grade = model(imgs_b)
-                    p_loss = segmentation_loss(
-                        logits[:n_real],
-                        masks_b[:n_real],
-                        weights_b[:n_real],
-                        class_weights,
-                        adjacent_soft_alpha=args.adjacent_soft_alpha,
-                        include_benign_soft=args.include_benign_soft,
-                    )
-                    scaled = p_loss * (n_real / n_patches)
-                scaler.scale(scaled).backward()
-                pixel_loss_acc += float(scaled.detach().item())
-                if apply_slide_isup:
-                    logits_chunks.append(logits[:n_real].detach())
-                    feat_chunks.append(feats[:n_real].detach())
-                del images, masks, weights, imgs_b, masks_b, weights_b
-
             l_slide_val = 0.0
             l_grade_val = 0.0
             slide_term_val = 0.0
-            if apply_slide_isup:
-                # Differentiable slide losses on a random subset (+ bag-mean prior)
-                perm = torch.randperm(n_patches)[: min(micro, n_patches)].tolist()
-                live_idxs = [patch_idxs[i] for i in perm]
-                images_g, _, _ = load_patch_batch(train_ds.base, live_idxs)
-                images_g = images_g.to(device, non_blocking=True)
-                imgs_g, n_g = _bn_safe(images_g)
-                with torch.cuda.amp.autocast(enabled=use_amp):
-                    logits_g, feats_g, grade_live = model(imgs_g)
-                    logits_g = logits_g[:n_g]
-                    feats_g = feats_g[:n_g]
-                    grade_live = grade_live[:n_g]
-                    mean_live = torch.softmax(logits_g.float(), dim=1).mean(dim=(0, 2, 3))
-                    bag_mean = aggregate_softmax_probs(logits_chunks).to(mean_live.device)
-                    mean_probs = 0.5 * mean_live + 0.5 * bag_mean
-                    l_slide, _ = derived_isup_ce_from_seg_probs(
-                        mean_probs, isup, min_area_pct=args.min_area_pct
+
+            if n_patches == 0:
+                # Still one synced backward so this rank does not skip an allreduce.
+                _dummy_synced_backward()
+            else:
+                n_micro = int(math.ceil(n_patches / micro))
+                for m_i in range(n_micro):
+                    sl = slice(m_i * micro, min((m_i + 1) * micro, n_patches))
+                    n_real = sl.stop - sl.start
+                    images, masks, weights = load_patch_batch(
+                        train_ds.base, patch_idxs[sl]
                     )
+                    images = images.to(device, non_blocking=True)
+                    masks = masks.to(device, non_blocking=True)
+                    weights = weights.to(device, non_blocking=True)
+                    imgs_b, _ = _bn_safe(images)
+                    masks_b, _ = _bn_safe(masks)
+                    weights_b, _ = _bn_safe(weights)
+                    with _ddp_no_sync():
+                        with torch.cuda.amp.autocast(enabled=use_amp):
+                            logits, feats, _grade = model(imgs_b)
+                            p_loss = segmentation_loss(
+                                logits[:n_real],
+                                masks_b[:n_real],
+                                weights_b[:n_real],
+                                class_weights,
+                                adjacent_soft_alpha=args.adjacent_soft_alpha,
+                                include_benign_soft=args.include_benign_soft,
+                            )
+                            scaled = p_loss * (n_real / n_patches)
+                        scaler.scale(scaled).backward()
+                    pixel_loss_acc += float(scaled.detach().item())
+                    if apply_slide_isup:
+                        logits_chunks.append(logits[:n_real].detach())
+                        feat_chunks.append(feats[:n_real].detach())
+                    del images, masks, weights, imgs_b, masks_b, weights_b
 
-                    feat_bag = torch.cat(feat_chunks, dim=0).mean(dim=0)
-                    feat_mix = 0.5 * feats_g.mean(dim=0) + 0.5 * feat_bag
-                    g_logits = 0.5 * grade_live.mean(dim=0) + 0.5 * unwrap_model(
-                        model
-                    ).grade_head(feat_mix)
-                    l_grade = grade_head_ce(g_logits, isup)
-                    slide_term = args.lambda_slide * l_slide + args.lambda_grade * l_grade
+                if apply_slide_isup:
+                    # Synced backward (the one allreduce for this bag).
+                    perm = torch.randperm(n_patches)[: min(micro, n_patches)].tolist()
+                    live_idxs = [patch_idxs[i] for i in perm]
+                    images_g, _, _ = load_patch_batch(train_ds.base, live_idxs)
+                    images_g = images_g.to(device, non_blocking=True)
+                    imgs_g, n_g = _bn_safe(images_g)
+                    with torch.cuda.amp.autocast(enabled=use_amp):
+                        logits_g, feats_g, grade_live = model(imgs_g)
+                        logits_g = logits_g[:n_g]
+                        feats_g = feats_g[:n_g]
+                        grade_live = grade_live[:n_g]
+                        mean_live = torch.softmax(logits_g.float(), dim=1).mean(
+                            dim=(0, 2, 3)
+                        )
+                        bag_mean = aggregate_softmax_probs(logits_chunks).to(
+                            mean_live.device
+                        )
+                        mean_probs = 0.5 * mean_live + 0.5 * bag_mean
+                        l_slide, _ = derived_isup_ce_from_seg_probs(
+                            mean_probs, isup, min_area_pct=args.min_area_pct
+                        )
 
-                scaler.scale(slide_term).backward()
-                l_slide_val = float(l_slide.detach().item())
-                l_grade_val = float(l_grade.detach().item())
-                slide_term_val = float(slide_term.detach().item())
-                del images_g, imgs_g, logits_chunks, feat_chunks
+                        feat_bag = torch.cat(feat_chunks, dim=0).mean(dim=0)
+                        feat_mix = 0.5 * feats_g.mean(dim=0) + 0.5 * feat_bag
+                        g_logits = 0.5 * grade_live.mean(dim=0) + 0.5 * unwrap_model(
+                            model
+                        ).grade_head(feat_mix)
+                        l_grade = grade_head_ce(g_logits, isup)
+                        slide_term = (
+                            args.lambda_slide * l_slide + args.lambda_grade * l_grade
+                        )
+
+                    scaler.scale(slide_term).backward()
+                    l_slide_val = float(l_slide.detach().item())
+                    l_grade_val = float(l_grade.detach().item())
+                    slide_term_val = float(slide_term.detach().item())
+                    del images_g, imgs_g, logits_chunks, feat_chunks
+                else:
+                    # n<5: pixel grads sit locally (no_sync); dummy allreduces them.
+                    _dummy_synced_backward()
 
             if args.grad_clip > 0:
                 scaler.unscale_(optimizer)
@@ -355,6 +389,27 @@ def train(args: argparse.Namespace) -> None:
             running["grade"] += l_grade_val
             running["n"] += 1
             n_slides += 1
+            if (
+                is_main_process(rank)
+                and args.ckpt_every_slides > 0
+                and n_slides % args.ckpt_every_slides == 0
+            ):
+                save_checkpoint(
+                    ckpt_dir / "latest.pth",
+                    epoch=epoch - 1,
+                    model=model,
+                    optimizer=optimizer,
+                    scheduler=scheduler,
+                    scaler=scaler,
+                    metrics={"mean_dice": 0.0, "cancer_dice": 0.0},
+                    class_weights=class_weights,
+                    mode=args.mode,
+                )
+                print(
+                    f"  mid-epoch ckpt epoch {epoch} "
+                    f"slide {n_slides}/{args.slides_per_epoch or '?'}",
+                    flush=True,
+                )
 
         # Validation — patch-wise Dice on original masks
         model.eval()
@@ -511,6 +566,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--allow-missing-h5", action="store_true")
     p.add_argument("--uni2-checkpoint", type=str, default="")
     p.add_argument("--resume", type=str, default="")
+    p.add_argument(
+        "--ckpt-every-slides",
+        type=int,
+        default=8,
+        help="Write latest.pth every N train slides (0 = only at epoch end).",
+    )
     p.add_argument("--save-every", type=int, default=5)
     p.add_argument(
         "--keep-checkpoints",

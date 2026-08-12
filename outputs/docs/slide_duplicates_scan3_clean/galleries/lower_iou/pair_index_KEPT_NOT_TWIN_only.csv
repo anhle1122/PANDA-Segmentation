@@ -1,0 +1,2 @@
+pair_num,page,row,pair_kind,prior_not_twin_flag,keep_id,drop_id,shape_iou,gleason,split_keep,split_drop,cross_split
+629,53,5,KEPT_NOT_TWIN,both_prior_not_twin,2a837ababa0cb124818a3b4852244711,13813facc985c2ea007fdf764ef98a5a,0.6014,3+3,train,train,False

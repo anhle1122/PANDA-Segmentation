@@ -1,0 +1,40 @@
+{
+  "tag": "rescan_multi_c47_9a22",
+  "keep_id": "294017fb97e4fec299eb8e83fd2d3be2",
+  "drop_id": "9a22abb1da9fc91bb8ae7b91bfe1451e",
+  "note": "Never marked not-twins. Round1 greedy/confirmed: keep 2940 drop 9a22. 9a22 restored by Friday C35-55 bulk restore.",
+  "legacy_twins_pair_nums": [
+    1021
+  ],
+  "legacy_multi_cluster": 43,
+  "rescan_multi_cluster": 47,
+  "splits_after": {
+    "train": 3089,
+    "test": 383,
+    "val": 383
+  },
+  "slides_total": 3855,
+  "drop_report": {
+    "slide_splits_before": 3856,
+    "slide_splits_after": 3855,
+    "slide_splits_removed": 1,
+    "panda_train.csv": {
+      "patches_before": 365778,
+      "patches_after": 365655,
+      "slides_before": 3090,
+      "slides_after": 3089
+    },
+    "panda_val.csv": {
+      "patches_before": 42811,
+      "patches_after": 42811,
+      "slides_before": 383,
+      "slides_after": 383
+    },
+    "panda_test.csv": {
+      "patches_before": 45370,
+      "patches_after": 45370,
+      "slides_before": 383,
+      "slides_after": 383
+    }
+  }
+}

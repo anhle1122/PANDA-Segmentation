@@ -1,0 +1,10 @@
+{
+  "definition": "NEW pairs only: excludes KEPT_NOT_TWIN and MIXED and any pair touching a confirmed not-twin ID. Confirmed twin drops already absent from alive splits.",
+  "safe_new": 1,
+  "lower_new": 1750,
+  "multi_new": 37,
+  "excluded_safe_not_twin_or_mixed": 9,
+  "excluded_lower_not_twin_or_mixed": 93,
+  "soft24_gallery": "outputs/docs/slide_duplicates_rescan_alive/reconcile_confirmed_twins/soft24_gallery",
+  "new_only_galleries": "outputs/docs/slide_duplicates_rescan_alive/galleries_NEW_only"
+}

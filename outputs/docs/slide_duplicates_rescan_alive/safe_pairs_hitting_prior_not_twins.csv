@@ -1,0 +1,6 @@
+cluster_id,shape_iou,keep_id,drop_id,keep_n_patches,drop_n_patches,split_keep,split_drop,cross_split,isup,gleason,image_id_a,image_id_b,split_a,split_b,prior_not_twin_flag
+2,0.7465,c0dbbf2b29da2ef0cab6bc7032e7ac92,6e79fc78cf67358d3d16daec5573b5a3,186,108,train,train,False,5,4+5,6e79fc78cf67358d3d16daec5573b5a3,c0dbbf2b29da2ef0cab6bc7032e7ac92,train,train,both_prior_not_twin
+3,0.7259,e528d21e5e6c87a9a1579214f6ec345d,773d5f35cb242573885d18d302a9157c,104,104,train,train,False,2,3+4,773d5f35cb242573885d18d302a9157c,e528d21e5e6c87a9a1579214f6ec345d,train,train,one_prior_not_twin
+4,0.7241,fae6996aeed84a9a75cbe726be46bab3,3f0c4e9f8fb3b846e49bb1ca2b3021ef,79,60,train,train,False,2,3+4,3f0c4e9f8fb3b846e49bb1ca2b3021ef,fae6996aeed84a9a75cbe726be46bab3,train,train,both_prior_not_twin
+5,0.7232,3ee16cef000a96c344248a90e5cfccd2,8d2d81395c6a14a4683d92b7db8bf18b,164,153,train,train,False,2,3+4,3ee16cef000a96c344248a90e5cfccd2,8d2d81395c6a14a4683d92b7db8bf18b,train,train,both_prior_not_twin
+9,0.7122,b31d1678d2148a94702ffa5bd6ac3aba,8ca4eea53dab8fb41f2ba01deb4e84db,113,68,train,train,False,1,3+3,8ca4eea53dab8fb41f2ba01deb4e84db,b31d1678d2148a94702ffa5bd6ac3aba,train,train,both_prior_not_twin
