@@ -7,6 +7,15 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## Omar-6 r2 wall cut to 3 days (2026-08-15)
+
+| | |
+|--|--|
+| **Why** | 30-day r2 **5444968** was `ReqNodeNotAvail` on every H200 node; a 3-day early-peak hunt is the point of this tag. |
+| **What** | `scontrol update JobId=5444968 TimeLimit=3-00:00:00`. Live **5443101** not changed. |
+| **Result** | Reason became `None` (schedulable). Priority 17097→16964. Estimated start still Tue Aug 18 17:37. |
+| **Decision** | Keep live job. Do not scancel to force a swap. Revisit if r2 is still PD after the Mon `cp097` hey3 free. |
+
 ## Detect-only watcher + teacher selector (2026-08-15)
 
 | | |

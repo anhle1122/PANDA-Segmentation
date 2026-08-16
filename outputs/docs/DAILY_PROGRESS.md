@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-15
 
+- **22:33 PDT** | **Cut r2 wall 30d → 3d** | 30-day pending job was unschedulable (`ReqNodeNotAvail`) | `scontrol update` **5444968** only. Now `TimeLimit=3-00:00:00`, reason `None` (placeable). Slurm start estimate still **Tue Aug 18 17:37**; earliest real 2×H200 hole is hey3 on `cp097` Mon ~15:20. Live **5443101** untouched.
+
 - **22:21 PDT** | **Detect-only watcher + selector + ep15 validation path** | Between-round loop without babysitting | Killed old watcher **5444967** only. New watcher **5444985** (`AUTO_SUBMIT=0`, log `outputs/pseudo_label/watcher_detect.log`). Live tag baseline **frozen ep5/10/15/19** (not enqueued). Selector `scripts/select_teacher_epoch.py` is read-only; watcher re-runs it on every new DETECT. **NO_CANDIDATE** now: ep19 val cancer **0.545** (need 0.579, gap 0.034); L_slide 1.351 falling ok; G5 precision missing. Ep7 is HISTORICAL_ONLY (weights gone). Ep15 cache **5444966** still R; on completion **5444986** moves it to `outputs/pseudo_label/validation_only/teacher_ep015/` + referee test → `corrections_validation_ep015/`. Referee now refuses `VALIDATION_ONLY` packs unless `--allow-validation-only`, and prints G5-swap vs mask-G5 share (no block). Live **5443101** / cache **5444966** untouched. Commit `4519890`.
 
 - **22:05 PDT** | **Watcher multi-tag + corrected-label path (not live-wired)** | Finish between-round gaps #3/#4 | Config `scripts/teacher_watch_targets.json` (live + r2). New-epochs-only, one L40S queue, `AUTO_SUBMIT` still off. Dataset `label_source=corrected` + `apply_pixel_ignore`. Stub tests `scripts/test_corrected_label_source.py` ALL_PASS. Did **not** restart watcher or change train Slurm. Live **5443101** / **5444966** untouched.
@@ -42,7 +44,7 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ### Open tonight / tomorrow
 - [ ] Leave **5443101** running (do not scancel)
-- [ ] Fresh **5444968** is a **new tag** — do not point it at the live ckpt dir
+- [ ] Fresh **5444968** is a **new tag**, 3-day wall — do not point it at the live ckpt dir
 - [ ] Production teacher cache stays blocked until `select_teacher_epoch.py` prints `CANDIDATE`
 - [ ] After **5444966** finishes, confirm **5444986** wrote `VALIDATION_ONLY` + G5-bias summary
 - [ ] λ_slide intervene only after **ep22** if val cancer still &lt;0.579 and L_slide still falling
