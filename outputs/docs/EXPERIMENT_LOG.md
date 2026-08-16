@@ -7,6 +7,15 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## Omar-6 default-recipe audit (2026-08-16)
+
+| | |
+|--|--|
+| **Why** | Lock a future default against Omar’s 6 + later add-ons, not against leftover flags. |
+| **What** | Scored live **5443101** vs disk `c40efb7` vs dead r2 **5445233**. Wrote `outputs/docs/opt3_this_run/OMAR6_DEFAULT_RECIPE.md`. |
+| **Result** | Lockable now: n&lt;5 skip, λ_slide warmup, GN, freeze+LoRA (disk wiring), proj outside no_grad, absolute-area soft ISUP, grouped split, α=0.1+benign, min_area=0, no cap, every-epoch save. **Not lockable:** live=64/chunk=8 (OOM). **Trap:** slurm default tag is the live run + auto-resume. |
+| **Decision** | User sets the default. Do not resubmit r2 until FPN memory is bounded. Do not scancel live. |
+
 ## Omar-6 freeze+LoRA is one script (2026-08-16)
 
 | | |

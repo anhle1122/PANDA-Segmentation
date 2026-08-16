@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-16
 
+- **13:06 PDT** | **Omar-6 vs live vs future r2 audit for a default recipe** | User will lock defaults | Original 6: live has 1–3 only (4/5a/6 flags without wiring; 5b still ISUP=4). Disk `c40efb7` has 1–4, 5a, 6 wired. **5b not lockable**: r2 **5445233** OOMd at live=64/chunk=8. Add-ons (grouped split, α=0.1+benign, min_area=0, no cap, every-epoch save) are on disk. Trap: slurm default `RUN_TAG` is the **live** tag + auto-resume `latest.pth`. Writeup: `outputs/docs/opt3_this_run/OMAR6_DEFAULT_RECIPE.md`. Live **5443101** untouched.
+
 - **13:02 PDT** | **Rule 4: freeze+LoRA is one Opt3 script, not a wrong-file mixup** | Check if live/r2 ran `train_uni2_upernet.py` (freeze=5) | They did not. Only `scripts/slurm_train_opt3_slidebag.sh` → `src/train_uni2_opt3_slidebag.py`. Both jobs passed `--freeze-backbone-epochs 100 --lora`. UNI2 base frozen; decoder + LoRA adapters are what should train. Bug was LoRA not in AdamW / under `no_grad`, not the wrong defaults. **5445233** actually started 12:29 on `cp097` (not still PD), ep1 live=64/chunk=8, then **CUDA OOM** 12:57 (~slide 56, 132G). Header-only `training_log`. Live **5443101** still R on `cp098`.
 
 - **12:56 PDT** | **Wired agreed Omar 4 / 5a / 6 on disk for r2** | LoRA was wrapped but not stepped; proj sat in `no_grad`; soft ISUP dropped tumor burden | Disk trainer now: LoRA A/B in AdamW while UNI2 stays frozen; 1×1 proj **outside** `no_grad`; `L_slide` uses absolute G3/G4/G5 masses + logs soft vs hard ISUP. n&lt;5 skip was already correct (L_seg only). **5445233** still PD — will load this at start. Live **5443101** untouched (in-memory). Test `scripts/test_omar6_wiring.py` OMAR6_WIRING_OK.
