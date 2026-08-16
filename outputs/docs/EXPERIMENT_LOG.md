@@ -13,7 +13,7 @@ Format: **Why → What → Result → Decision**
 |--|--|
 | **Why** | Train log has Dice/`L_slide` but not PANDA+ Dice, G5 precision, or ISUP match. Need those every epoch, and a plot of whether `L_slide` fights Dice/`L_seg`. |
 | **What** | CPU watcher `scripts/slurm_watch_epoch_eval.sh` (`AUTO_SUBMIT=1`, new-epochs-only). Each new `epoch_*.pth` → 1× L40S `scripts/slurm_eval_opt3_epoch.sh`: PANDA ISUP + PANDA+ Dice + PANDA+ ISUP. PANDA val Dice stays the train-log 20k-patch number. Classifier `scripts/classify_lslide_vs_dice.py`. |
-| **Result** | ep10–27: 7 together, 7 mixed, 2 flat, **2 fighting (ep12, ep23)**. corr(ΔL_slide, ΔDice)=**−0.18**. Ep15 train-log step is both-improved, not the fight signature; G5 gaming still only visible on PANDA+ (ep7 0.569 / 62.5% vs ep15 0.496 / 52.1%). |
+| **Result** | Watcher **5445285** R. ep10–27: 7 together, 7 mixed, 2 flat, **2 fighting (ep12, ep23)**. corr(ΔL_slide, ΔDice)=**−0.18**. Ep15 train-log step is both-improved, not the fight signature; G5 gaming still only visible on PANDA+ (ep7 0.569 / 62.5% vs ep15 0.496 / 52.1%). Commit `ee7fb97`. |
 | **Decision** | Auto-eval from the next new named ckpt. Do not backfill ep19–27. Teacher packs stay detect-only. Do not scancel **5443101** / **5445276**. |
 
 ## Omar-6 locked recipe + decoder-chunk checkpoint (2026-08-16)
