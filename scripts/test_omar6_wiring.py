@@ -45,6 +45,19 @@ def main() -> None:
         "agree",
         int(soft == hard),
     )
+
+    # Decoder-chunk checkpoint: one loss on all 16, backward must hit weights
+    # without keeping 16 graphs (Omar 5b memory trick, still full live set).
+    from torch.utils.checkpoint import checkpoint
+
+    conv = torch.nn.Conv2d(3, 6, kernel_size=1)
+    x = torch.randn(16, 3, 8, 8)
+    parts = []
+    for s in range(0, 16, 4):
+        parts.append(checkpoint(conv, x[s : s + 4], use_reentrant=False))
+    torch.cat(parts, dim=0).mean().backward()
+    assert conv.weight.grad is not None and float(conv.weight.grad.abs().sum()) > 0
+    print("checkpoint_chunk_grads_ok")
     print("OMAR6_WIRING_OK")
 
 

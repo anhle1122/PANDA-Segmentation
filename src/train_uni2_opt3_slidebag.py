@@ -21,6 +21,7 @@ import torch
 import torch.distributed as dist
 import torch.nn as nn
 from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.utils.checkpoint import checkpoint
 from torch.utils.data import DataLoader, DistributedSampler
 
 torch.backends.cudnn.benchmark = False
@@ -241,6 +242,11 @@ def train(args: argparse.Namespace) -> None:
             f"LoRA QKV wraps stats={stats} | lora_params_in_optimizer={n_lora_opt} "
             f"| proj_outside_no_grad=1 | frozen={backbone_frozen}"
         )
+        if n_lora_opt <= 0:
+            raise RuntimeError(
+                "Omar 4: --lora is on but 0 LoRA params are in AdamW "
+                "(live 5443101 silent no-op). Abort."
+            )
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, T_max=max(1, args.epochs), eta_min=args.lr * 0.01
     )
@@ -275,8 +281,25 @@ def train(args: argparse.Namespace) -> None:
             )
 
     micro = max(1, int(args.micro_batch_size))
-    live_n = max(1, int(args.live_patches) if int(getattr(args, "live_patches", 0) or 0) > 0 else micro)
-    live_chunk = max(1, int(getattr(args, "live_chunk", 8) or 8))
+    want_live = int(getattr(args, "live_patches", 0) or 0)
+    live_n = max(1, want_live if want_live > 0 else micro)
+    live_chunk = max(1, int(getattr(args, "live_chunk", 4) or 4))
+    decoder_ckpt = bool(getattr(args, "decoder_checkpoint", True))
+    # Live 5443101 bug: flag said 64 but ISUP perm used micro=4. Fail closed.
+    if want_live > 0 and live_n != want_live:
+        raise RuntimeError(f"live_n={live_n} != --live-patches {want_live}")
+    if want_live > micro and live_n <= micro:
+        raise RuntimeError(
+            f"ISUP live collapsed to micro_bs={micro}; Omar 5b requires live={want_live}"
+        )
+    if is_main_process(rank):
+        print(
+            f"WIRING_OK live={live_n} (not micro={micro}) chunk={live_chunk} "
+            f"decoder_ckpt={int(decoder_ckpt)} perm=live_n",
+            flush=True,
+        )
+    if device.type == "cuda":
+        torch.cuda.reset_peak_memory_stats(device)
 
     def _lambda_slide_now(epoch: int) -> float:
         # Omar-6: 0 for ep1–5, ramp to λ by ep10 (0.06/0.12/0.18/0.24 then 0.3).
@@ -293,7 +316,9 @@ def train(args: argparse.Namespace) -> None:
         if is_main_process(rank):
             print(
                 f"=== Epoch {epoch}: λ_slide={lam_s:.3f} λ_grade={args.lambda_grade} "
-                f"live={live_n} chunk={live_chunk} grad_ckpt={int(bool(getattr(args, 'grad_checkpoint', False)))} "
+                f"live={live_n} chunk={live_chunk} "
+                f"grad_ckpt={int(bool(getattr(args, 'grad_checkpoint', False)))} "
+                f"decoder_ckpt={int(decoder_ckpt)} "
                 f"min_patches={args.min_slide_patches} "
                 f"min_area_pct={args.min_area_pct} adj_soft={args.adjacent_soft_alpha} "
                 f"benign_soft={args.include_benign_soft} ===",
@@ -405,21 +430,40 @@ def train(args: argparse.Namespace) -> None:
 
                 if apply_slide_isup:
                     # Synced backward (the one allreduce for this bag).
-                    # Live n=64 with grad-checkpoint: chunk the 64-patch bag so the
-                    # UPerNet FPN cat cannot allocate 64× full-res maps at once.
-                    # Grads still flow through all live patches via cat.
-                    perm = torch.randperm(n_patches)[: min(live_n, n_patches)].tolist()
+                    # Omar 5b: live n=64 in the ISUP *loss*. Chunk + decoder
+                    # checkpoint so backward recomputes one chunk at a time
+                    # (5445233 OOM'd because cat kept all 64 FPN graphs).
+                    n_live = min(live_n, n_patches)
+                    if want_live >= 64 and n_patches >= 64 and n_live < 64:
+                        raise RuntimeError(
+                            f"ISUP live took {n_live} patches from a {n_patches}-patch "
+                            f"slide; Omar 5b requires 64"
+                        )
+                    perm = torch.randperm(n_patches)[:n_live].tolist()
                     live_idxs = [patch_idxs[i] for i in perm]
                     images_g, _, _ = load_patch_batch(train_ds.base, live_idxs)
                     images_g = images_g.to(device, non_blocking=True)
                     imgs_g, n_g = _bn_safe(images_g)
+                    core = unwrap_model(model)
+
+                    def _live_chunk_forward(x: torch.Tensor):
+                        return core(x)
+
                     with torch.cuda.amp.autocast(enabled=use_amp):
                         logit_parts: list[torch.Tensor] = []
                         feat_parts: list[torch.Tensor] = []
                         grade_parts: list[torch.Tensor] = []
                         for s in range(0, int(imgs_g.size(0)), live_chunk):
                             sl = imgs_g[s : s + live_chunk]
-                            lg, fg, gg = model(sl)
+                            if decoder_ckpt:
+                                lg, fg, gg = checkpoint(
+                                    _live_chunk_forward,
+                                    sl,
+                                    use_reentrant=False,
+                                    preserve_rng_state=True,
+                                )
+                            else:
+                                lg, fg, gg = _live_chunk_forward(sl)
                             logit_parts.append(lg)
                             feat_parts.append(fg)
                             grade_parts.append(gg)
@@ -474,6 +518,16 @@ def train(args: argparse.Namespace) -> None:
             running["grade"] += l_grade_val
             running["n"] += 1
             n_slides += 1
+            if (
+                is_main_process(rank)
+                and n_slides == 1
+                and device.type == "cuda"
+            ):
+                print(
+                    f"peak_cuda_gb_after_bag1="
+                    f"{torch.cuda.max_memory_allocated(device) / 1024**3:.2f}",
+                    flush=True,
+                )
             if (
                 is_main_process(rank)
                 and args.ckpt_every_slides > 0
@@ -630,7 +684,7 @@ def train(args: argparse.Namespace) -> None:
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Option 3 slide-bag + dual ISUP losses")
     p.add_argument("--mode", default="raw", choices=["raw", "normalized", "normalized_ink_raw"])
-    p.add_argument("--run-tag", default="opt3_omar6_grouped_soft01")
+    p.add_argument("--run-tag", default="opt3_omar6_locked")
     p.add_argument("--epochs", type=int, default=100)
     p.add_argument("--lr", type=float, default=1e-4)
     p.add_argument("--weight-decay", type=float, default=0.01)
@@ -702,8 +756,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--live-chunk",
         type=int,
-        default=8,
-        help="Chunk size inside the live-64 ISUP forward (memory). Grads still cover all live patches.",
+        default=4,
+        help="Decoder chunk size inside live-64 ISUP (memory). Loss still uses all 64.",
+    )
+    p.add_argument(
+        "--decoder-checkpoint",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Checkpoint each live decoder chunk so backward recomputes one chunk (Omar 5b, default on).",
     )
     p.add_argument(
         "--grad-checkpoint",

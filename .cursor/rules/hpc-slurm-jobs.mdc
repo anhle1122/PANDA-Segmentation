@@ -13,16 +13,16 @@ For this project (`/common/omarmlab/members/anh/panda_project`):
 - Slurm headers: `#SBATCH --partition=gpu` or `defq`, `-o %j.out` / logs, `-e %j.err`
 - Env: `module load miniconda3/23.11.0-2`, `conda activate wsi_seg`, `source .env.hpc`
 
-## Omar-6 Opt3 recipe (locked)
+## Omar-6 Opt3 recipe (LOCKED 2026-08-16)
 
-- Tag `opt3_omar6_grouped_soft01`
-- `--min-area-pct 0` (no 5% gate)
-- `--min-slide-patches 5` (n<5 hard-skip L_slide/L_grade)
-- `--adjacent-soft-alpha 0.1 --include-benign-soft` (benign↔G3↔G4↔G5)
-- LoRA QKV, `--decode-norm gn`, `--live-patches 64`, `--lambda-slide-warmup`
-- **Every epoch** saved (`--save-every 1`; never every-5)
-- No patch cap (`MAX_PATCHES_PER_SLIDE=0`)
-- Prefer `--time=30-00:00:00` on `gpu`+`normal`
+- Default tag **`opt3_omar6_locked`**. Never `opt3_omar6_grouped_soft01` unless `ALLOW_LIVE_TAG=1` (live **5443101**).
+- `--min-area-pct 0`; `--min-slide-patches 5`; α=0.1 `--include-benign-soft`
+- LoRA in optimizer; UNI2 frozen 100; `--decode-norm gn`
+- `--live-patches 64` actually wired (`perm` = live_n, abort if == micro)
+- `--live-chunk 4 --decoder-checkpoint --grad-checkpoint` (64-mean loss; recompute one chunk)
+- **Every epoch** `epoch_XXX_*.pth`; no patch cap
+- Prefer `--time=3-00:00:00` for an early-peak hunt; 30d only if user asks
+- Process must print `WIRING_OK live=64` and `lora_params_in_optimizer>0`
 
 ## Never kill a live Opt3 / H200 train
 

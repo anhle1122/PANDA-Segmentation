@@ -14,8 +14,8 @@
       "teacher_pack_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label"
     },
     {
-      "tag": "opt3_omar6_r2_live64ckpt",
-      "ckpt_dir": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_r2_live64ckpt",
+      "tag": "opt3_omar6_locked",
+      "ckpt_dir": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_locked",
       "teacher_pack_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label"
     }
   ]

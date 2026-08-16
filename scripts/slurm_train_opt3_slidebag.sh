@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-# Omar-6 Option 3 (locked recipe). Every epoch writes epoch_XXX_cancer_Y.pth.
-#   L = L_pixel + λ_slide * L_slide + λ_grade * L_grade
-#   α=0.1 benign↔G3↔G4↔G5; min_area_pct=0; n<5 hard-skip ISUP; LoRA+GN; live=64+ckpt
+# Omar-6 Option 3 (LOCKED default). Every epoch writes epoch_XXX_cancer_Y.pth.
+#   UNI2 frozen + LoRA QKV; GN; live=64 ISUP with decoder-chunk checkpoint.
+#   Never use tag opt3_omar6_grouped_soft01 (live 5443101) unless ALLOW_LIVE_TAG=1.
 # Args: [epochs] [resume_checkpoint]
-#   sbatch --gres=gpu:h200:2 scripts/slurm_train_opt3_slidebag.sh
-#   sbatch --gres=gpu:h200:4 --mem=192G --cpus-per-task=16 scripts/slurm_train_opt3_slidebag.sh
+#   sbatch --export=ALL,RUN_TAG=opt3_omar6_locked --gres=gpu:h200:2 scripts/slurm_train_opt3_slidebag.sh
 #SBATCH --job-name=opt3_slidebag
 #SBATCH --partition=gpu
 #SBATCH --qos=normal
@@ -60,14 +59,20 @@ export TORCH_CUDNN_ENABLED="${TORCH_CUDNN_ENABLED:-0}"
 EPOCHS="${1:-100}"
 RESUME="${2:-}"
 NGPU="${SLURM_GPUS_ON_NODE:-${SLURM_JOB_NUM_GPUS:-2}}"
-RUN_TAG="${RUN_TAG:-opt3_omar6_grouped_soft01}"
+RUN_TAG="${RUN_TAG:-opt3_omar6_locked}"
+LIVE_FORBID_TAG="opt3_omar6_grouped_soft01"
+if [[ "${RUN_TAG}" == "${LIVE_FORBID_TAG}" && "${ALLOW_LIVE_TAG:-0}" != "1" ]]; then
+  echo "ERROR: tag ${LIVE_FORBID_TAG} is live job 5443101. Export RUN_TAG=<new> (default opt3_omar6_locked)."
+  exit 1
+fi
 UNI2_CKPT="${UNI2_CKPT:-${PANDA_PROJECT}/assets/ckpts/uni2-h/pytorch_model.bin}"
 LAMBDA_SLIDE="${LAMBDA_SLIDE:-0.3}"
 LAMBDA_GRADE="${LAMBDA_GRADE:-0.3}"
 MICRO_BS="${MICRO_BS:-4}"
 LIVE_PATCHES="${LIVE_PATCHES:-64}"
-LIVE_CHUNK="${LIVE_CHUNK:-8}"
+LIVE_CHUNK="${LIVE_CHUNK:-4}"
 GRAD_CHECKPOINT="${GRAD_CHECKPOINT:-1}"
+DECODER_CHECKPOINT="${DECODER_CHECKPOINT:-1}"
 SLIDES_PER_EPOCH="${SLIDES_PER_EPOCH:-256}"
 FREEZE_EPOCHS="${FREEZE_EPOCHS:-100}"
 MAX_VAL_PATCHES="${MAX_VAL_PATCHES:-20000}"
@@ -84,7 +89,7 @@ if [[ -z "${RESUME}" && -f "${LATEST}" ]]; then
 fi
 
 echo "=== $(date) | Omar-6 Opt3 | ${NGPU}x H200 | tag=${RUN_TAG} ==="
-echo "CONFIG λ_slide=${LAMBDA_SLIDE} λ_grade=${LAMBDA_GRADE} micro_bs=${MICRO_BS} live=${LIVE_PATCHES} live_chunk=${LIVE_CHUNK} grad_checkpoint=${GRAD_CHECKPOINT} slides/ep=${SLIDES_PER_EPOCH}"
+echo "CONFIG λ_slide=${LAMBDA_SLIDE} λ_grade=${LAMBDA_GRADE} micro_bs=${MICRO_BS} live=${LIVE_PATCHES} live_chunk=${LIVE_CHUNK} grad_checkpoint=${GRAD_CHECKPOINT} decoder_checkpoint=${DECODER_CHECKPOINT} slides/ep=${SLIDES_PER_EPOCH}"
 echo "CONFIG adj_soft=${ADJ_SOFT} benign_soft=${INCLUDE_BENIGN_SOFT} max_patches/slide=${MAX_PATCHES_PER_SLIDE} min_area=0 min_patches=5 lora=1 decode_norm=gn save=EVERY_EPOCH resume=${RESUME:-none}"
 
 CMD=(
@@ -120,6 +125,11 @@ if [[ "${GRAD_CHECKPOINT}" == "1" || "${GRAD_CHECKPOINT}" == "true" ]]; then
   CMD+=(--grad-checkpoint)
 else
   CMD+=(--no-grad-checkpoint)
+fi
+if [[ "${DECODER_CHECKPOINT}" == "1" || "${DECODER_CHECKPOINT}" == "true" ]]; then
+  CMD+=(--decoder-checkpoint)
+else
+  CMD+=(--no-decoder-checkpoint)
 fi
 if [[ "${INCLUDE_BENIGN_SOFT}" == "1" || "${INCLUDE_BENIGN_SOFT}" == "true" ]]; then
   CMD+=(--include-benign-soft)

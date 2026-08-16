@@ -1,0 +1,30 @@
+---
+description: Locked Omar-6 Opt3 recipe. Never silently drop live=64, LoRA, or decoder-chunk checkpoint.
+alwaysApply: true
+---
+
+# Omar-6 Opt3 — locked default (2026-08-16)
+
+Do **not** change this unless the user says so. One train entry:
+`scripts/slurm_train_opt3_slidebag.sh` → `src/train_uni2_opt3_slidebag.py`.
+Never `src/train_uni2_upernet.py` for Opt3.
+
+## Must be true at process start (abort if not)
+
+- `--live-patches 64` and ISUP `perm` uses **`live_n=64`**, never `micro_batch_size` (live **5443101** bug).
+- Log line `WIRING_OK live=64 (not micro=4)`.
+- `--lora` and `lora_params_in_optimizer>0` (else abort). UNI2 base frozen 100 epochs.
+- 1×1 FPN proj **outside** backbone `no_grad`.
+- Live ISUP: chunk forward + **`--decoder-checkpoint`** so backward **recomputes one chunk**; loss is still the **mean of all 64**. Do not go back to live=4.
+- Backbone `--grad-checkpoint` on.
+- n&lt;5 → `L_seg` only. `λ_slide` warmup. Decoder GN. Absolute-area soft ISUP.
+
+## Slurm
+
+- Default tag `opt3_omar6_locked`. **Refuse** tag `opt3_omar6_grouped_soft01` unless `ALLOW_LIVE_TAG=1` (that dir is live **5443101**).
+- Cold start: new `RUN_TAG`, empty ckpt dir, no resume of live `latest.pth`.
+- Never `scancel` a RUNNING Opt3 / H200 job.
+
+## Add-ons (also locked)
+
+α=0.1 benign↔G3–G5; `min_area_pct=0`; no patch cap; micro_bs=4; save every epoch; grouped split; 2×H200.
