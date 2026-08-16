@@ -52,9 +52,11 @@ from train.slide_bag_dataset import (  # noqa: E402
 from train.uni2_upernet import DEFAULT_FPN_CHANNELS, build_uni2_upernet  # noqa: E402
 from train_baseline import (  # noqa: E402
     cleanup_distributed,
+    epoch_snapshot_path,
     is_main_process,
     load_checkpoint,
     prune_checkpoints,
+    restore_best_cancer_dice,
     save_checkpoint,
     setup_distributed,
     subsample_split_csv,
@@ -171,7 +173,14 @@ def train(args: argparse.Namespace) -> None:
         pretrained=True,
         freeze_backbone=args.freeze_backbone_epochs > 0,
         checkpoint_path=args.uni2_checkpoint or None,
+        decode_norm=getattr(args, "decode_norm", "bn"),
     )
+    if getattr(args, "lora", False):
+        from train.lora_vit import apply_lora_to_vit_qkv  # noqa: E402
+
+        n_lora = apply_lora_to_vit_qkv(seg.backbone, r=8, alpha=16.0)
+        if is_main_process(rank):
+            print(f"LoRA QKV wraps={n_lora} | decode_norm={args.decode_norm}")
     grade_head = ISUPGradeHead(DEFAULT_FPN_CHANNELS[-1], num_isup=6)
     model: nn.Module = SegPlusGrade(seg, grade_head).to(device)
     if world_size > 1:
@@ -202,13 +211,16 @@ def train(args: argparse.Namespace) -> None:
     )
 
     start_epoch = 1
-    best_cancer = -1.0
+    best_cancer = restore_best_cancer_dice(ckpt_dir)
     if args.resume and Path(args.resume).is_file():
         start_epoch = load_checkpoint(
             Path(args.resume), model, optimizer, scheduler, scaler
         )
         if is_main_process(rank):
-            print(f"Resumed from {args.resume} → next epoch {start_epoch}")
+            print(
+                f"Resumed from {args.resume} → next epoch {start_epoch} "
+                f"| restored best_cancer={best_cancer:.4f} (from log/snapshots, not latest)"
+            )
 
     if is_main_process(rank) and not log_path.exists():
         with log_path.open("w", newline="") as f:
@@ -227,8 +239,28 @@ def train(args: argparse.Namespace) -> None:
             )
 
     micro = max(1, int(args.micro_batch_size))
+    live_n = max(1, int(args.live_patches) if int(getattr(args, "live_patches", 0) or 0) > 0 else micro)
+
+    def _lambda_slide_now(epoch: int) -> float:
+        # Omar-6: 0 for ep1–5, ramp to λ by ep10 (0.06/0.12/0.18/0.24 then 0.3).
+        if not getattr(args, "lambda_slide_warmup", False):
+            return float(args.lambda_slide)
+        if epoch <= 5:
+            return 0.0
+        if epoch >= 10:
+            return float(args.lambda_slide)
+        return float(args.lambda_slide) * (epoch - 5) / 5.0
 
     for epoch in range(start_epoch, args.epochs + 1):
+        lam_s = _lambda_slide_now(epoch)
+        if is_main_process(rank):
+            print(
+                f"=== Epoch {epoch}: λ_slide={lam_s:.3f} λ_grade={args.lambda_grade} "
+                f"live={live_n} min_patches={args.min_slide_patches} "
+                f"min_area_pct={args.min_area_pct} adj_soft={args.adjacent_soft_alpha} "
+                f"benign_soft={args.include_benign_soft} ===",
+                flush=True,
+            )
         if train_sampler is not None:
             train_sampler.set_epoch(epoch)
 
@@ -333,7 +365,7 @@ def train(args: argparse.Namespace) -> None:
 
                 if apply_slide_isup:
                     # Synced backward (the one allreduce for this bag).
-                    perm = torch.randperm(n_patches)[: min(micro, n_patches)].tolist()
+                    perm = torch.randperm(n_patches)[: min(live_n, n_patches)].tolist()
                     live_idxs = [patch_idxs[i] for i in perm]
                     images_g, _, _ = load_patch_batch(train_ds.base, live_idxs)
                     images_g = images_g.to(device, non_blocking=True)
@@ -360,9 +392,7 @@ def train(args: argparse.Namespace) -> None:
                             model
                         ).grade_head(feat_mix)
                         l_grade = grade_head_ce(g_logits, isup)
-                        slide_term = (
-                            args.lambda_slide * l_slide + args.lambda_grade * l_grade
-                        )
+                        slide_term = lam_s * l_slide + args.lambda_grade * l_grade
 
                     scaler.scale(slide_term).backward()
                     l_slide_val = float(l_slide.detach().item())
@@ -469,6 +499,7 @@ def train(args: argparse.Namespace) -> None:
                         lr,
                     ]
                 )
+            extra = {"best_cancer_dice": float(best_cancer)}
             save_checkpoint(
                 ckpt_dir / "latest.pth",
                 epoch=epoch,
@@ -479,9 +510,25 @@ def train(args: argparse.Namespace) -> None:
                 metrics=metrics,
                 class_weights=class_weights,
                 mode=args.mode,
+                extra=extra,
+            )
+            # Always keep a unique per-epoch file. Never overwrite one that exists.
+            snap = epoch_snapshot_path(ckpt_dir, epoch, cancer)
+            save_checkpoint(
+                snap,
+                epoch=epoch,
+                model=model,
+                optimizer=optimizer,
+                scheduler=scheduler,
+                scaler=scaler,
+                metrics=metrics,
+                class_weights=class_weights,
+                mode=args.mode,
+                extra=extra,
             )
             if cancer > best_cancer:
                 best_cancer = cancer
+                extra = {"best_cancer_dice": float(best_cancer)}
                 save_checkpoint(
                     ckpt_dir / "best.pth",
                     epoch=epoch,
@@ -492,21 +539,24 @@ def train(args: argparse.Namespace) -> None:
                     metrics=metrics,
                     class_weights=class_weights,
                     mode=args.mode,
+                    extra=extra,
                 )
-                print(f"  new best cancer_dice={best_cancer:.4f}")
-            if epoch % args.save_every == 0:
-                save_checkpoint(
-                    ckpt_dir / f"epoch_{epoch:03d}_cancer_{cancer:.4f}.pth",
-                    epoch=epoch,
-                    model=model,
-                    optimizer=optimizer,
-                    scheduler=scheduler,
-                    scaler=scaler,
-                    metrics=metrics,
-                    class_weights=class_weights,
-                    mode=args.mode,
-                )
-                prune_checkpoints(ckpt_dir, keep=args.keep_checkpoints)
+                frozen_best = ckpt_dir / f"best_epoch_{epoch:03d}_cancer_{cancer:.4f}.pth"
+                if not frozen_best.exists():
+                    save_checkpoint(
+                        frozen_best,
+                        epoch=epoch,
+                        model=model,
+                        optimizer=optimizer,
+                        scheduler=scheduler,
+                        scaler=scaler,
+                        metrics=metrics,
+                        class_weights=class_weights,
+                        mode=args.mode,
+                        extra=extra,
+                    )
+                print(f"  new best cancer_dice={best_cancer:.4f} → {snap.name}")
+            prune_checkpoints(ckpt_dir, keep=args.keep_checkpoints)
 
         if world_size > 1:
             dist.barrier()
@@ -522,12 +572,12 @@ def train(args: argparse.Namespace) -> None:
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Option 3 slide-bag + dual ISUP losses")
     p.add_argument("--mode", default="raw", choices=["raw", "normalized", "normalized_ink_raw"])
-    p.add_argument("--run-tag", default="pseudo_r1_opt3_slidebag")
+    p.add_argument("--run-tag", default="opt3_omar6_grouped_soft01")
     p.add_argument("--epochs", type=int, default=100)
     p.add_argument("--lr", type=float, default=1e-4)
     p.add_argument("--weight-decay", type=float, default=0.01)
     p.add_argument("--backbone-lr-mult", type=float, default=0.05)
-    p.add_argument("--freeze-backbone-epochs", type=int, default=5)
+    p.add_argument("--freeze-backbone-epochs", type=int, default=100)
     p.add_argument("--micro-batch-size", type=int, default=4)
     p.add_argument("--slides-per-epoch", type=int, default=256)
     p.add_argument("--max-patches-per-slide", type=int, default=None)
@@ -572,7 +622,31 @@ def build_parser() -> argparse.ArgumentParser:
         default=8,
         help="Write latest.pth every N train slides (0 = only at epoch end).",
     )
-    p.add_argument("--save-every", type=int, default=5)
+    p.add_argument(
+        "--save-every",
+        type=int,
+        default=1,
+        help="Unused: every epoch is written to epoch_XXX_cancer_Y.pth. Kept for CLI compat.",
+    )
+    p.add_argument(
+        "--lora",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Omar-6 LoRA QKV r=8 α=16 (default on).",
+    )
+    p.add_argument("--decode-norm", default="gn", choices=["bn", "gn"])
+    p.add_argument(
+        "--live-patches",
+        type=int,
+        default=64,
+        help="Patches in the synced ISUP forward (Omar-6: 64).",
+    )
+    p.add_argument(
+        "--lambda-slide-warmup",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="λ_slide=0 ep1–5, ramp 6–9, full λ from ep10 (Omar-6 default on).",
+    )
     p.add_argument(
         "--keep-checkpoints",
         type=int,

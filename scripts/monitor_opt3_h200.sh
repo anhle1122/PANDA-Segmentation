@@ -99,16 +99,11 @@ submit_n() {
 }
 
 # Decision tree
+# Never scancel a RUNNING Opt3 job (2026-08-14: killing 2× 5432046 lost cp098).
 if [[ -n "${JOBID}" && "${STATE}" == "RUNNING" ]]; then
   if (( NGPU_REQ <= 2 )) && [[ -n "${node_with_4}" ]]; then
-    if [[ -f "${LATEST}" ]]; then
-      echo "ACTION: upgrade 2→4 on ${node_with_4}; scancel ${JOBID}; resume ${LATEST}"
-      scancel "${JOBID}"
-      sleep 3
-      submit_n 4 | tee -a "${STATE_FILE}"
-    else
-      echo "ACTION: 4 free but no latest.pth yet — keep 2-GPU running (avoid scratch restart)"
-    fi
+    echo "ACTION: keep RUNNING ${NGPU_REQ}x ${JOBID} — do not scancel to grab 4 free on ${node_with_4}"
+    echo "  Dual-queue a 4× PENDING instead. Cancel 2× only after 4× is actually RUNNING, via SIGTERM."
   else
     echo "ACTION: keep running ${NGPU_REQ}x job ${JOBID}"
   fi

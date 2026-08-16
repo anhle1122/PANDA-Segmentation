@@ -83,8 +83,14 @@ def save_checkpoint(
     metrics: dict,
     class_weights: torch.Tensor,
     mode: str,
+    extra: dict | None = None,
 ) -> None:
+    """Atomic checkpoint write. Never clobber an existing ``epoch_*.pth``."""
+    path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
+    if path.name.startswith("epoch_") and path.exists():
+        print(f"  keep existing {path.name} (will not overwrite)", flush=True)
+        return
     payload = {
         "epoch": epoch,
         "model_state_dict": unwrap_model(model).state_dict(),
@@ -96,9 +102,40 @@ def save_checkpoint(
         "mode": mode,
         "metrics": metrics,
     }
+    if extra:
+        payload.update(extra)
     if scaler is not None:
         payload["scaler_state_dict"] = scaler.state_dict()
-    torch.save(payload, path)
+    tmp = path.with_name(f".{path.name}.tmp.{os.getpid()}")
+    torch.save(payload, tmp)
+    os.replace(tmp, path)
+
+
+def restore_best_cancer_dice(ckpt_dir: Path) -> float:
+    """Best val cancer Dice from the log / named snapshots — never from latest.pth alone.
+
+    Resume used to reset best to -1, so a worse epoch overwrote ``best.pth``
+    (Omar-6 ep7 0.608 → ep16 0.521 on 2026-08-15).
+    """
+    best = -1.0
+    log_path = Path(ckpt_dir) / "training_log.csv"
+    if log_path.is_file():
+        try:
+            df = pd.read_csv(log_path)
+            if "cancer_dice" in df.columns and len(df):
+                best = max(best, float(df["cancer_dice"].max()))
+        except Exception as exc:
+            print(f"  warn: could not read {log_path}: {exc}", flush=True)
+    for p in Path(ckpt_dir).glob("epoch_*_cancer_*.pth"):
+        try:
+            best = max(best, float(p.stem.split("cancer_")[-1]))
+        except ValueError:
+            continue
+    return best
+
+
+def epoch_snapshot_path(ckpt_dir: Path, epoch: int, cancer: float) -> Path:
+    return Path(ckpt_dir) / f"epoch_{int(epoch):03d}_cancer_{float(cancer):.4f}.pth"
 
 
 def load_checkpoint(
@@ -128,10 +165,12 @@ def prune_checkpoints(ckpt_dir: Path, keep: int = 0) -> None:
     """
     if keep is None or int(keep) <= 0:
         return
-    keep = int(keep)
-    paths = sorted(ckpt_dir.glob("epoch_*.pth"), key=lambda p: p.stat().st_mtime, reverse=True)
-    for p in paths[keep:]:
-        p.unlink(missing_ok=True)
+    # 2026-08-15: never auto-delete named epoch snapshots (ep7 / ep12 losses).
+    print(
+        f"  prune_checkpoints(keep={keep}) ignored — epoch_*.pth are immutable",
+        flush=True,
+    )
+    return
 
 
 def make_train_loader(

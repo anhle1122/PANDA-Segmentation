@@ -1,5 +1,5 @@
 ---
-description: Run long/heavy PANDA jobs on Slurm (defq), not the login node
+description: HPC Slurm job rules for panda_project
 alwaysApply: true
 ---
 
@@ -8,14 +8,24 @@ alwaysApply: true
 For this project (`/common/omarmlab/members/anh/panda_project`):
 
 - **Never** run long or heavy jobs on the login node (`esplhpccompbio-lv01`).
-- **Always** submit via `sbatch scripts/slurm_*.sh` on partition `defq`.
-- Use existing Slurm templates in `scripts/`:
-  - `slurm_clean_dataset.sh` — full mask QC
-  - `slurm_scan_pen_marks.sh` — pen mark scan (`--resume` if checkpoint exists)
-  - `slurm_verify_mask_balance.sh` — L0 vs pyramid balance check
-  - `slurm_qc_bug_audit.sh` — grade-mismatch bug audit
-  - `slurm_compare_trident_patches.sh` — Trident-Otsu vs naive-grid patch comparison
-- Slurm headers: `#SBATCH --partition=defq`, `-o %j.out`, `-e %j.err`
+- **Always** submit via `sbatch scripts/slurm_*.sh` on partition `defq` (CPU) or `gpu` (train/eval).
+- Opt3 train: `scripts/slurm_train_opt3_slidebag.sh` — Omar-6 recipe only (see below).
+- Slurm headers: `#SBATCH --partition=gpu` or `defq`, `-o %j.out` / logs, `-e %j.err`
 - Env: `module load miniconda3/23.11.0-2`, `conda activate wsi_seg`, `source .env.hpc`
-- For chunked L0 mask reads / full-slide scans: request **32G** mem; pen mark thumbnails: **16G** is enough.
-- If a login-node job is already running, stop it and resubmit on Slurm with `--resume` when checkpoints exist.
+
+## Omar-6 Opt3 recipe (locked)
+
+- Tag `opt3_omar6_grouped_soft01`
+- `--min-area-pct 0` (no 5% gate)
+- `--min-slide-patches 5` (n<5 hard-skip L_slide/L_grade)
+- `--adjacent-soft-alpha 0.1 --include-benign-soft` (benign↔G3↔G4↔G5)
+- LoRA QKV, `--decode-norm gn`, `--live-patches 64`, `--lambda-slide-warmup`
+- **Every epoch** saved (`--save-every 1`; never every-5)
+- No patch cap (`MAX_PATCHES_PER_SLIDE=0`)
+- Prefer `--time=30-00:00:00` on `gpu`+`normal`
+
+## Never kill a live Opt3 / H200 train
+
+- **Never `scancel` a job in state `R`** for Opt3 / H200 / the current run tag.
+- Dual-queue is OK: 2× **RUNNING** + 4× **PENDING**. Cancel the 2× only after the 4× is **actually RUNNING**, via SIGTERM.
+- `scripts/monitor_opt3_h200.sh` must not scancel RUNNING jobs.

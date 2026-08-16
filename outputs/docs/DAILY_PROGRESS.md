@@ -10,6 +10,32 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-08-15
+
+- **20:21 PDT** | **Committed Omar-6 + every-epoch saver** | Wipe + every-5 lost src and ep6/7 | Restored 74 wiped tracked files from HEAD, then committed trainer/slurm/rules/sidecar. Recipe locked: α=0.1 benign↔G3–G5, min_area=0, n≥5, LoRA+GN, live=64, λ_slide warmup, **save every epoch (never every-5)**. Commit-on-run: commit before/after every Slurm submit. Live **5443101** still old in-memory saver; sidecar copies. Do not scancel it.
+
+- **19:19 PDT** | **PANDA+ gland ISUP ep15 DONE** | Same thr=0 / gt≥2 as ep7 | **5444921** L40S. Primary **32/48 (66.7%)**, both **24/48 (50%)**, ISUP **25/48 (52.1%)**. Weaker than ep7 77.1 / 62.5. CSV: `outputs/pseudo_label/panda_plus_gland_isup_omar6_ep15_thr0.csv`. Dice **5444920** still R.
+
+- **19:26 PDT** | **Sidecar copy logic fixed** | First watcher never copied (torch peek failed silently) | Cancelled CPU **5444924** only. **5444925** copies `latest.pth` → `epoch_XXX` when log and latest update together (epoch end). H200 **5443101** untouched. Ep6/7 still gone; next finished epoch will be kept.
+
+- **19:21 PDT** | **Locked: no epoch snapshot may be washed out** | Resume reset best and overwrote ep7 `best.pth` | Trainer now writes **every** `epoch_XXX_cancer_Y.pth` (never overwrite), restores best from `training_log.csv`, atomic `latest.pth`, prune is a no-op. Sidecar `scripts/slurm_preserve_opt3_ckpts.sh` copies finished epochs off the live run (5443101 in-memory code unchanged). Cursor rule `.cursor/rules/opt3-checkpoints.mdc`.
+
+- **19:14 PDT** | **PANDA+ ep15 resubmitted** | First pair failed missing `stain_normalize`/`data_index` after src wipe | Dice **5444920** + gland ISUP **5444921** 1×L40S. Ckpt `epoch_015_cancer_0.5791.pth`. Same protocol as ep7. H200 **5443101** untouched.
+
+- **18:54 PDT** | **Opt3 2× still running; ep16–17 done** | Resume from mid-ep16 | **5443101** on `cp098`. Val cancer ep16 **0.521** / ep17 **0.507**. In-memory best reset on resume → overwrote `best.pth`. Closest keep is ep15.
+
+- **13:38 PDT** | **Locked: never kill a live Opt3 train** | Lost cp098 last time by cancelling 2× mid-run | Monitor no longer `scancel`s RUNNING jobs. 4× **5443098** wall 30d. Could not extend live 2× (still ~7d).
+
+- **13:37 PDT** | **2×H200 Opt3 RUNNING `cp098`** | nguyend29 bash ended | **5443101** R, resume `latest.pth` (ep16 slide 16). Tag `opt3_omar6_grouped_soft01`. 4× **5443098** still PD.
+
+### Open tonight / tomorrow
+- [ ] Read ep15 PANDA+ Dice + gland ISUP vs ep7 (0.587 / 77.1% / 62.5%)
+- [ ] Leave **5443101** running; cancel 2× only after 4× is actually R
+- [ ] Next new best must write a dated `epoch_XXX_*.pth`, not only `best.pth`
+- [x] Commit Omar-6 + every-epoch saver; commit before every future run
+
+---
+
 ## 2026-08-12
 
 - **15:27 PDT** | **Opt3 resubmitted 4×H200 `gpu` after DDP fix** | User go-ahead | **5430882** PENDING. Slurm ETA ~**Thu 01:26 PDT** on `cp098`. Same tag `opt3_grouped_soft01_benign`, cold start. `no_sync` + dummy sync + ckpt every 8 slides.

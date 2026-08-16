@@ -23,9 +23,38 @@ Format: **Why → What → Result → Decision**
 | Opt3 tiny-bag gate | **hard skip L_slide/L_grade if n&lt;5** (Omar; was soft n/64 / planned 32) |
 | Phase 3 ISUP-0 | **skip** |
 | Handoff README | `/common/omarmlab/members/anh/panda_project/README.md` |
-| Checkpoint prune | **off by default** (`--keep-checkpoints 0` = keep all `epoch_*.pth`) |
+| Checkpoint prune | **off** (`--keep-checkpoints 0`); **every epoch** writes immutable `epoch_XXX_cancer_Y.pth` (never `--save-every 5`) |
+| **Opt3 recipe** | **Omar-6 locked**: tag `opt3_omar6_grouped_soft01`; α=0.1 benign↔G3–G5; min_area=0; n≥5 skip; LoRA+GN; live=64; λ_slide warmup |
 
 ---
+
+## Omar-6 — never wash out epoch ckpts (2026-08-15)
+
+| | |
+|--|--|
+| **Why** | Resume reset in-memory best to -1; ep16 0.521 overwrote ep7 `best.pth`. Named snapshots were only every 5 epochs. |
+| **What** | Every epoch writes immutable `epoch_XXX_cancer_Y.pth`. Resume restores best from `training_log.csv`. `latest.pth` atomic. Prune is a no-op. Live-run sidecar **5444924** (`scripts/slurm_preserve_opt3_ckpts.sh`) copies finished epochs off `latest.pth`. Rule: `.cursor/rules/opt3-checkpoints.mdc`. |
+| **Result** | Live **5443101** still uses in-memory old saver; sidecar covers ep18+. Ep7/16/17 unique files cannot be recovered. |
+| **Decision** | Keep this policy. Do not cancel 5443101 to load the new saver. |
+
+## Omar-6 recipe + every-epoch ckpt locked (2026-08-15)
+
+| | |
+|--|--|
+| **Why** | Disk wipes dropped uncommitted eval/train; every-5 saver lost ep6/ep7. |
+| **What** | Locked Omar-6: α=0.1 benign↔G3–G5, min_area=0, n≥5, LoRA+GN, live=64, λ_slide warmup, save every epoch. Commit-on-run rule. |
+| **Result** | Wiped `src/train/{losses,grade_head,slide_bag_dataset,...}` restored from HEAD. Omar-6 trainer + `--save-every 1` + commit-on-run committed. Live **5443101** still old in-memory saver; sidecar copies finished epochs. |
+| **Decision** | This is the only Opt3 recipe. Never `--save-every 5`. Commit immediately before/after every submit. |
+
+## Omar-6 Opt3 — ep15 PANDA+ (2026-08-15)
+
+| | |
+|--|--|
+| **Why** | Ep7 weights in `best.pth` (val cancer 0.608; PANDA+ cancer 0.587; gland ISUP 77.1/62.5) were overwritten after resume reset the in-memory best. Best remaining snapshot is ep15 (val 0.579). |
+| **What** | Same PANDA+ protocol as ep7: `gt≥2` Dice (**5444920**) + gland ISUP thr=0 pred-on-labeled (**5444921**), 1×L40S. Ckpt `epoch_015_cancer_0.5791.pth`. |
+| **Result** | First submit 5444918/19 failed on missing src after wipe; resubmitted **5444920/21** 19:14 PDT. Live train **5443101** untouched. |
+| **Decision** | Treat ep15 as the reportable Omar-6 snapshot until a later epoch beats 0.608 *and* is written to `epoch_*.pth`. |
+
 
 ## Checkpoint leaderboard
 

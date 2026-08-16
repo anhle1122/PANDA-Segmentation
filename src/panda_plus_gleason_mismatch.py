@@ -22,7 +22,13 @@ SRC = Path(__file__).resolve().parent
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from evaluate import build_eval_model, detect_arch, load_model_weights  # noqa: E402
+from evaluate import (  # noqa: E402
+    _opt3_flags,
+    _peek_state_dict,
+    build_eval_model,
+    detect_arch,
+    load_model_weights,
+)
 from isup_diagnostic import derive_grade  # noqa: E402
 from patch_utils import NUM_CLASSES, PROJECT  # noqa: E402
 from train.baseline_dataset import BaselinePatchDataset  # noqa: E402
@@ -140,8 +146,12 @@ def main() -> None:
     )
 
     arch = detect_arch(args.checkpoint, "uni2_upernet")
-    model = build_eval_model(arch)
+    _ckpt_peek, peek_keys = _peek_state_dict(args.checkpoint)
+    _is_opt3, decode_norm, use_lora = _opt3_flags(peek_keys)
+    model = build_eval_model(arch, decode_norm=decode_norm, use_lora=use_lora)
     ckpt = load_model_weights(args.checkpoint, model)
+    if _is_opt3 or use_lora:
+        print(f"Opt3 load: decode_norm={decode_norm} use_lora={use_lora}", flush=True)
     model.to(device)
     model.eval()
 

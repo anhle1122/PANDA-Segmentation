@@ -1,0 +1,14 @@
+---
+description: Never wash out Opt3 epoch checkpoints
+alwaysApply: true
+---
+
+# Opt3 checkpoints are immutable
+
+- **Every finished epoch** writes `epoch_XXX_cancer_Y.pth`. **Never** `--save-every 5`. `save-every` is ignored; the trainer always snapshots the epoch.
+- Do not rely on `best.pth` or `latest.pth` as the only copy.
+- **Never overwrite** an existing `epoch_*.pth` or `best_epoch_*.pth`.
+- **Never prune** `epoch_*.pth`.
+- On **resume**, restore `best_cancer` from `training_log.csv` / existing snapshots.
+- `latest.pth` / `best.pth` are pointers only (atomic tmp+rename).
+- Live job already in memory: do not `scancel` it to load this saver. Use `scripts/slurm_preserve_opt3_ckpts.sh`.

@@ -1,0 +1,11 @@
+---
+description: Commit sources before/after every Slurm run so a disk wipe cannot drop them
+alwaysApply: true
+---
+
+# Commit on every run
+
+- Before submitting or changing a train/eval/QC Slurm job, **commit** the scripts and `src/` that job will load.
+- After any recipe/protocol fix (loss, threshold, skip rule, checkpoint policy), **commit immediately**. Do not leave Omar-6 / Opt3 sources only on disk (2026-07-30 wipe; 2026-08-15 eval wipe).
+- Do not wait for the user to ask when the change is what a live or next job depends on.
+- Never commit checkpoints, `.env`, credentials, or `__pycache__`.

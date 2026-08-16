@@ -1,24 +1,17 @@
 #!/usr/bin/env bash
-# Option 3: slide-bag training + dual ISUP losses
-#   L = CE+Dice + λ_slide * derived_ISUP_from_seg + λ_grade * grade_head
+# Omar-6 Option 3 (locked recipe). Every epoch writes epoch_XXX_cancer_Y.pth.
+#   L = L_pixel + λ_slide * L_slide + λ_grade * L_grade
+#   α=0.1 benign↔G3↔G4↔G5; min_area_pct=0; n<5 hard-skip ISUP; LoRA+GN; live=64
 # Args: [epochs] [resume_checkpoint]
-# Override GPU count at submit time, e.g.:
 #   sbatch --gres=gpu:h200:2 scripts/slurm_train_opt3_slidebag.sh
-#   sbatch --gres=gpu:h200:4 scripts/slurm_train_opt3_slidebag.sh
-# Auto-resumes from outputs/checkpoints/.../latest.pth when present (unless $2 set).
+#   sbatch --gres=gpu:h200:4 --mem=192G --cpus-per-task=16 scripts/slurm_train_opt3_slidebag.sh
 #SBATCH --job-name=opt3_slidebag
-# Prefer gpu+normal for H200 (PriorityTier 1000) — preemptable gets kicked by
-# gpu jobs. 2026-08-12: gpu+h200 schedules again; do not use preemptable for
-# multi-day Opt3. --requeue still covers node failure (not partition preemption).
 #SBATCH --partition=gpu
 #SBATCH --qos=normal
 #SBATCH -o logs/train_opt3_slidebag_%j.out
 #SBATCH -e logs/train_opt3_slidebag_%j.err
-#SBATCH --time=7-00:00:00
+#SBATCH --time=30-00:00:00
 #SBATCH --cpus-per-task=8
-# Lazy bags (indices only) keep host RAM low — 96G is enough to schedule on
-# mixed H200 nodes and avoid the old 64G OOM. Exclusive 4-GPU:
-#   sbatch --gres=gpu:h200:4 --mem=400G --cpus-per-task=16 ...
 #SBATCH --mem=96G
 #SBATCH --gres=gpu:h200:2
 #SBATCH --requeue
@@ -67,30 +60,30 @@ export TORCH_CUDNN_ENABLED="${TORCH_CUDNN_ENABLED:-0}"
 EPOCHS="${1:-100}"
 RESUME="${2:-}"
 NGPU="${SLURM_GPUS_ON_NODE:-${SLURM_JOB_NUM_GPUS:-2}}"
-RUN_TAG="${RUN_TAG:-opt3_grouped_soft01_benign}"
+RUN_TAG="${RUN_TAG:-opt3_omar6_grouped_soft01}"
 UNI2_CKPT="${UNI2_CKPT:-${PANDA_PROJECT}/assets/ckpts/uni2-h/pytorch_model.bin}"
 LAMBDA_SLIDE="${LAMBDA_SLIDE:-0.3}"
 LAMBDA_GRADE="${LAMBDA_GRADE:-0.3}"
 MICRO_BS="${MICRO_BS:-4}"
+LIVE_PATCHES="${LIVE_PATCHES:-64}"
 SLIDES_PER_EPOCH="${SLIDES_PER_EPOCH:-256}"
-FREEZE_EPOCHS="${FREEZE_EPOCHS:-5}"
+FREEZE_EPOCHS="${FREEZE_EPOCHS:-100}"
 MAX_VAL_PATCHES="${MAX_VAL_PATCHES:-20000}"
-# 160 ≈ covers median 119; caps worst-case 323 for speed. Set 0 = no cap.
-MAX_PATCHES_PER_SLIDE="${MAX_PATCHES_PER_SLIDE:-160}"
+# Omar-6: no patch cap
+MAX_PATCHES_PER_SLIDE="${MAX_PATCHES_PER_SLIDE:-0}"
 ADJ_SOFT="${ADJ_SOFT:-0.1}"
 INCLUDE_BENIGN_SOFT="${INCLUDE_BENIGN_SOFT:-1}"
 CKPT_DIR="${PANDA_PROJECT}/outputs/checkpoints/uni2_upernet_raw_${RUN_TAG}"
 LATEST="${CKPT_DIR}/latest.pth"
 
-# Prefer explicit $2; else auto-resume so 2↔4 GPU upgrades never restart from scratch.
 if [[ -z "${RESUME}" && -f "${LATEST}" ]]; then
   RESUME="${LATEST}"
   echo "Auto-resume from ${RESUME}"
 fi
 
-echo "=== $(date) | OPTION 3 slide-bag | ${NGPU}x H200 | tag=${RUN_TAG} ==="
-echo "λ_slide=${LAMBDA_SLIDE} λ_grade=${LAMBDA_GRADE} micro_bs=${MICRO_BS} slides/ep=${SLIDES_PER_EPOCH}"
-echo "adj_soft=${ADJ_SOFT} include_benign_soft=${INCLUDE_BENIGN_SOFT} max_patches/slide=${MAX_PATCHES_PER_SLIDE} resume=${RESUME:-none} lazy=1"
+echo "=== $(date) | Omar-6 Opt3 | ${NGPU}x H200 | tag=${RUN_TAG} ==="
+echo "λ_slide=${LAMBDA_SLIDE} λ_grade=${LAMBDA_GRADE} micro_bs=${MICRO_BS} live=${LIVE_PATCHES} slides/ep=${SLIDES_PER_EPOCH}"
+echo "adj_soft=${ADJ_SOFT} benign_soft=${INCLUDE_BENIGN_SOFT} max_patches/slide=${MAX_PATCHES_PER_SLIDE} min_area=0 min_patches=5 save=EVERY_EPOCH resume=${RESUME:-none}"
 
 CMD=(
   torchrun --standalone --nproc_per_node="${NGPU}"
@@ -101,18 +94,24 @@ CMD=(
   --lambda-slide "${LAMBDA_SLIDE}"
   --lambda-grade "${LAMBDA_GRADE}"
   --micro-batch-size "${MICRO_BS}"
+  --live-patches "${LIVE_PATCHES}"
   --slides-per-epoch "${SLIDES_PER_EPOCH}"
   --freeze-backbone-epochs "${FREEZE_EPOCHS}"
+  --decode-norm gn
   --max-val-patches "${MAX_VAL_PATCHES}"
   --adjacent-soft-alpha "${ADJ_SOFT}"
   --min-slide-patches 5
   --min-area-pct 0.0
   --ckpt-every-slides 8
+  --save-every 1
+  --keep-checkpoints 0
   --grad-clip 1.0
   --num-workers 4
   --amp
   --augment
   --allow-missing-h5
+  --lora
+  --lambda-slide-warmup
 )
 if [[ "${INCLUDE_BENIGN_SOFT}" == "1" || "${INCLUDE_BENIGN_SOFT}" == "true" ]]; then
   CMD+=(--include-benign-soft)
