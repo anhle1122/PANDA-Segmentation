@@ -7,6 +7,15 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## Omar-6 pixel referee (proposed 2026-08-15)
+
+| | |
+|--|--|
+| **Why** | Between-round pseudo labels should only rewrite pixels the teacher is unsure about and that ISUP forbids. |
+| **What** | Teacher softmax+argmax vs expert mask. Flag if pred≠mask AND maxprob &lt; τ AND pred ∈ {3,4,5} ∉ clinical {primary, secondary}. Target = nearest allowed cancer grade. High-conf and legal-grade disagreements stay. ISUP-0 skip. |
+| **Result** | Cannot run on ep7: no `epoch_007` / overwritten `best.pth`. Named files: ep5 / ep10 / ep15 only. Part2 B (older run): pred≠mask is **80% high-conf**, so this gate is conservative. |
+| **Decision** | Lock this rule. Need a named teacher (ep15 stand-in or a later saved epoch that beats PANDA+) + a τ (default candidate 0.7 from Part2). Do not use dropping ep16–18. |
+
 ## Active defaults (current)
 
 | Item | Value |

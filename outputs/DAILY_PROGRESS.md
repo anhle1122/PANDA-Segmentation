@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-15
 
+- **20:41 PDT** | **Pseudo-label rule: ISUP referee on low-conf illegal grades** | Build between-round corrections from this run | Flag pixels that **disagree with the expert mask** and are **not confident**, then if pred ∈ {G3,G4,G5} is **not in clinical Gleason {P,S}**, retarget to the **nearest allowed** grade. Do not rewrite high-conf pixels or legal-grade fights. ISUP-0 skip. **Blocker: ep7 weights gone** — no `epoch_007`; closest same-run file is ep15. Live **5443101** untouched.
+
 - **20:21 PDT** | **Committed Omar-6 + every-epoch saver** | Wipe + every-5 lost src and ep6/7 | Restored 74 wiped tracked files from HEAD, then committed trainer/slurm/rules/sidecar. Recipe locked: α=0.1 benign↔G3–G5, min_area=0, n≥5, LoRA+GN, live=64, λ_slide warmup, **save every epoch (never every-5)**. Commit-on-run: commit before/after every Slurm submit. Live **5443101** still old in-memory saver; sidecar copies. Do not scancel it.
 
 - **19:19 PDT** | **PANDA+ gland ISUP ep15 DONE** | Same thr=0 / gt≥2 as ep7 | **5444921** L40S. Primary **32/48 (66.7%)**, both **24/48 (50%)**, ISUP **25/48 (52.1%)**. Weaker than ep7 77.1 / 62.5. CSV: `outputs/pseudo_label/panda_plus_gland_isup_omar6_ep15_thr0.csv`. Dice **5444920** still R.
