@@ -7,6 +7,15 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## Detect-only watcher + teacher selector (2026-08-15)
+
+| | |
+|--|--|
+| **Why** | Need a standing detect/select loop that does not cache baseline epochs or require terminal babysitting. |
+| **What** | Replaced old watcher **5444967** with config-driven **5444985**, `AUTO_SUBMIT=0`, file log `outputs/pseudo_label/watcher_detect.log`. Selector `scripts/select_teacher_epoch.py`: val cancer ≥0.579, L_slide ≤ value 3 epochs prior, G5 precision within 0.03 of ep7 0.569370, and a surviving `epoch_XXX_*.pth`. Watcher re-runs the selector on every new DETECT. Ep15 pack stays on **5444966**; **5444986** (`afterok`) will move it to `validation_only/teacher_ep015/` and run referee with `--allow-validation-only`. Referee now refuses `VALIDATION_ONLY` packs by default and surfaces G5-swap vs original-mask G5 share (no block). |
+| **Result** | Baseline frozen **ep5/10/15/19** (not enqueued). Selector: **NO_CANDIDATE**. Latest ep19 val cancer 0.545 (gap 0.034); L_slide 1.351 falling ok; G5 precision missing. Ep7 HISTORICAL_ONLY (weights gone). Ep15 keepable but G5 precision 0.496 is outside 0.03 of 0.569. Tests ALL_PASS. Commit `4519890`. |
+| **Decision** | Do not cache a production teacher until the selector prints `CANDIDATE`. Give the live run through **ep22** before changing λ_slide. Eyeball G5-bias numbers on the ep15 validation correction before picking a gate. |
+
 ## Watcher + corrected-label wiring (2026-08-15)
 
 | | |
@@ -14,7 +23,7 @@ Format: **Why → What → Result → Decision**
 | **Why** | Between-round loop was tools-only: watcher hardcoded one tag and train could not read referee h5. |
 | **What** | Multi-target JSON watcher (new-epochs-only, single L40S queue, AUTO_SUBMIT default off). `RefereeCorrectedPatchDataset` + `apply_pixel_ignore`. Stub tests pass. Train Slurm / live watcher **not** switched yet. |
 | **Result** | `scripts/test_corrected_label_source.py` ALL_PASS. |
-| **Decision** | Flip AUTO_SUBMIT only after replacing job **5444967**. Wire `--label-source corrected` into train only after a finished correction dir. |
+| **Decision** | Replaced **5444967** with **5444985**. Keep AUTO_SUBMIT off until a selector candidate exists. |
 
 ## Omar-6 r2 fresh train queued (2026-08-15)
 

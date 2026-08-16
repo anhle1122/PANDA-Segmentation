@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-15
 
+- **22:21 PDT** | **Detect-only watcher + selector + ep15 validation path** | Between-round loop without babysitting | Killed old watcher **5444967** only. New watcher **5444985** (`AUTO_SUBMIT=0`, log `outputs/pseudo_label/watcher_detect.log`). Live tag baseline **frozen ep5/10/15/19** (not enqueued). Selector `scripts/select_teacher_epoch.py` is read-only; watcher re-runs it on every new DETECT. **NO_CANDIDATE** now: ep19 val cancer **0.545** (need 0.579, gap 0.034); L_slide 1.351 falling ok; G5 precision missing. Ep7 is HISTORICAL_ONLY (weights gone). Ep15 cache **5444966** still R; on completion **5444986** moves it to `outputs/pseudo_label/validation_only/teacher_ep015/` + referee test → `corrections_validation_ep015/`. Referee now refuses `VALIDATION_ONLY` packs unless `--allow-validation-only`, and prints G5-swap vs mask-G5 share (no block). Live **5443101** / cache **5444966** untouched. Commit `4519890`.
+
 - **22:05 PDT** | **Watcher multi-tag + corrected-label path (not live-wired)** | Finish between-round gaps #3/#4 | Config `scripts/teacher_watch_targets.json` (live + r2). New-epochs-only, one L40S queue, `AUTO_SUBMIT` still off. Dataset `label_source=corrected` + `apply_pixel_ignore`. Stub tests `scripts/test_corrected_label_source.py` ALL_PASS. Did **not** restart watcher or change train Slurm. Live **5443101** / **5444966** untouched.
 
 - **21:26 PDT** | **Queued fresh Omar-6 2×H200 (new tag)** | Hunt a keepable early peak; live run stays up | Cancelled **PENDING** 4× **5443098** only (same-tag upgrade; frees QoS). Submitted **5444968** `opt3_r2_2xh200` tag `opt3_omar6_r2_everyep`, cold start, every-epoch save. PENDING (Priority). Live **5443101** still R on `cp098`. Ckpt dir: `outputs/checkpoints/uni2_upernet_raw_opt3_omar6_r2_everyep/`.
@@ -39,10 +41,12 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 - **13:37 PDT** | **2×H200 Opt3 RUNNING `cp098`** | nguyend29 bash ended | **5443101** R, resume `latest.pth` (ep16 slide 16). Tag `opt3_omar6_grouped_soft01`. 4× **5443098** still PD.
 
 ### Open tonight / tomorrow
-- [ ] Read ep15 PANDA+ Dice + gland ISUP vs ep7 (0.587 / 77.1% / 62.5%)
 - [ ] Leave **5443101** running (do not scancel)
 - [ ] Fresh **5444968** is a **new tag** — do not point it at the live ckpt dir
-- [ ] Next new best must write a dated `epoch_XXX_*.pth`, not only `best.pth`
+- [ ] Production teacher cache stays blocked until `select_teacher_epoch.py` prints `CANDIDATE`
+- [ ] After **5444966** finishes, confirm **5444986** wrote `VALIDATION_ONLY` + G5-bias summary
+- [ ] λ_slide intervene only after **ep22** if val cancer still &lt;0.579 and L_slide still falling
+- [x] Restart detect-only watcher; log detections to file
 - [x] Commit Omar-6 + every-epoch saver; commit before every future run
 
 ---
