@@ -1,0 +1,17 @@
+{
+  "pack_root": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label",
+  "cache_script": "/common/omarmlab/members/anh/panda_project/scripts/slurm_cache_teacher_pack.sh",
+  "state_file": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/watcher_state.json",
+  "targets": [
+    {
+      "tag": "opt3_omar6_grouped_soft01",
+      "ckpt_dir": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01",
+      "teacher_pack_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label"
+    },
+    {
+      "tag": "opt3_omar6_r2_everyep",
+      "ckpt_dir": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_r2_everyep",
+      "teacher_pack_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label"
+    }
+  ]
+}

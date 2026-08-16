@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-15
 
+- **22:05 PDT** | **Watcher multi-tag + corrected-label path (not live-wired)** | Finish between-round gaps #3/#4 | Config `scripts/teacher_watch_targets.json` (live + r2). New-epochs-only, one L40S queue, `AUTO_SUBMIT` still off. Dataset `label_source=corrected` + `apply_pixel_ignore`. Stub tests `scripts/test_corrected_label_source.py` ALL_PASS. Did **not** restart watcher or change train Slurm. Live **5443101** / **5444966** untouched.
+
 - **21:26 PDT** | **Queued fresh Omar-6 2×H200 (new tag)** | Hunt a keepable early peak; live run stays up | Cancelled **PENDING** 4× **5443098** only (same-tag upgrade; frees QoS). Submitted **5444968** `opt3_r2_2xh200` tag `opt3_omar6_r2_everyep`, cold start, every-epoch save. PENDING (Priority). Live **5443101** still R on `cp098`. Ckpt dir: `outputs/checkpoints/uni2_upernet_raw_opt3_omar6_r2_everyep/`.
 
 - **21:18 PDT** | **Ep19 done; sidecar kept it** | First every-epoch copy off the live run | Val cancer **0.545** (up from ep18 0.460; still below ep15 0.579 / ep7 0.608). File `epoch_019_cancer_0.5452.pth`. **5443101** now mid-ep20. Live trainer still every-5; sidecar wrote this one (Δ=7.5s).

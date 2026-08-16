@@ -17,4 +17,8 @@ module load miniconda3/23.11.0-2
 source /apps/miniconda/23.11.0-2/etc/profile.d/conda.sh
 conda activate wsi_seg
 echo "=== $(date) | watch teacher packs AUTO_SUBMIT=${AUTO_SUBMIT:-0} ==="
-python -u scripts/watch_opt3_teacher_packs.py
+# Default AUTO_SUBMIT=0: detect/enqueue only. New-epochs-only, one L40S queue.
+python -u scripts/watch_opt3_teacher_packs.py \
+  --config "${PANDA_PROJECT}/scripts/teacher_watch_targets.json" \
+  --interval-sec "${INTERVAL_SEC:-60}" \
+  $( [[ "${AUTO_SUBMIT:-0}" == "1" ]] && echo --auto-submit || echo --no-auto-submit )

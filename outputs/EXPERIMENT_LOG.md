@@ -7,6 +7,15 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## Watcher + corrected-label wiring (2026-08-15)
+
+| | |
+|--|--|
+| **Why** | Between-round loop was tools-only: watcher hardcoded one tag and train could not read referee h5. |
+| **What** | Multi-target JSON watcher (new-epochs-only, single L40S queue, AUTO_SUBMIT default off). `RefereeCorrectedPatchDataset` + `apply_pixel_ignore`. Stub tests pass. Train Slurm / live watcher **not** switched yet. |
+| **Result** | `scripts/test_corrected_label_source.py` ALL_PASS. |
+| **Decision** | Flip AUTO_SUBMIT only after replacing job **5444967**. Wire `--label-source corrected` into train only after a finished correction dir. |
+
 ## Omar-6 r2 fresh train queued (2026-08-15)
 
 | | |

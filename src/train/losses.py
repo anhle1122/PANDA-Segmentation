@@ -330,6 +330,26 @@ def segmentation_loss(
     return ce_weight * ce_loss + dice_weight * dice_loss
 
 
+def apply_pixel_ignore(
+    targets: Tensor,
+    weight_map: Tensor,
+    ignore: Tensor,
+    *,
+    ignore_index: int = 0,
+) -> tuple[Tensor, Tensor]:
+    """Zero CE weight and map ignored pixels to ``ignore_index`` for Dice.
+
+    Does not mutate inputs. ``ignore`` is true where the referee said
+    low-conf disagree (loss mask = 0).
+    """
+    ign = ignore.bool()
+    if ign.ndim == targets.ndim - 0 and ign.shape != targets.shape:
+        raise ValueError(f"ignore shape {tuple(ignore.shape)} != targets {tuple(targets.shape)}")
+    new_w = weight_map.masked_fill(ign, 0)
+    new_t = targets.masked_fill(ign, ignore_index)
+    return new_t, new_w
+
+
 def oeem_weight_map_global(per_pixel_loss: Tensor, *, ignore_mask: Tensor | None = None) -> Tensor:
     """Published OEEM \(W_{l\_norm}\) (Li et al. MICCAI 2022) — global over H×W.
 
