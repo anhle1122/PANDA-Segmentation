@@ -207,14 +207,40 @@ def train(args: argparse.Namespace) -> None:
             },
             {"params": list(core.grade_head.parameters()), "lr": lr},
         ]
-        if backbone_on:
-            bb = [p for p in core.seg.backbone_parameters() if p.requires_grad]
-            if bb:
-                groups.append({"params": bb, "lr": lr * args.backbone_lr_mult})
+        # Frozen UNI2: still step LoRA A/B (requires_grad=True). Full backbone
+        # only joins when unfrozen (backbone_on), at backbone_lr_mult.
+        bb = [p for p in core.seg.backbone_parameters() if p.requires_grad]
+        if bb:
+            groups.append(
+                {
+                    "params": bb,
+                    "lr": lr if not backbone_on else lr * args.backbone_lr_mult,
+                }
+            )
         return torch.optim.AdamW(groups, lr=lr, weight_decay=args.weight_decay)
 
     backbone_frozen = args.freeze_backbone_epochs > 0
     optimizer = _build_optim(args.lr, backbone_on=not backbone_frozen)
+    if is_main_process(rank) and getattr(args, "lora", False):
+        from train.lora_vit import LoRALinear, lora_parameter_stats
+
+        stats = lora_parameter_stats(unwrap_model(model).seg.backbone)
+        lora_ids = {
+            id(p)
+            for m in unwrap_model(model).seg.backbone.modules()
+            if isinstance(m, LoRALinear)
+            for p in (m.lora_A, m.lora_B)
+        }
+        n_lora_opt = sum(
+            p.numel()
+            for g in optimizer.param_groups
+            for p in g["params"]
+            if id(p) in lora_ids
+        )
+        print(
+            f"LoRA QKV wraps stats={stats} | lora_params_in_optimizer={n_lora_opt} "
+            f"| proj_outside_no_grad=1 | frozen={backbone_frozen}"
+        )
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, T_max=max(1, args.epochs), eta_min=args.lr * 0.01
     )
@@ -244,6 +270,7 @@ def train(args: argparse.Namespace) -> None:
                     "L_slide",
                     "L_grade",
                     "lr",
+                    "soft_hard_isup_agree",
                 ]
             )
 
@@ -286,6 +313,8 @@ def train(args: argparse.Namespace) -> None:
         t0 = time.time()
         running = {"loss": 0.0, "pixel": 0.0, "slide": 0.0, "grade": 0.0, "n": 0}
         n_slides = 0
+        isup_agree = 0
+        isup_cmp_n = 0
 
         def _bn_safe(t: torch.Tensor) -> tuple[torch.Tensor, int]:
             """BatchNorm (train) needs N>1; duplicate a singleton patch if needed."""
@@ -405,9 +434,12 @@ def train(args: argparse.Namespace) -> None:
                             mean_live.device
                         )
                         mean_probs = 0.5 * mean_live + 0.5 * bag_mean
-                        l_slide, _ = derived_isup_ce_from_seg_probs(
+                        l_slide, hard_isup, soft_isup = derived_isup_ce_from_seg_probs(
                             mean_probs, isup, min_area_pct=args.min_area_pct
                         )
+                        isup_cmp_n += 1
+                        if int(soft_isup) == int(hard_isup):
+                            isup_agree += 1
 
                         feat_bag = torch.cat(feat_chunks, dim=0).mean(dim=0)
                         feat_mix = 0.5 * feats_g.mean(dim=0) + 0.5 * feat_bag
@@ -496,6 +528,7 @@ def train(args: argparse.Namespace) -> None:
         mean_dice = float(metrics.get("mean_dice", 0.0))
         train_loss = running["loss"] / max(1, running["n"])
         val_loss = val_loss_sum / max(1, val_n)
+        soft_hard_agree = float(isup_agree) / max(1, isup_cmp_n)
         scheduler.step()
 
         if is_main_process(rank):
@@ -506,6 +539,7 @@ def train(args: argparse.Namespace) -> None:
                 f"slide={running['slide']/max(1,running['n']):.4f} "
                 f"grade={running['grade']/max(1,running['n']):.4f}) "
                 f"| val={val_loss:.4f} cancer={cancer:.4f} mean={mean_dice:.4f} "
+                f"| soft=hard_isup {isup_agree}/{isup_cmp_n} ({soft_hard_agree:.3f}) "
                 f"| {time.time()-t0:.0f}s"
             )
             with log_path.open("a", newline="") as f:
@@ -520,6 +554,7 @@ def train(args: argparse.Namespace) -> None:
                         f"{running['slide']/max(1,running['n']):.6f}",
                         f"{running['grade']/max(1,running['n']):.6f}",
                         lr,
+                        f"{soft_hard_agree:.6f}",
                     ]
                 )
             extra = {"best_cancer_dice": float(best_cancer)}

@@ -62,12 +62,35 @@ def aggregate_logsumexp_logits(logits_list: list[Tensor]) -> Tensor:
     return torch.logsumexp(all_pix, dim=1)
 
 
+def soft_isup_logits_from_seg_probs(mean_probs: Tensor) -> Tensor:
+    """Soft ISUP logits from a 6-class mean probability vector.
+
+    Uses **absolute** G3/G4/G5 masses (already a slice of a distribution that
+    sums to 1). Do not divide by cancer-only total — that would make a 1% and
+    a 90% tumor slide with the same grade mix share ISUP 1–5 logits.
+    """
+    p3 = mean_probs[3].clamp_min(0.0)
+    p4 = mean_probs[4].clamp_min(0.0)
+    p5 = mean_probs[5].clamp_min(0.0)
+    total = (p3 + p4 + p5).clamp(0.0, 1.0)
+    return torch.stack(
+        [
+            (1.0 - total) * 4.0,
+            p3 * 3.0 - p4 - p5,
+            p3 * 2.0 + p4 * 1.5 - p5,
+            p4 * 2.0 + p3 * 1.0 - p5 * 0.5,
+            p4 * 2.0 + p5 * 1.5 + p3 * 0.5,
+            p5 * 3.0 + p4 * 1.0,
+        ]
+    )
+
+
 def derived_isup_ce_from_seg_probs(
     mean_probs: Tensor,
     clinician_isup: int | Tensor,
     *,
     min_area_pct: float = 0.0,
-) -> tuple[Tensor, int]:
+) -> tuple[Tensor, int, int]:
     """Slide-level CE using a soft proxy of derive_grade on mean class probs.
 
     Hard derived ISUP (for logging) uses the same ``derive_grade`` as the
@@ -75,36 +98,17 @@ def derived_isup_ce_from_seg_probs(
     soft distribution built from cancer-class masses (G3/G4/G5), so gradients
     flow into the segmentation head.
 
-    Note: the soft CE path does **not** apply ``min_area_pct``; that gate only
-    affects the hard ``derive_grade`` used for logging (Omar: default 0.0).
+    Omar point 6: keep absolute tumor burden; compare soft argmax to hard
+    ``derive_grade``. ``min_area_pct`` only affects the hard log path.
     """
-    # mean_probs: (C,) with C=6
-    cancer = mean_probs[3:6].clamp_min(1e-8)
-    total = cancer.sum()
-    frac = cancer / total  # (3,)
-
-    # Soft scores for ISUP groups via a fixed linear map of [f3,f4,f5]:
-    # ISUP0 ~ no cancer (handled separately), 1≈3+3, 2≈3+4, 3≈4+3, 4≈4+4/3+5/5+3, 5≈…+5
-    # Use a small differentiable energy: higher mass on higher grades → higher ISUP.
-    f3, f4, f5 = frac[0], frac[1], frac[2]
-    # Unnormalized logits for ISUP 0..5
-    soft_logits = torch.stack(
-        [
-            (1.0 - total) * 4.0,                          # 0: little cancer
-            f3 * 3.0 - f4 - f5,                           # 1: 3+3-ish
-            f3 * 2.0 + f4 * 1.5 - f5,                     # 2: 3+4-ish
-            f4 * 2.0 + f3 * 1.0 - f5 * 0.5,               # 3: 4+3-ish
-            f4 * 2.0 + f5 * 1.5 + f3 * 0.5,               # 4
-            f5 * 3.0 + f4 * 1.0,                          # 5
-        ]
-    )
+    soft_logits = soft_isup_logits_from_seg_probs(mean_probs)
     target = torch.as_tensor(int(clinician_isup), device=mean_probs.device, dtype=torch.long)
     loss = F.cross_entropy(soft_logits.unsqueeze(0), target.unsqueeze(0))
+    soft_isup = int(soft_logits.detach().argmax().item())
 
     counts = (mean_probs.detach().cpu().numpy() * 1_000_000).astype("int64")
-    # fake pixel counts proportional to probs for derive_grade
     _, hard_isup = derive_grade(counts, min_area_pct=min_area_pct)
-    return loss, int(hard_isup)
+    return loss, int(hard_isup), soft_isup
 
 
 def grade_head_ce(logits: Tensor, clinician_isup: int | Tensor) -> Tensor:

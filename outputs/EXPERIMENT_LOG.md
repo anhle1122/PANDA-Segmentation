@@ -7,6 +7,24 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## Omar-6 LoRA / proj / soft-ISUP wiring (2026-08-16)
+
+| | |
+|--|--|
+| **Why** | Agreed recipe was LoRA + proj outside `no_grad` + live=64/ckpt + absolute-area soft ISUP. Flags were on; LoRA was not in the optimizer and sat under `no_grad`; proj was inside that block; soft ISUP renormalized by cancer-only total. n&lt;5 hard skip was already correct. |
+| **What** | Split backbone maps vs 1×1 proj. Skip backbone `no_grad` when LoRA is trainable. Put LoRA A/B in AdamW at the main LR while UNI2 stays frozen. Soft ISUP uses absolute p3/p4/p5; epoch log `soft_hard_isup_agree`. |
+| **Result** | `scripts/test_omar6_wiring.py` OMAR6_WIRING_OK (1% vs 90% same ratio no longer share ISUP 1–5 logits). Live **5443101** unchanged. PENDING **5445233** will load this from disk at start. |
+| **Decision** | Do not scancel live. Do not resubmit r2 unless it starts on old code (it should not — Python is read at runtime). |
+
+## Live 5443101 launch-config diagnostic (2026-08-16)
+
+| | |
+|--|--|
+| **Why** | Need the config the live process loaded at 13:37 PDT Aug 15, not current disk trainer. |
+| **What** | Read-only parse of `logs/train_opt3_slidebag_5443101.out` + `training_log.csv` + val subsample. Wrote `outputs/docs/opt3_this_run/scorecard_lr_warmup.csv` (LR + λ_slide state beside Dice/L_slide for every epoch). |
+| **Result** | LR = CosineAnnealingLR T_max=100, eta_min=1e-6, **no LR warmup**; ep19 = 9.14e-5 (91% of 1e-4). `--lambda-slide-warmup` is λ_slide only (0 ep1–5, full 0.3 from ep10). Pixel micro=4; ISUP live still **4** in-memory despite `--live-patches 64`. Val cancer Dice uses a **fixed** 20k-patch / 472-slide subset (seed 42 of 55,516). Ep7 PANDA cancer Dice 0.608 vs PANDA+ 0.587; PANDA+ ISUP 30/48 (62.5%); in-domain PANDA ISUP never scored. |
+| **Decision** | ep18→ep19 Dice jump is a model swing, not val-set noise. Do not restart 5443101. |
+
 ## Omar-6 r2 live=64+ckpt resubmit (2026-08-16)
 
 | | |

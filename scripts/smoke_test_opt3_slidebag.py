@@ -52,9 +52,9 @@ def main() -> None:
     logits = [torch.randn(2, 6, 8, 8), torch.randn(1, 6, 8, 8)]
     mean_p = aggregate_softmax_probs(logits)
     assert mean_p.shape == (6,)
-    loss, hard = derived_isup_ce_from_seg_probs(mean_p, int(bag["isup"]))
-    assert loss.ndim == 0 and 0 <= hard <= 5
-    print("derived_isup loss", float(loss), "hard", hard)
+    loss, hard, soft = derived_isup_ce_from_seg_probs(mean_p, int(bag["isup"]))
+    assert loss.ndim == 0 and 0 <= hard <= 5 and 0 <= soft <= 5
+    print("derived_isup loss", float(loss), "hard", hard, "soft", soft)
 
     head = ISUPGradeHead(32)
     g = head(torch.randn(32))

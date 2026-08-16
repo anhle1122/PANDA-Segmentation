@@ -12,6 +12,10 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-16
 
+- **12:56 PDT** | **Wired agreed Omar 4 / 5a / 6 on disk for r2** | LoRA was wrapped but not stepped; proj sat in `no_grad`; soft ISUP dropped tumor burden | Disk trainer now: LoRA A/B in AdamW while UNI2 stays frozen; 1×1 proj **outside** `no_grad`; `L_slide` uses absolute G3/G4/G5 masses + logs soft vs hard ISUP. n&lt;5 skip was already correct (L_seg only). **5445233** still PD — will load this at start. Live **5443101** untouched (in-memory). Test `scripts/test_omar6_wiring.py` OMAR6_WIRING_OK.
+
+- **12:35 PDT** | **Read-only pull of live 5443101 launch config + ep7 PANDA vs PANDA+** | Need LR/warmup/batch/val-size next to Dice, not current-repo trainer | Cosine LR (no LR warmup) already decaying: ep19 **9.14e-5** (91% of 1e-4). λ_slide warmup done since ep10. Pixel micro **4**; ISUP still **4** in-memory (flag 64 not wired). Val cancer = fixed **20k patches / 472 slides** (seed 42) → ep18 0.460→ep19 0.545 is a real model swing, not val resampling. Ep7: PANDA Dice **0.608** vs PANDA+ **0.587**; PANDA+ ISUP **30/48 (62.5%)**; in-domain PANDA ISUP never run. Tables: `outputs/docs/opt3_this_run/scorecard_lr_warmup.csv`, `live_5443101_launch_config.md`. Live job not touched.
+
 - **12:29 PDT** | **r2 resubmit: live=64 + grad-checkpoint** | Failed r2 OOMd because live-64 FPN had no ckpt | Job **5445233** `opt3_r2_live64` tag `opt3_omar6_r2_live64ckpt`, 2×H200, 3-day wall, PD (Priority). live=64, chunk=8, `--grad-checkpoint`. Ckpt dir `outputs/checkpoints/uni2_upernet_raw_opt3_omar6_r2_live64ckpt/`. Live **5443101** untouched. Commit `a7f2d23`.
 
 - **12:11 PDT** | **Restored 120 wiped tracked files; pushing origin** | Worktree delete at 12:04 PDT (HEAD still `5030ee7`, 10 commits unpushed) | `git restore` of deleted tracked files. Checkpoints were **not** wiped (`epoch_020`–`026` still on disk). Do **not** git-add `*.pth` (~4.7G each; GitHub will reject). Push the 10 local commits + this log so the next wipe is recoverable from origin. Live **5443101** untouched.
@@ -21,7 +25,7 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 ### Open tonight / tomorrow
 - [ ] Leave **5443101** running (do not scancel)
 - [ ] Restore+push done; do not git-add `outputs/checkpoints/*.pth`
-- [ ] r2 live=64+ckpt queued — confirm it is R and not OOM on bag 1
+- [ ] r2 **5445233** still PD — confirm at start: `lora_params_in_optimizer>0`, `proj_outside_no_grad`, live=64, no OOM on bag 1
 - [ ] Production teacher cache stays blocked until `select_teacher_epoch.py` prints `CANDIDATE`
 - [x] Ep15 pack relabeled validation-only; referee G5 summary written
 - [ ] Past ep22: val cancer still &lt;0.579 — λ_slide call still open

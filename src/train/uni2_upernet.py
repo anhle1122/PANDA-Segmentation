@@ -311,12 +311,29 @@ class UNI2UPerNet(nn.Module):
     def freeze_backbone(self) -> None:
         for p in self.backbone.parameters():
             p.requires_grad = False
+        # LoRA A/B must stay trainable while the UNI2 base stays frozen.
+        from train.lora_vit import LoRALinear
+
+        for m in self.backbone.modules():
+            if isinstance(m, LoRALinear):
+                for p in m.base.parameters():
+                    p.requires_grad = False
+                m.lora_A.requires_grad = True
+                m.lora_B.requires_grad = True
         self.backbone.eval()
         self._backbone_frozen = True
 
     def unfreeze_backbone(self) -> None:
         for p in self.backbone.parameters():
             p.requires_grad = True
+        from train.lora_vit import LoRALinear
+
+        for m in self.backbone.modules():
+            if isinstance(m, LoRALinear):
+                for p in m.base.parameters():
+                    p.requires_grad = False
+                m.lora_A.requires_grad = True
+                m.lora_B.requires_grad = True
         self.backbone.train()
         self._backbone_frozen = False
 
@@ -351,8 +368,11 @@ class UNI2UPerNet(nn.Module):
         x = F.pad(x, (0, pad_w, 0, pad_h), mode="constant", value=0.0)
         return x, (h, w)
 
-    def _extract_pyramid(self, x: torch.Tensor) -> list[torch.Tensor]:
-        # Tokens shaped (B, N_patch, C) after stripping prefix tokens.
+    def _backbone_has_trainable(self) -> bool:
+        return any(p.requires_grad for p in self.backbone.parameters())
+
+    def _spatial_maps_from_backbone(self, x: torch.Tensor) -> list[torch.Tensor]:
+        """ViT intermediate maps only — no 1×1 projections (Omar 5a)."""
         feats = self.backbone.get_intermediate_layers(
             x,
             n=self.out_indices,
@@ -362,9 +382,15 @@ class UNI2UPerNet(nn.Module):
         b, _, h, w = x.shape
         gh, gw = h // self.patch_size, w // self.patch_size
         maps: list[torch.Tensor] = []
-        for feat, proj, scale in zip(feats, self.projections, self.scale_factors):
-            # feat: (B, gh*gw, C)
+        for feat in feats:
             fm = feat.reshape(b, gh, gw, -1).permute(0, 3, 1, 2).contiguous()
+            maps.append(fm)
+        return maps
+
+    def _project_pyramid(self, spatial: list[torch.Tensor]) -> list[torch.Tensor]:
+        """1×1 FPN adapters + scale — always outside backbone no_grad."""
+        maps: list[torch.Tensor] = []
+        for fm, proj, scale in zip(spatial, self.projections, self.scale_factors):
             fm = proj(fm)
             if scale != 1:
                 fm = F.interpolate(
@@ -372,6 +398,9 @@ class UNI2UPerNet(nn.Module):
                 )
             maps.append(fm)
         return maps
+
+    def _extract_pyramid(self, x: torch.Tensor) -> list[torch.Tensor]:
+        return self._project_pyramid(self._spatial_maps_from_backbone(x))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         logits, _ = self.forward_with_features(x)
@@ -385,11 +414,14 @@ class UNI2UPerNet(nn.Module):
             feats:  (B, fpn_channels[-1]) global-average-pooled deepest map
         """
         x_in, (orig_h, orig_w) = self._pad_to_model_size(x)
-        if self._backbone_frozen:
+        # Omar 5a: projections always train. Frozen UNI2 may run under no_grad
+        # only when nothing in the backbone needs grads (no LoRA).
+        if self._backbone_frozen and not self._backbone_has_trainable():
             with torch.no_grad():
-                maps = self._extract_pyramid(x_in)
+                spatial = self._spatial_maps_from_backbone(x_in)
         else:
-            maps = self._extract_pyramid(x_in)
+            spatial = self._spatial_maps_from_backbone(x_in)
+        maps = self._project_pyramid(spatial)
         # Deepest projected map for slide-level grade features
         feats = maps[-1].mean(dim=(2, 3))
         logits = self.decode_head(maps)
