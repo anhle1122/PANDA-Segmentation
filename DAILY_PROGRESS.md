@@ -12,7 +12,7 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-16
 
-- **12:26 PDT** | **r2 resubmit: live=64 + grad-checkpoint** | Failed r2 OOMd because live-64 FPN had no ckpt | Trainer: backbone `set_grad_checkpointing`, live bag still **64** patches but forwarded in chunks of **8** (grads via cat). New tag `opt3_omar6_r2_live64ckpt` (not the dead `r2_everyep` dir). Live **5443101** untouched.
+- **12:29 PDT** | **r2 resubmit: live=64 + grad-checkpoint** | Failed r2 OOMd because live-64 FPN had no ckpt | Job **5445233** `opt3_r2_live64` tag `opt3_omar6_r2_live64ckpt`, 2×H200, 3-day wall, PD (Priority). live=64, chunk=8, `--grad-checkpoint`. Ckpt dir `outputs/checkpoints/uni2_upernet_raw_opt3_omar6_r2_live64ckpt/`. Live **5443101** untouched. Commit `a7f2d23`.
 
 - **12:11 PDT** | **Restored 120 wiped tracked files; pushing origin** | Worktree delete at 12:04 PDT (HEAD still `5030ee7`, 10 commits unpushed) | `git restore` of deleted tracked files. Checkpoints were **not** wiped (`epoch_020`–`026` still on disk). Do **not** git-add `*.pth` (~4.7G each; GitHub will reject). Push the 10 local commits + this log so the next wipe is recoverable from origin. Live **5443101** untouched.
 

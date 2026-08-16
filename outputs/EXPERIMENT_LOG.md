@@ -13,7 +13,7 @@ Format: **Why → What → Result → Decision**
 |--|--|
 | **Why** | **5444968** OOMd on a single 64-patch UPerNet FPN cat. Aug 1 Opt3 used live=64 **with** `--grad-checkpoint`. |
 | **What** | Backbone `set_grad_checkpointing(True)`. Live ISUP still n=64; forward in chunks of 8 so FPN never sees 64 at once; cat keeps grads on all 64. New tag `opt3_omar6_r2_live64ckpt`. |
-| **Result** | Submitted after commit+push. Live **5443101** not cancelled. |
+| **Result** | Job **5445233** PENDING (Priority). Live **5443101** not cancelled. Commit `a7f2d23` on origin. |
 | **Decision** | This is the r2 recipe. Do not run live=64 without ckpt/chunking. |
 
 ## Worktree wipe + origin push (2026-08-16)
