@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Omar-6 Option 3 (locked recipe). Every epoch writes epoch_XXX_cancer_Y.pth.
 #   L = L_pixel + λ_slide * L_slide + λ_grade * L_grade
-#   α=0.1 benign↔G3↔G4↔G5; min_area_pct=0; n<5 hard-skip ISUP; LoRA+GN; live=64
+#   α=0.1 benign↔G3↔G4↔G5; min_area_pct=0; n<5 hard-skip ISUP; LoRA+GN; live=64+ckpt
 # Args: [epochs] [resume_checkpoint]
 #   sbatch --gres=gpu:h200:2 scripts/slurm_train_opt3_slidebag.sh
 #   sbatch --gres=gpu:h200:4 --mem=192G --cpus-per-task=16 scripts/slurm_train_opt3_slidebag.sh
@@ -66,6 +66,8 @@ LAMBDA_SLIDE="${LAMBDA_SLIDE:-0.3}"
 LAMBDA_GRADE="${LAMBDA_GRADE:-0.3}"
 MICRO_BS="${MICRO_BS:-4}"
 LIVE_PATCHES="${LIVE_PATCHES:-64}"
+LIVE_CHUNK="${LIVE_CHUNK:-8}"
+GRAD_CHECKPOINT="${GRAD_CHECKPOINT:-1}"
 SLIDES_PER_EPOCH="${SLIDES_PER_EPOCH:-256}"
 FREEZE_EPOCHS="${FREEZE_EPOCHS:-100}"
 MAX_VAL_PATCHES="${MAX_VAL_PATCHES:-20000}"
@@ -82,8 +84,8 @@ if [[ -z "${RESUME}" && -f "${LATEST}" ]]; then
 fi
 
 echo "=== $(date) | Omar-6 Opt3 | ${NGPU}x H200 | tag=${RUN_TAG} ==="
-echo "λ_slide=${LAMBDA_SLIDE} λ_grade=${LAMBDA_GRADE} micro_bs=${MICRO_BS} live=${LIVE_PATCHES} slides/ep=${SLIDES_PER_EPOCH}"
-echo "adj_soft=${ADJ_SOFT} benign_soft=${INCLUDE_BENIGN_SOFT} max_patches/slide=${MAX_PATCHES_PER_SLIDE} min_area=0 min_patches=5 save=EVERY_EPOCH resume=${RESUME:-none}"
+echo "CONFIG λ_slide=${LAMBDA_SLIDE} λ_grade=${LAMBDA_GRADE} micro_bs=${MICRO_BS} live=${LIVE_PATCHES} live_chunk=${LIVE_CHUNK} grad_checkpoint=${GRAD_CHECKPOINT} slides/ep=${SLIDES_PER_EPOCH}"
+echo "CONFIG adj_soft=${ADJ_SOFT} benign_soft=${INCLUDE_BENIGN_SOFT} max_patches/slide=${MAX_PATCHES_PER_SLIDE} min_area=0 min_patches=5 lora=1 decode_norm=gn save=EVERY_EPOCH resume=${RESUME:-none}"
 
 CMD=(
   torchrun --standalone --nproc_per_node="${NGPU}"
@@ -95,6 +97,7 @@ CMD=(
   --lambda-grade "${LAMBDA_GRADE}"
   --micro-batch-size "${MICRO_BS}"
   --live-patches "${LIVE_PATCHES}"
+  --live-chunk "${LIVE_CHUNK}"
   --slides-per-epoch "${SLIDES_PER_EPOCH}"
   --freeze-backbone-epochs "${FREEZE_EPOCHS}"
   --decode-norm gn
@@ -113,6 +116,11 @@ CMD=(
   --lora
   --lambda-slide-warmup
 )
+if [[ "${GRAD_CHECKPOINT}" == "1" || "${GRAD_CHECKPOINT}" == "true" ]]; then
+  CMD+=(--grad-checkpoint)
+else
+  CMD+=(--no-grad-checkpoint)
+fi
 if [[ "${INCLUDE_BENIGN_SOFT}" == "1" || "${INCLUDE_BENIGN_SOFT}" == "true" ]]; then
   CMD+=(--include-benign-soft)
 else

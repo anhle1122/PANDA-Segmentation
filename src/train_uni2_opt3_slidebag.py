@@ -131,7 +131,12 @@ def train(args: argparse.Namespace) -> None:
             f"min_slide_patches={args.min_slide_patches} "
             f"min_area_pct={args.min_area_pct} "
             f"adj_soft={args.adjacent_soft_alpha} "
-            f"benign_soft={args.include_benign_soft}"
+            f"benign_soft={args.include_benign_soft} "
+            f"lora={getattr(args, 'lora', False)} "
+            f"decode_norm={getattr(args, 'decode_norm', 'bn')} "
+            f"live_patches={getattr(args, 'live_patches', 0)} "
+            f"live_chunk={getattr(args, 'live_chunk', 0)} "
+            f"grad_checkpoint={getattr(args, 'grad_checkpoint', False)}"
         )
 
     train_sampler = (
@@ -181,6 +186,10 @@ def train(args: argparse.Namespace) -> None:
         n_lora = apply_lora_to_vit_qkv(seg.backbone, r=8, alpha=16.0)
         if is_main_process(rank):
             print(f"LoRA QKV wraps={n_lora} | decode_norm={args.decode_norm}")
+    if getattr(args, "grad_checkpoint", False) and hasattr(seg.backbone, "set_grad_checkpointing"):
+        seg.backbone.set_grad_checkpointing(True)
+        if is_main_process(rank):
+            print("grad_checkpoint=True | backbone.set_grad_checkpointing(True) | live=64+ckpt")
     grade_head = ISUPGradeHead(DEFAULT_FPN_CHANNELS[-1], num_isup=6)
     model: nn.Module = SegPlusGrade(seg, grade_head).to(device)
     if world_size > 1:
@@ -240,6 +249,7 @@ def train(args: argparse.Namespace) -> None:
 
     micro = max(1, int(args.micro_batch_size))
     live_n = max(1, int(args.live_patches) if int(getattr(args, "live_patches", 0) or 0) > 0 else micro)
+    live_chunk = max(1, int(getattr(args, "live_chunk", 8) or 8))
 
     def _lambda_slide_now(epoch: int) -> float:
         # Omar-6: 0 for ep1–5, ramp to λ by ep10 (0.06/0.12/0.18/0.24 then 0.3).
@@ -256,7 +266,8 @@ def train(args: argparse.Namespace) -> None:
         if is_main_process(rank):
             print(
                 f"=== Epoch {epoch}: λ_slide={lam_s:.3f} λ_grade={args.lambda_grade} "
-                f"live={live_n} min_patches={args.min_slide_patches} "
+                f"live={live_n} chunk={live_chunk} grad_ckpt={int(bool(getattr(args, 'grad_checkpoint', False)))} "
+                f"min_patches={args.min_slide_patches} "
                 f"min_area_pct={args.min_area_pct} adj_soft={args.adjacent_soft_alpha} "
                 f"benign_soft={args.include_benign_soft} ===",
                 flush=True,
@@ -365,16 +376,28 @@ def train(args: argparse.Namespace) -> None:
 
                 if apply_slide_isup:
                     # Synced backward (the one allreduce for this bag).
+                    # Live n=64 with grad-checkpoint: chunk the 64-patch bag so the
+                    # UPerNet FPN cat cannot allocate 64× full-res maps at once.
+                    # Grads still flow through all live patches via cat.
                     perm = torch.randperm(n_patches)[: min(live_n, n_patches)].tolist()
                     live_idxs = [patch_idxs[i] for i in perm]
                     images_g, _, _ = load_patch_batch(train_ds.base, live_idxs)
                     images_g = images_g.to(device, non_blocking=True)
                     imgs_g, n_g = _bn_safe(images_g)
                     with torch.cuda.amp.autocast(enabled=use_amp):
-                        logits_g, feats_g, grade_live = model(imgs_g)
-                        logits_g = logits_g[:n_g]
-                        feats_g = feats_g[:n_g]
-                        grade_live = grade_live[:n_g]
+                        logit_parts: list[torch.Tensor] = []
+                        feat_parts: list[torch.Tensor] = []
+                        grade_parts: list[torch.Tensor] = []
+                        for s in range(0, int(imgs_g.size(0)), live_chunk):
+                            sl = imgs_g[s : s + live_chunk]
+                            lg, fg, gg = model(sl)
+                            logit_parts.append(lg)
+                            feat_parts.append(fg)
+                            grade_parts.append(gg)
+                        logits_g = torch.cat(logit_parts, dim=0)[:n_g]
+                        feats_g = torch.cat(feat_parts, dim=0)[:n_g]
+                        grade_live = torch.cat(grade_parts, dim=0)[:n_g]
+                        del logit_parts, feat_parts, grade_parts
                         mean_live = torch.softmax(logits_g.float(), dim=1).mean(
                             dim=(0, 2, 3)
                         )
@@ -640,6 +663,18 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=64,
         help="Patches in the synced ISUP forward (Omar-6: 64).",
+    )
+    p.add_argument(
+        "--live-chunk",
+        type=int,
+        default=8,
+        help="Chunk size inside the live-64 ISUP forward (memory). Grads still cover all live patches.",
+    )
+    p.add_argument(
+        "--grad-checkpoint",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="timm backbone.set_grad_checkpointing (Aug 1 live=64+ckpt). Default on.",
     )
     p.add_argument(
         "--lambda-slide-warmup",

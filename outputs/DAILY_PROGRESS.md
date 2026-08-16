@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-16
 
+- **12:26 PDT** | **r2 resubmit: live=64 + grad-checkpoint** | Failed r2 OOMd because live-64 FPN had no ckpt | Trainer: backbone `set_grad_checkpointing`, live bag still **64** patches but forwarded in chunks of **8** (grads via cat). New tag `opt3_omar6_r2_live64ckpt` (not the dead `r2_everyep` dir). Live **5443101** untouched.
+
 - **12:11 PDT** | **Restored 120 wiped tracked files; pushing origin** | Worktree delete at 12:04 PDT (HEAD still `5030ee7`, 10 commits unpushed) | `git restore` of deleted tracked files. Checkpoints were **not** wiped (`epoch_020`–`026` still on disk). Do **not** git-add `*.pth` (~4.7G each; GitHub will reject). Push the 10 local commits + this log so the next wipe is recoverable from origin. Live **5443101** untouched.
 
 - **12:04 PDT** | **Live still R; r2 FAILED OOM; ep15 validation done** | Status check | **5443101** mid-ep27 (~160/256) on `cp098`. Sidecar kept ep20–26. Val cancer still below 0.579 (ep26 **0.542**; best remaining named = ep15 **0.579**). **5444968** started 11:32 on `cp097` and died in 85s: CUDA OOM (~129G used, +43G FPN alloc). Ep15 cache **5444966** COMPLETED; **5444986** wrote `validation_only/teacher_ep015/` + G5-bias 1.92% swaps vs 1.81% mask G5.
@@ -19,7 +21,7 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 ### Open tonight / tomorrow
 - [ ] Leave **5443101** running (do not scancel)
 - [ ] Restore+push done; do not git-add `outputs/checkpoints/*.pth`
-- [ ] r2 **5444968** FAILED OOM — do not resubmit until live-bag memory is tightened
+- [ ] r2 live=64+ckpt queued — confirm it is R and not OOM on bag 1
 - [ ] Production teacher cache stays blocked until `select_teacher_epoch.py` prints `CANDIDATE`
 - [x] Ep15 pack relabeled validation-only; referee G5 summary written
 - [ ] Past ep22: val cancer still &lt;0.579 — λ_slide call still open
