@@ -7,6 +7,15 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## Omar-6 r2 fresh train queued (2026-08-15)
+
+| | |
+|--|--|
+| **Why** | Live run lost named ep6/7 and is dropping; want a keepable early peak with every-epoch save. |
+| **What** | New tag `opt3_omar6_r2_everyep`, cold start, same Omar-6 recipe. Job **5444968** 2×H200 `gpu`+`normal` 30d. Cancelled pending same-tag 4× **5443098** only. Live **5443101** untouched. |
+| **Result** | **5444968** PENDING (Priority). Separate ckpt dir. |
+| **Decision** | Two trains OK. Never write r2 into the live tag dir. Pick teacher by PANDA+ once r2 has named epochs. |
+
 ## Between-round teacher pack + three-way referee (2026-08-15)
 
 | | |

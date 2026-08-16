@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-15
 
+- **21:26 PDT** | **Queued fresh Omar-6 2×H200 (new tag)** | Hunt a keepable early peak; live run stays up | Cancelled **PENDING** 4× **5443098** only (same-tag upgrade; frees QoS). Submitted **5444968** `opt3_r2_2xh200` tag `opt3_omar6_r2_everyep`, cold start, every-epoch save. PENDING (Priority). Live **5443101** still R on `cp098`. Ckpt dir: `outputs/checkpoints/uni2_upernet_raw_opt3_omar6_r2_everyep/`.
+
 - **21:16 PDT** | **Teacher-pack + ISUP-referee loop wired; cache ep15** | Build packs while train runs; ep7 maps never existed | Commit `8e0a258`. L40S cache **5444966** → `outputs/pseudo_label/teacher_opt3_omar6_grouped_soft01_ep015/`. Watcher **5444967** (print-only until AUTO_SUBMIT=1). Referee after cache: `sbatch scripts/slurm_apply_isup_referee.sh <pack>`. Live **5443101** untouched.
 
 - **20:41 PDT** | **Pseudo-label rule: ISUP referee on low-conf illegal grades** | Build between-round corrections from this run | Flag pixels that **disagree with the expert mask** and are **not confident**, then if pred ∈ {G3,G4,G5} is **not in clinical Gleason {P,S}**, retarget to the **nearest allowed** grade. Do not rewrite high-conf pixels or legal-grade fights. ISUP-0 skip. **Blocker: ep7 weights gone** — no `epoch_007`; closest same-run file is ep15. Live **5443101** untouched.
@@ -34,7 +36,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ### Open tonight / tomorrow
 - [ ] Read ep15 PANDA+ Dice + gland ISUP vs ep7 (0.587 / 77.1% / 62.5%)
-- [ ] Leave **5443101** running; cancel 2× only after 4× is actually R
+- [ ] Leave **5443101** running (do not scancel)
+- [ ] Fresh **5444968** is a **new tag** — do not point it at the live ckpt dir
 - [ ] Next new best must write a dated `epoch_XXX_*.pth`, not only `best.pth`
 - [x] Commit Omar-6 + every-epoch saver; commit before every future run
 
