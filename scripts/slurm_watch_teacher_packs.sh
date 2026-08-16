@@ -21,4 +21,6 @@ echo "=== $(date) | watch teacher packs AUTO_SUBMIT=${AUTO_SUBMIT:-0} ==="
 python -u scripts/watch_opt3_teacher_packs.py \
   --config "${PANDA_PROJECT}/scripts/teacher_watch_targets.json" \
   --interval-sec "${INTERVAL_SEC:-60}" \
+  --log-file "${WATCH_LOG:-${PANDA_PROJECT}/outputs/pseudo_label/watcher_detect.log}" \
+  --select-script "${PANDA_PROJECT}/scripts/select_teacher_epoch.py" \
   $( [[ "${AUTO_SUBMIT:-0}" == "1" ]] && echo --auto-submit || echo --no-auto-submit )

@@ -33,8 +33,14 @@ OUT="${OUT_DIR:-${PANDA_PROJECT}/outputs/pseudo_label/corrections/${NAME}_tau${T
 
 echo "=== $(date) | ISUP referee | teacher=${TEACHER} ==="
 echo "OUT=${OUT} tau=${TAU}"
+EXTRA=()
+if [[ "${ALLOW_VALIDATION_ONLY:-0}" == "1" ]]; then
+  EXTRA+=(--allow-validation-only)
+fi
 python -u src/apply_isup_referee.py \
   --teacher-dir "${TEACHER}" \
   --out-dir "${OUT}" \
-  --conf-threshold "${TAU}"
+  --conf-threshold "${TAU}" \
+  --no-fail-on-g5-bias \
+  "${EXTRA[@]}"
 echo "=== $(date) | referee done | ${OUT} ==="

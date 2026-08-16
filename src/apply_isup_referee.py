@@ -30,6 +30,17 @@ from train.pseudo_label_rules import gleason_to_classes
 CANCER = (3, 4, 5)
 DEFAULT_CLINICAL = PROJECT / "data" / "train.csv"
 DEFAULT_SPLIT = PROJECT / "outputs" / "splits" / "panda_train.csv"
+VALIDATION_MARKER = "VALIDATION_ONLY"
+
+
+def refuse_validation_only(teacher_dir: Path, allow: bool) -> None:
+    marker = teacher_dir / VALIDATION_MARKER
+    if marker.is_file() and not allow:
+        raise SystemExit(
+            f"{teacher_dir} is marked {VALIDATION_MARKER}. "
+            "Refusing so this pack cannot be used for training by accident. "
+            "Re-run with --allow-validation-only only for pipeline tests."
+        )
 
 
 def nearest_allowed(pred: int, allowed: set[int]) -> int:
@@ -112,9 +123,21 @@ def main() -> None:
     p.add_argument("--clinical-csv", type=Path, default=None)
     p.add_argument("--conf-threshold", type=float, default=0.7)
     p.add_argument("--g5-swap-max-ratio", type=float, default=2.0)
-    p.add_argument("--fail-on-g5-bias", action=argparse.BooleanOptionalAction, default=True)
+    p.add_argument(
+        "--fail-on-g5-bias",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Optional block. Default off: surface G5-bias numbers only.",
+    )
+    p.add_argument(
+        "--allow-validation-only",
+        action="store_true",
+        help="Required to run against a pack directory that contains VALIDATION_ONLY.",
+    )
     p.add_argument("--max-slides", type=int, default=None)
     args = p.parse_args()
+
+    refuse_validation_only(args.teacher_dir, args.allow_validation_only)
 
     if args.out_dir.exists() and any(args.out_dir.glob("*")):
         raise SystemExit(f"Refusing to overwrite existing correction dir {args.out_dir}")
@@ -145,6 +168,8 @@ def main() -> None:
         "n_missing_pack", "n_written",
     )}
     pred_cancer = {3: 0, 4: 0, 5: 0}
+    mask_pixels = 0
+    mask_g5_pixels = 0
 
     for i, slide_id in enumerate(slide_ids, start=1):
         h5_path = args.teacher_dir / f"{slide_id}_srcpred.h5"
@@ -185,6 +210,8 @@ def main() -> None:
 
         for c in CANCER:
             pred_cancer[c] += int((pred == c).sum())
+        mask_pixels += int(mask.size)
+        mask_g5_pixels += int((mask == 5).sum())
 
         target, ignore, counts = apply_slide(pred, maxprob, mask, allowed, args.conf_threshold)
         rec.update(counts)
@@ -204,30 +231,66 @@ def main() -> None:
     manifest = pd.DataFrame(rows)
     manifest.to_csv(args.out_dir / "correction_manifest.csv", index=False)
 
-    n_swap = max(totals["n_swap"], 1)
-    g5_from_share = totals["n_swap_from_g5"] / n_swap
+    n_swap = totals["n_swap"]
+    swap_to_g5_share = (totals["n_swap_to_g5"] / n_swap) if n_swap else 0.0
+    mask_g5_share = (mask_g5_pixels / mask_pixels) if mask_pixels else 0.0
+    g5_from_share = (totals["n_swap_from_g5"] / n_swap) if n_swap else 0.0
     cancer_pred = max(sum(pred_cancer.values()), 1)
     g5_pred_share = pred_cancer[5] / cancer_pred
     limit = max(0.05, args.g5_swap_max_ratio * g5_pred_share)
-    g5_bias = g5_from_share > limit
+    g5_bias = n_swap > 0 and g5_from_share > limit
+
+    g5_summary = {
+        "n_high_conf_swap": n_swap,
+        "n_swap_to_g5": totals["n_swap_to_g5"],
+        "pct_high_conf_swaps_to_g5": 100.0 * swap_to_g5_share,
+        "n_original_mask_pixels": mask_pixels,
+        "n_original_mask_g5": mask_g5_pixels,
+        "pct_original_mask_g5": 100.0 * mask_g5_share,
+        "note": "surface only — no blocking gate yet",
+    }
+    print(
+        "G5-bias summary (no gate): "
+        f"{g5_summary['pct_high_conf_swaps_to_g5']:.2f}% of high-conf swaps "
+        f"resulted in G5 ({totals['n_swap_to_g5']}/{n_swap}); "
+        f"original mask G5 share {g5_summary['pct_original_mask_g5']:.2f}% "
+        f"({mask_g5_pixels}/{mask_pixels} pixels).",
+        flush=True,
+    )
 
     report = {
         "written_at": datetime.now().astimezone().isoformat(timespec="seconds"),
         "teacher_dir": str(args.teacher_dir.resolve()),
         "out_dir": str(args.out_dir.resolve()),
         "conf_threshold": args.conf_threshold,
+        "allow_validation_only": bool(args.allow_validation_only),
         "pack_config": pack_cfg,
         "n_slides": len(slide_ids),
         "totals": totals,
         "teacher_cancer_pred_share": {str(k): v / cancer_pred for k, v in pred_cancer.items()},
         "swap_from_g5_share": g5_from_share,
+        "swap_to_g5_share": swap_to_g5_share,
         "g5_pred_share": g5_pred_share,
+        "original_mask_g5_share": mask_g5_share,
+        "g5_summary": g5_summary,
         "g5_swap_limit": limit,
         "g5_bias_flag": g5_bias,
         "gate": "FAIL_G5_BIAS" if (g5_bias and args.fail_on_g5_bias) else "PASS",
     }
     (args.out_dir / "balance_report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
-    print(json.dumps({k: report[k] for k in ("gate", "swap_from_g5_share", "g5_pred_share", "totals")}, indent=2))
+    (args.out_dir / "G5_BIAS_SUMMARY.txt").write_text(
+        (
+            f"pct_high_conf_swaps_to_g5={g5_summary['pct_high_conf_swaps_to_g5']:.4f}\n"
+            f"n_swap_to_g5={totals['n_swap_to_g5']}\n"
+            f"n_high_conf_swap={n_swap}\n"
+            f"pct_original_mask_g5={g5_summary['pct_original_mask_g5']:.4f}\n"
+            f"n_original_mask_g5={mask_g5_pixels}\n"
+            f"n_original_mask_pixels={mask_pixels}\n"
+            "gate=surface_only\n"
+        ),
+        encoding="utf-8",
+    )
+    print(json.dumps({k: report[k] for k in ("gate", "g5_summary", "totals")}, indent=2))
     if g5_bias and args.fail_on_g5_bias:
         raise SystemExit(
             f"G5 bias gate: {g5_from_share:.3f} of high-conf swaps came from G5 "

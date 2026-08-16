@@ -27,6 +27,7 @@ from train.corrected_label_dataset import (  # noqa: E402
 )
 from train.losses import apply_pixel_ignore, segmentation_loss  # noqa: E402
 from train.pseudo_label_dataset import NO_CLASS, build_corrected_target  # noqa: E402
+from apply_isup_referee import refuse_validation_only  # noqa: E402
 from watch_opt3_teacher_packs import (  # noqa: E402
     detect_new,
     ensure_baselines,
@@ -145,11 +146,27 @@ def test_watcher_new_epochs_only() -> None:
     print("PASS watcher_new_epochs_only")
 
 
+def test_refuse_validation_only() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        d = Path(tmp)
+        refuse_validation_only(d, allow=False)
+        (d / "VALIDATION_ONLY").write_text("no train\n", encoding="utf-8")
+        try:
+            refuse_validation_only(d, allow=False)
+        except SystemExit as exc:
+            assert "VALIDATION_ONLY" in str(exc)
+        else:
+            raise AssertionError("expected SystemExit")
+        refuse_validation_only(d, allow=True)
+    print("PASS refuse_validation_only")
+
+
 def main() -> None:
     test_reader_and_overlay()
     test_ignore_zeros_loss_grad()
     test_rules_path_unchanged()
     test_watcher_new_epochs_only()
+    test_refuse_validation_only()
     print("ALL_PASS")
 
 

@@ -13,6 +13,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 import time
 from datetime import datetime
 from pathlib import Path
@@ -20,12 +21,20 @@ from pathlib import Path
 PROJECT = Path("/common/omarmlab/members/anh/panda_project")
 DEFAULT_CONFIG = PROJECT / "scripts" / "teacher_watch_targets.json"
 CACHE_SCRIPT = PROJECT / "scripts" / "slurm_cache_teacher_pack.sh"
+DEFAULT_LOG = PROJECT / "outputs" / "pseudo_label" / "watcher_detect.log"
+SELECT_SCRIPT = PROJECT / "scripts" / "select_teacher_epoch.py"
 EPOCH_RE = re.compile(r"epoch_(\d+)_cancer_")
+
+_LOG_FP = None
 
 
 def log(msg: str) -> None:
     ts = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
-    print(f"{ts} | {msg}", flush=True)
+    line = f"{ts} | {msg}"
+    print(line, flush=True)
+    if _LOG_FP is not None:
+        _LOG_FP.write(line + "\n")
+        _LOG_FP.flush()
 
 
 def load_config(path: Path) -> dict:
@@ -213,13 +222,38 @@ def drain_queue(state: dict, cfg: dict, *, auto_submit: bool) -> None:
     state.setdefault("submitted", []).append({**head, "job_id": job_id})
 
 
-def tick(cfg: dict, state: dict, *, auto_submit: bool) -> dict:
+def run_select_hook(select_script: Path) -> None:
+    if not select_script.is_file():
+        log(f"SELECT skip missing {select_script}")
+        return
+    log(f"SELECT run {select_script}")
+    try:
+        r = subprocess.run(
+            [sys.executable, str(select_script)],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        log(f"SELECT fail {exc}")
+        return
+    for line in (r.stdout or "").splitlines():
+        log(f"SELECT {line}")
+    if r.returncode != 0:
+        log(f"SELECT rc={r.returncode} stderr={(r.stderr or '').strip()}")
+
+
+def tick(cfg: dict, state: dict, *, auto_submit: bool, select_script: Path | None = None) -> dict:
     targets = cfg["targets"]
     ensure_baselines(state, targets)
-    for item in detect_new(state, targets):
+    new_items = detect_new(state, targets)
+    for item in new_items:
         state.setdefault("queued", []).append(item)
         log(f"ENQUEUE tag={item['tag']} ep={int(item['epoch']):03d} queue_depth={len(state['queued'])}")
     drain_queue(state, cfg, auto_submit=auto_submit)
+    if new_items and select_script is not None:
+        run_select_hook(select_script)
     return state
 
 
@@ -233,22 +267,37 @@ def main() -> None:
         default=os.environ.get("AUTO_SUBMIT", "0").strip().lower() in {"1", "true", "yes"},
     )
     ap.add_argument("--once", action="store_true", help="One detect/enqueue pass then exit")
+    ap.add_argument("--log-file", type=Path, default=Path(os.environ.get("WATCH_LOG", str(DEFAULT_LOG))))
+    ap.add_argument("--select-script", type=Path, default=SELECT_SCRIPT)
     args = ap.parse_args()
 
+    global _LOG_FP
+    args.log_file.parent.mkdir(parents=True, exist_ok=True)
+    _LOG_FP = args.log_file.open("a", encoding="utf-8")
     cfg = load_config(args.config)
     state_path = Path(cfg["state_file"])
     state = load_state(state_path)
     log(
         f"START config={args.config} targets={[t['tag'] for t in cfg['targets']]} "
-        f"auto_submit={int(args.auto_submit)} interval={args.interval_sec}s"
+        f"auto_submit={int(args.auto_submit)} interval={args.interval_sec}s "
+        f"log={args.log_file}"
     )
-    while True:
-        state = tick(cfg, state, auto_submit=args.auto_submit)
-        save_state(state_path, state)
-        if args.once:
-            log("ONCE done")
-            return
-        time.sleep(args.interval_sec)
+    try:
+        while True:
+            state = tick(
+                cfg,
+                state,
+                auto_submit=args.auto_submit,
+                select_script=args.select_script,
+            )
+            save_state(state_path, state)
+            if args.once:
+                log("ONCE done")
+                return
+            time.sleep(args.interval_sec)
+    finally:
+        _LOG_FP.close()
+        _LOG_FP = None
 
 
 if __name__ == "__main__":
