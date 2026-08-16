@@ -7,6 +7,15 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## Between-round teacher pack + three-way referee (2026-08-15)
+
+| | |
+|--|--|
+| **Why** | Correction needs preds+confidence, not just weights. Ep7 had neither maps nor a surviving ckpt. |
+| **What** | Per epoch: immutable `epoch_*.pth` + `teacher_<tag>_epXXX/` (`preds` uint8, `maxprob` float16, `clinical_isup.csv`, `pack_config.json` with λ_slide). Referee: agree→keep; disagree low-conf→ignore; disagree high-conf + illegal G3–5→nearest allowed. ISUP-0 skip. G5-swap share gate vs teacher G5 pred prior. Corrected h5 dated, never overwritten. Round N+1 is a scratch train on that target; accept on PANDA+. |
+| **Result** | Code + Slurm landed. First cache = Omar-6 **ep15** on L40S (train keeps running). Watcher can submit a pack when sidecar writes a new epoch. |
+| **Decision** | Do not wait for a scratch retrain to start the pack. Do not cache from dropping `latest.pth`. |
+
 ## Omar-6 pixel referee (proposed 2026-08-15)
 
 | | |

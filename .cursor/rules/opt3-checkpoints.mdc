@@ -12,3 +12,5 @@ alwaysApply: true
 - On **resume**, restore `best_cancer` from `training_log.csv` / existing snapshots.
 - `latest.pth` / `best.pth` are pointers only (atomic tmp+rename).
 - Live job already in memory: do not `scancel` it to load this saver. Use `scripts/slurm_preserve_opt3_ckpts.sh`.
+- Teacher pack is a **separate** artifact from weights: `outputs/pseudo_label/teacher_<tag>_epXXX/` with `preds` + `maxprob`. Never overwrite. Cache with `scripts/slurm_cache_teacher_pack.sh` (L40S) while train keeps running.
+- Correction is a third artifact: `outputs/pseudo_label/corrections/…` (`correction_manifest.csv`, ignore/target h5). Gate on G5-swap share + PANDA+ before Round N+1.

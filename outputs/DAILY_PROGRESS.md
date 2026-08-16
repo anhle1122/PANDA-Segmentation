@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-15
 
+- **21:16 PDT** | **Teacher-pack + ISUP-referee loop wired; cache ep15** | Build packs while train runs; ep7 maps never existed | Cache writes `preds`+`maxprob` to `teacher_<tag>_epXXX/` (never overwrite). Referee: agree keep / low-conf ignore / high-conf illegal → nearest allowed. G5-swap gate before Round N+1. L40S cache on ep15; CPU watcher for new `epoch_*.pth`. Live **5443101** untouched.
+
 - **20:41 PDT** | **Pseudo-label rule: ISUP referee on low-conf illegal grades** | Build between-round corrections from this run | Flag pixels that **disagree with the expert mask** and are **not confident**, then if pred ∈ {G3,G4,G5} is **not in clinical Gleason {P,S}**, retarget to the **nearest allowed** grade. Do not rewrite high-conf pixels or legal-grade fights. ISUP-0 skip. **Blocker: ep7 weights gone** — no `epoch_007`; closest same-run file is ep15. Live **5443101** untouched.
 
 - **20:21 PDT** | **Committed Omar-6 + every-epoch saver** | Wipe + every-5 lost src and ep6/7 | Restored 74 wiped tracked files from HEAD, then committed trainer/slurm/rules/sidecar. Recipe locked: α=0.1 benign↔G3–G5, min_area=0, n≥5, LoRA+GN, live=64, λ_slide warmup, **save every epoch (never every-5)**. Commit-on-run: commit before/after every Slurm submit. Live **5443101** still old in-memory saver; sidecar copies. Do not scancel it.
