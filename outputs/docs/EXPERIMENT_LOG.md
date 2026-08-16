@@ -7,6 +7,24 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## Worktree wipe + origin push (2026-08-16)
+
+| | |
+|--|--|
+| **Why** | ~120 tracked Opt3 sources vanished from disk at 12:04 PDT. Git still had them at `5030ee7`, but those 10 commits were not on origin. |
+| **What** | Restored deleted tracked files from HEAD. Pushing `main` to origin. Checkpoints stay gitignored (`outputs/checkpoints/`, ~4.7G each). |
+| **Result** | Trainer/scripts/docs back on disk. Named live ckpts ep5/10/15/19–26 still present. Live **5443101** never stopped. |
+| **Decision** | Commit+push sources without being asked. Never git-add `*.pth`. Weights live on the HPC filesystem; git holds code and path/metric logs. |
+
+## Omar-6 r2 FAILED CUDA OOM (2026-08-16)
+
+| | |
+|--|--|
+| **Why** | Fresh tag to hunt a keepable early peak with every-epoch save. |
+| **What** | **5444968** started 11:32 PDT on `cp097` (2×H200, live=64, same Omar-6 recipe, current code). |
+| **Result** | FAILED 85s, exit 1:0. `OutOfMemoryError` at first `model(imgs_g)` FPN concat; 129G already allocated, needed +43G. Header-only `training_log.csv`. Live job uses old in-memory trainer and is still R. |
+| **Decision** | Do not resubmit r2 until the live-bag / full-bag feat-chunk memory is reduced. Do not scancel **5443101**. |
+
 ## Omar-6 r2 wall cut to 3 days (2026-08-15)
 
 | | |

@@ -1,11 +1,23 @@
 ---
-description: Commit sources before/after every Slurm run so a disk wipe cannot drop them
+description: Commit and push sources without waiting to be asked. Never git-add checkpoint weights.
 alwaysApply: true
 ---
 
-# Commit on every run
+# Commit and push without being asked
 
-- Before submitting or changing a train/eval/QC Slurm job, **commit** the scripts and `src/` that job will load.
-- After any recipe/protocol fix (loss, threshold, skip rule, checkpoint policy), **commit immediately**. Do not leave Omar-6 / Opt3 sources only on disk (2026-07-30 wipe; 2026-08-15 eval wipe).
-- Do not wait for the user to ask when the change is what a live or next job depends on.
-- Never commit checkpoints, `.env`, credentials, or `__pycache__`.
+Do this after any source, script, protocol, or log change. Do not wait for the user to say "commit".
+
+- Commit `src/`, `scripts/`, `.cursor/rules/`, `DAILY_PROGRESS.md`, `outputs/EXPERIMENT_LOG.md` and their mirrors.
+- Then **`git push origin HEAD`** so a worktree wipe cannot drop unpushed commits (2026-08-16: 10 commits were only local when `src/` was deleted).
+- Before submitting or changing a train/eval/QC Slurm job, commit + push the scripts and `src/` that job will load.
+- After any recipe/protocol fix, commit + push immediately.
+
+## Checkpoints (weights) — never git-add
+
+`outputs/checkpoints/` is gitignored on purpose. Each `epoch_*.pth` is ~4.7G. GitHub rejects files that large; LFS would still dump tens of GB into the repo.
+
+Protect weights on disk, not in git:
+
+- Named `epoch_XXX_cancer_Y.pth` (sidecar or every-epoch saver). Never only `best.pth` / `latest.pth`.
+- Record the path + val cancer in `DAILY_PROGRESS.md` / `EXPERIMENT_LOG.md` (those files *are* committed and pushed).
+- Do not `git add` `*.pth`, `latest.pth`, `best.pth`, teacher-pack `*.h5`, `.env`, credentials, or `__pycache__`.
