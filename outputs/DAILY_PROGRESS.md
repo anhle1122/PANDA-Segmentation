@@ -14,6 +14,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 - **21:26 PDT** | **Queued fresh Omar-6 2×H200 (new tag)** | Hunt a keepable early peak; live run stays up | Cancelled **PENDING** 4× **5443098** only (same-tag upgrade; frees QoS). Submitted **5444968** `opt3_r2_2xh200` tag `opt3_omar6_r2_everyep`, cold start, every-epoch save. PENDING (Priority). Live **5443101** still R on `cp098`. Ckpt dir: `outputs/checkpoints/uni2_upernet_raw_opt3_omar6_r2_everyep/`.
 
+- **21:18 PDT** | **Ep19 done; sidecar kept it** | First every-epoch copy off the live run | Val cancer **0.545** (up from ep18 0.460; still below ep15 0.579 / ep7 0.608). File `epoch_019_cancer_0.5452.pth`. **5443101** now mid-ep20. Live trainer still every-5; sidecar wrote this one (Δ=7.5s).
+
 - **21:16 PDT** | **Teacher-pack + ISUP-referee loop wired; cache ep15** | Build packs while train runs; ep7 maps never existed | Commit `8e0a258`. L40S cache **5444966** → `outputs/pseudo_label/teacher_opt3_omar6_grouped_soft01_ep015/`. Watcher **5444967** (print-only until AUTO_SUBMIT=1). Referee after cache: `sbatch scripts/slurm_apply_isup_referee.sh <pack>`. Live **5443101** untouched.
 
 - **20:41 PDT** | **Pseudo-label rule: ISUP referee on low-conf illegal grades** | Build between-round corrections from this run | Flag pixels that **disagree with the expert mask** and are **not confident**, then if pred ∈ {G3,G4,G5} is **not in clinical Gleason {P,S}**, retarget to the **nearest allowed** grade. Do not rewrite high-conf pixels or legal-grade fights. ISUP-0 skip. **Blocker: ep7 weights gone** — no `epoch_007`; closest same-run file is ep15. Live **5443101** untouched.
