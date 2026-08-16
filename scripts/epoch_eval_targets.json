@@ -1,0 +1,18 @@
+{
+  "state_file": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/epoch_eval_watcher_state.json",
+  "eval_script": "/common/omarmlab/members/anh/panda_project/scripts/slurm_eval_opt3_epoch.sh",
+  "scorecard": "/common/omarmlab/members/anh/panda_project/outputs/docs/opt3_this_run/epoch_external_scorecard.csv",
+  "eval_root": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/epoch_eval",
+  "targets": [
+    {
+      "tag": "opt3_omar6_grouped_soft01",
+      "ckpt_dir": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01",
+      "train_log": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/training_log.csv"
+    },
+    {
+      "tag": "opt3_omar6_locked",
+      "ckpt_dir": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_locked",
+      "train_log": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_locked/training_log.csv"
+    }
+  ]
+}

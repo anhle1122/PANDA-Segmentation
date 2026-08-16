@@ -12,6 +12,10 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-16
 
+- **14:20 PDT** | **Auto PANDA/PANDA+ eval each new epoch; L_slide vs Dice is bounce not fight** | Need ISUP + PANDA+ Dice/G5 every epoch, and the three Omar co-movement patterns | Watcher `scripts/slurm_watch_epoch_eval.sh` AUTO_SUBMIT=1, 1× L40S, no backfill. PANDA val Dice from train log; GPU: PANDA ISUP + PANDA+ Dice + PANDA+ ISUP. ep10–27: **7 together / 7 mixed / 2 flat / 2 fighting (ep12, ep23)**; corr(ΔL_slide,ΔDice)=−0.18. Ep15 both-improved in the train log; G5 gaming still PANDA+-only. Live **5443101** / r2 **5445276** not cancelled. Teacher packs stay AUTO_SUBMIT=0.
+
+- **14:05 PDT** | **Live ep27 done; r2 5445276 WIRING_OK at 28G** | Watch Dice/L_slide vs pseudo-label gates | Live val cancer **0.546** (gap 0.033 to 0.579), L_slide **1.475** rising vs ep24; **NO_CANDIDATE**. Sidecar kept `epoch_027`. Mid-ep28 ~176/256. r2 **5445276** R on `cp097`: `WIRING_OK live=64`, LoRA in opt **1179648**, **peak_cuda_gb_after_bag1=28.08**. Live train log has Dice/L_slide but not ISUP match or G5 precision (those need PANDA+ eval + teacher pack).
+
 - **14:00 PDT** | **Locked Omar-6 default + decoder-chunk checkpoint; submit fresh r2** | 64-patch ISUP OOMd because all 64 FPN graphs were kept; live 5443101 used ISUP=4 | Disk: live=64, chunk=4, decoder `checkpoint` (grads on all 64). Abort if live→micro or LoRA not in AdamW. Job **5445276** `opt3_r2_locked` tag `opt3_omar6_locked`, 2×H200, 3-day, PD (Priority). Confirm start: `WIRING_OK live=64` and `peak_cuda_gb_after_bag1`. Live **5443101** untouched. Commit `5a23882`.
 
 - **13:06 PDT** | **Omar-6 vs live vs future r2 audit for a default recipe** | User will lock defaults | Original 6: live has 1–3 only (4/5a/6 flags without wiring; 5b still ISUP=4). Disk `c40efb7` has 1–4, 5a, 6 wired. **5b not lockable**: r2 **5445233** OOMd at live=64/chunk=8. Add-ons (grouped split, α=0.1+benign, min_area=0, no cap, every-epoch save) are on disk. Trap: slurm default `RUN_TAG` is the **live** tag + auto-resume `latest.pth`. Writeup: `outputs/docs/opt3_this_run/OMAR6_DEFAULT_RECIPE.md`. Live **5443101** untouched.

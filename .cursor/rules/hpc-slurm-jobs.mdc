@@ -24,6 +24,13 @@ For this project (`/common/omarmlab/members/anh/panda_project`):
 - Prefer `--time=3-00:00:00` for an early-peak hunt; 30d only if user asks
 - Process must print `WIRING_OK live=64` and `lora_params_in_optimizer>0`
 
+## Per-epoch PANDA / PANDA+ eval (from now on)
+
+- CPU watcher: `scripts/slurm_watch_epoch_eval.sh` (`AUTO_SUBMIT=1`). New named `epoch_*.pth` only — no backfill.
+- GPU job: `scripts/slurm_eval_opt3_epoch.sh` on **1× L40S** (never H200). PANDA val Dice from `training_log.csv`; GPU does PANDA ISUP + PANDA+ Dice + PANDA+ ISUP.
+- Scorecard: `outputs/docs/opt3_this_run/epoch_external_scorecard.csv`
+- Teacher-pack watcher stays `AUTO_SUBMIT=0` until selector prints `CANDIDATE`.
+
 ## Never kill a live Opt3 / H200 train
 
 - **Never `scancel` a job in state `R`** for Opt3 / H200 / the current run tag.
