@@ -7,6 +7,15 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## Omar-6 freeze+LoRA is one script (2026-08-16)
+
+| | |
+|--|--|
+| **Why** | Rule 4 sounded like we might have launched the old freeze-5 / unfreeze-at-ep6 trainer. |
+| **What** | Opt3 has a single entry: `scripts/slurm_train_opt3_slidebag.sh` → `src/train_uni2_opt3_slidebag.py` (defaults freeze=100, lora=True). `src/train_uni2_upernet.py` freeze=5 is a different non-Opt3 trainer and was not used. |
+| **Result** | Live **5443101** and r2 **5445233** both passed `--freeze-backbone-epochs 100 --lora`. UNI2 base frozen; LoRA QKV + decoder should train. Failure mode was LoRA not stepped (optimizer/`no_grad`), not the wrong script. **5445233** started 12:29 `cp097`, then CUDA OOM 12:57 at UPerNet FPN (~slide 56). |
+| **Decision** | Do not scancel live. Do not treat r2 as “still pending.” Next r2 must use `c40efb7` and a tighter live-chunk/FPN bound. |
+
 ## Omar-6 LoRA / proj / soft-ISUP wiring (2026-08-16)
 
 | | |
