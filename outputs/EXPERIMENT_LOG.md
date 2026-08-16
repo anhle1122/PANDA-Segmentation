@@ -13,7 +13,7 @@ Format: **Why → What → Result → Decision**
 |--|--|
 | **Why** | Omar 5b needs grads on 64 patches, not 4. Cat-then-one-backward kept 64 FPN graphs and OOMd. Live 5443101 silently used micro=4. |
 | **What** | `torch.utils.checkpoint` per live decoder chunk (chunk=4). Fail-closed: abort if live_n==micro or LoRA not in AdamW. Default tag `opt3_omar6_locked`; refuse live tag. Cursor rule `.cursor/rules/opt3-omar6-recipe.mdc`. |
-| **Result** | `scripts/test_omar6_wiring.py` includes checkpoint-chunk grad check. Fresh r2 submitted after commit. Live **5443101** not cancelled. |
+| **Result** | Tests OMAR6_WIRING_OK. Job **5445276** PENDING (Priority), tag `opt3_omar6_locked`. Live **5443101** not cancelled. Commit `5a23882`. |
 | **Decision** | This is the default until the user says otherwise. |
 
 ## Omar-6 default-recipe audit (2026-08-16)
