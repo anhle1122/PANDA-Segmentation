@@ -4,6 +4,8 @@
 #   Never use tag opt3_omar6_grouped_soft01 (live 5443101) unless ALLOW_LIVE_TAG=1.
 # Args: [epochs] [resume_checkpoint]
 #   sbatch --export=ALL,RUN_TAG=opt3_omar6_locked --gres=gpu:h200:2 scripts/slurm_train_opt3_slidebag.sh
+#   λ=0.15 ablation (warmup on): sbatch --job-name=opt3_lam015 --time=3-00:00:00 \
+#     --export=ALL,RUN_TAG=opt3_omar6_lambda015,LAMBDA_SLIDE=0.15 --gres=gpu:h200:2 scripts/slurm_train_opt3_slidebag.sh
 #SBATCH --job-name=opt3_slidebag
 #SBATCH --partition=gpu
 #SBATCH --qos=normal

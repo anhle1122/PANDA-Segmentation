@@ -7,6 +7,15 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## λ_slide=0.15 ablation (2026-08-16)
+
+| | |
+|--|--|
+| **Why** | Live ep7 best early PANDA at λ≈0.12; full 0.3 correlates with later val soft. Test constant target λ=0.15 with standard warmup. |
+| **What** | Job **5445429** tag `opt3_omar6_lambda015`, 2×H200, 3-day, Omar-6 locked stack (`live=64`, LoRA in AdamW, decoder ckpt), `LAMBDA_SLIDE=0.15`, warmup **on**. Cold start empty ckpt dir. |
+| **Result** | Submitted PENDING (`ReqNodeNotAvail` while H200 nodes busy). Live **5443101** / r2 **5445276** not cancelled. |
+| **Decision** | Parallel ablation only; keep locked default λ=0.3. Compare on PANDA+ once named epochs exist. |
+
 ## Per-epoch PANDA / PANDA+ eval + L_slide vs Dice (2026-08-16)
 
 | | |

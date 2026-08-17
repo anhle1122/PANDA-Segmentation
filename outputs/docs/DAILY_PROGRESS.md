@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-16
 
+- **14:56 PDT** | **Armed 5-min r2 health watch on 5445276** | User: make sure r2 does not fail unnoticed | Mid-ep1 ~104/256, `latest.pth` updating 14:55, peak 28.08G, no OOM/Traceback in err. Loop every 5m on out/err + progress. Do not scancel.
+
 - **14:20 PDT** | **Auto PANDA/PANDA+ eval each new epoch; L_slide vs Dice is bounce not fight** | Need ISUP + PANDA+ Dice/G5 every epoch, and the three Omar co-movement patterns | Watcher **5445285** R on `cp031`, AUTO_SUBMIT=1, 1× L40S, no backfill. Baseline live ep5/10/15/19–27; locked tag empty (will score ep1). Commit `ee7fb97`. PANDA val Dice from train log; GPU: PANDA ISUP + PANDA+ Dice + PANDA+ ISUP. ep10–27: **7 together / 7 mixed / 2 flat / 2 fighting (ep12, ep23)**; corr(ΔL_slide,ΔDice)=−0.18. Ep15 both-improved in the train log; G5 gaming still PANDA+-only. Live **5443101** / r2 **5445276** not cancelled. Teacher packs stay AUTO_SUBMIT=0.
 
 - **14:05 PDT** | **Live ep27 done; r2 5445276 WIRING_OK at 28G** | Watch Dice/L_slide vs pseudo-label gates | Live val cancer **0.546** (gap 0.033 to 0.579), L_slide **1.475** rising vs ep24; **NO_CANDIDATE**. Sidecar kept `epoch_027`. Mid-ep28 ~176/256. r2 **5445276** R on `cp097`: `WIRING_OK live=64`, LoRA in opt **1179648**, **peak_cuda_gb_after_bag1=28.08**. Live train log has Dice/L_slide but not ISUP match or G5 precision (those need PANDA+ eval + teacher pack).
