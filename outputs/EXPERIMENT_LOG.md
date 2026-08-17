@@ -7,6 +7,16 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## Live OOM resume (2026-08-17)
+
+| | |
+|--|--|
+| **Why** | Live **5443101** OOMd ep37 at ~131G (old in-memory trainer, no decoder-chunk). User asked to resubmit that run. |
+| **What** | Job **5445588** same tag `opt3_omar6_grouped_soft01`, `ALLOW_LIVE_TAG=1`, 2×H200, 9d. Auto-resume `latest.pth`. Uses **current** Omar-6 wiring (live=64/chunk=4/decoder ckpt). |
+| **Result** | PENDING (H200 busy). r2 **5445276** / λ015 **5445430** not cancelled. |
+| **Decision** | Continue the live ckpt dir, but do not replay the OOM code path. Confirm start: `WIRING_OK live=64` and ~29G peak. |
+
+
 ## r2 9-day resume queued (2026-08-16)
 
 | | |

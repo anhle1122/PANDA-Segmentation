@@ -10,6 +10,10 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-08-17
+
+- **08:51 PDT** | **Resubmitted OOM live tag (no kill of r2/λ015)** | 5443101 CUDA OOM ep37 ~131G (no decoder-chunk) | Job **5445588** `opt3_live_resume` tag `opt3_omar6_grouped_soft01` `ALLOW_LIVE_TAG=1`, 2×H200, **9d**, auto-resume `latest.pth` (mid-ep37). **Current locked wiring** (live=64 + chunk=4 + decoder ckpt, LoRA in AdamW) so it should sit ~29G not 131G. r2 **5445276** / λ015 **5445430** untouched. PD: H200 busy.
+
 ## 2026-08-16
 
 - **22:02 PDT** | **Queued 9d r2 resume (no kill) + git harden today** | Wall ends Aug 19 14:03; cannot extend RUNNING | Job **5445445** `opt3_r2_resume9d` tag `opt3_omar6_locked`, 2×H200, **9-00:00:00**, `--dependency=afterany:5445276` → auto-resume `latest.pth` when r2 exits. Live **5443101** / r2 **5445276** / λ015 **5445430** untouched.
