@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-17
 
+- **12:37 PDT** | **Between-round correction pipeline, parameterized; ep29 queued** | Need separate packs per recipe so live / locked / λ015 cannot overwrite each other | Registry `outputs/pseudo_label/model_registry.json`. Live **ep29** (`epoch_029_cancer_0.5499.pth`, job **5443101**) is **`488c5e7` / `pre_lora_fix`** (in-memory; LoRA not in AdamW; λ_slide=0.3). VALIDATED: PANDA+ **0.609**, ISUP **60.4%**, G5 P/R **0.559 / 0.606**. Cache **5446919** (L40S, afterany **5446905**) → `teacher_opt3_omar6_grouped_soft01_pre_lora_fix_ep029/`. Referee **5446920** afterok cache → `corrections_…_pre_lora_fix_ep029/`. **No auto-train.** Comparison: `outputs/pseudo_label/correction_comparison.md`.
+
 - **09:25 PDT** | **Rewrote results MD: per-run epoch tables + short best compare** | Previous draft too messy | `outputs/docs/opt3_this_run/RESULTS_PANDA_PANDA_PLUS.md` — live ep1–34 losses, PANDA+ classes where scored; locked r2; λ015 (ep1 unfinished); Teacher A; no highlighting.
 
 - **09:16 PDT** | **Drafted PANDA/PANDA+ results MD through live ep34** | Clean table of this run + prior runs | `outputs/docs/opt3_this_run/RESULTS_PANDA_PANDA_PLUS.md`. Live ep29 still best PANDA+ **0.609**; Teacher A best **ep5 0.563**. Unscored live ep8–27 (except 15) marked explicitly.

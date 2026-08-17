@@ -26,10 +26,19 @@ if [[ -z "${TEACHER}" || ! -d "${TEACHER}" ]]; then
   exit 1
 fi
 TEACHER="$(readlink -f "${TEACHER}")"
-STAMP="$(date +%Y%m%d)"
 NAME="$(basename "${TEACHER}")"
 TAU="${CONF_THRESHOLD:-0.7}"
-OUT="${OUT_DIR:-${PANDA_PROJECT}/outputs/pseudo_label/corrections/${NAME}_tau${TAU}_${STAMP}}"
+# teacher_<pack_tag>_epNNN -> corrections_<pack_tag>_epNNN (recipe lives in pack_tag)
+if [[ "${NAME}" == teacher_* ]]; then
+  CORR_NAME="corrections_${NAME#teacher_}"
+else
+  CORR_NAME="corrections_${NAME}"
+fi
+OUT="${OUT_DIR:-${PANDA_PROJECT}/outputs/pseudo_label/${CORR_NAME}}"
+if [[ -e "${OUT}" ]]; then
+  echo "SKIP existing correction dir (never overwrite): ${OUT}"
+  exit 0
+fi
 
 echo "=== $(date) | ISUP referee | teacher=${TEACHER} ==="
 echo "OUT=${OUT} tau=${TAU}"

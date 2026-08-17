@@ -1,14 +1,17 @@
 """Three-way ISUP-referee correction on a frozen teacher pack.
 
 Per pixel (non-ISUP-0 slides):
-  agree with expert mask          -> keep mask
-  disagree, maxprob < tau         -> ignore in loss
-  disagree, maxprob >= tau        -> if pred is G3/G4/G5 and not in clinical
-                                     {primary, secondary}, swap to nearest allowed
-                                     else keep mask (legal grade fight / non-cancer)
+  agree with expert mask                 -> keep original mask
+  disagree, maxprob < tau (low conf)     -> ignore in loss (label unchanged)
+  disagree, maxprob >= tau (high conf)   -> if pred is G3/G4/G5 and not in the
+                                            slide's clinical {primary, secondary},
+                                            swap to nearest allowed grade;
+                                            else keep original mask
+                                            (legal-grade fight / non-cancer)
 
-ISUP-0 slides are skipped entirely. Writes a dated correction folder:
-  correction_manifest.csv, balance_report.json, <slide>_corrected.h5
+ISUP-0 slides are skipped entirely (original label kept). Writes:
+  correction_manifest.csv, skipped_slides.csv, skipped_isup0.txt,
+  balance_report.json, G5_BIAS_SUMMARY.txt, <slide>_corrected.h5
 Never overwrites an existing correction dir.
 """
 
@@ -230,6 +233,16 @@ def main() -> None:
 
     manifest = pd.DataFrame(rows)
     manifest.to_csv(args.out_dir / "correction_manifest.csv", index=False)
+    skipped = manifest[manifest["skipped"].fillna("") != ""][["slide_id", "skipped"]]
+    skipped.to_csv(args.out_dir / "skipped_slides.csv", index=False)
+    isup0 = skipped[skipped["skipped"] == "isup0"]
+    (args.out_dir / "skipped_isup0.txt").write_text(
+        "ISUP-0 slides skipped (original label kept, no referee):\n"
+        + "\n".join(isup0["slide_id"].astype(str).tolist())
+        + ("\n" if len(isup0) else ""),
+        encoding="utf-8",
+    )
+    print(f"ISUP-0 skipped: {int(totals['n_isup0_skipped'])} slides (see skipped_isup0.txt)", flush=True)
 
     n_swap = totals["n_swap"]
     swap_to_g5_share = (totals["n_swap_to_g5"] / n_swap) if n_swap else 0.0

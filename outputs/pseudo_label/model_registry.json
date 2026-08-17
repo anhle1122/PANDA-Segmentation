@@ -1,0 +1,47 @@
+{
+  "updated_at": "2026-08-17T12:37:28-07:00",
+  "auto_train": false,
+  "incumbent_teacher": {
+    "label": "teacher_A_ep5",
+    "panda_plus_cancer_dice": 0.563,
+    "panda_plus_isup_match": null
+  },
+  "models": {
+    "opt3_omar6_grouped_soft01_pre_lora_fix_ep029": {
+      "model_id": "opt3_omar6_grouped_soft01_pre_lora_fix_ep029",
+      "run_tag": "opt3_omar6_grouped_soft01",
+      "recipe_version": "pre_lora_fix",
+      "pack_tag": "opt3_omar6_grouped_soft01_pre_lora_fix",
+      "epoch": 29,
+      "checkpoint_filename": "epoch_029_cancer_0.5499.pth",
+      "checkpoint_path": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/epoch_029_cancer_0.5499.pth",
+      "source_job_id": "5443101",
+      "code_commit": "488c5e7",
+      "code_commit_note": "Original in-memory trainer from Aug 12 (488c5e7). LoRA QKV was wrapped but not in AdamW; \u03bb_slide=0.3 from ep10; --live-patches 64 was printed but ISUP perm used micro_batch_size=4; no --live-chunk / --decoder-checkpoint (OOM path at ep37).",
+      "paths": {
+        "teacher_pack": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/teacher_opt3_omar6_grouped_soft01_pre_lora_fix_ep029",
+        "corrections": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/corrections_opt3_omar6_grouped_soft01_pre_lora_fix_ep029",
+        "eval_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/epoch_eval/opt3_omar6_grouped_soft01/ep029",
+        "train_log": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/training_log.csv"
+      },
+      "metrics": {
+        "panda_val_cancer_dice": 0.549929,
+        "panda_isup_match": 0.4703389830508475,
+        "panda_plus_cancer_dice": 0.60898,
+        "panda_plus_isup_match": 0.6041666666666666,
+        "panda_plus_g5_precision": 0.559469,
+        "panda_plus_g5_recall": 0.605607
+      },
+      "validation_status": "VALIDATED",
+      "validation_flags": [],
+      "g5_bias": {},
+      "jobs": {
+        "cache": "5446919",
+        "referee": "5446920",
+        "eval": null
+      },
+      "auto_train": false,
+      "registered_at": "2026-08-17T12:37:28-07:00"
+    }
+  }
+}

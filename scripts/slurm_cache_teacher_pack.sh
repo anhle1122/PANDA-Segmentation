@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Cache teacher pack (argmax + max-softmax) for one frozen epoch.
 # Usage:
-#   sbatch --gres=gpu:l40s:1 scripts/slurm_cache_teacher_pack.sh \
-#     outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/epoch_015_cancer_0.5791.pth
-# Does not touch the live H200 train. Never overwrites an existing pack dir's files.
+#   sbatch --gres=gpu:l40s:1 --export=ALL,RUN_TAG=...,RECIPE_VERSION=pre_lora_fix \
+#     scripts/slurm_cache_teacher_pack.sh /path/to/epoch_029_cancer_Y.pth
+# Pack dir: outputs/pseudo_label/teacher_${RUN_TAG}_${RECIPE_VERSION}_epNNN/
+# Skip if that directory already exists. One L40S; chain with --dependency=afterany.
 #SBATCH --job-name=teacher_pack
 #SBATCH --partition=gpu
 #SBATCH --qos=normal
@@ -32,18 +33,32 @@ if [[ -z "${CKPT}" || ! -f "${CKPT}" ]]; then
   exit 1
 fi
 CKPT="$(readlink -f "${CKPT}")"
-TAG="${RUN_TAG:-opt3_omar6_grouped_soft01}"
+TAG="${RUN_TAG:-}"
+RECIPE_VERSION="${RECIPE_VERSION:-}"
 BASE="$(basename "${CKPT}" .pth)"
 if [[ "${BASE}" =~ epoch_([0-9]+) ]]; then
-  EP="${BASH_REMATCH[1]}"
+  EP="$(printf '%03d' "$((10#${BASH_REMATCH[1]}))")"
 else
   EP="${EPOCH_NUM:-unknown}"
 fi
-OUT="${OUT_DIR:-${PANDA_PROJECT}/outputs/pseudo_label/teacher_${TAG}_ep${EP}}"
+if [[ -z "${PACK_TAG:-}" ]]; then
+  if [[ -z "${TAG}" || -z "${RECIPE_VERSION}" ]]; then
+    echo "ERROR: set PACK_TAG or both RUN_TAG and RECIPE_VERSION (no hardcoded pack path)"
+    exit 1
+  fi
+  PACK_TAG="${TAG}_${RECIPE_VERSION}"
+fi
+OUT="${OUT_DIR:-${PANDA_PROJECT}/outputs/pseudo_label/teacher_${PACK_TAG}_ep${EP}}"
+
+if [[ -d "${OUT}" ]] && { [[ -f "${OUT}/pack_config.json" ]] || compgen -G "${OUT}/*_srcpred.h5" >/dev/null; }; then
+  echo "SKIP existing pack for this tag+epoch: ${OUT}"
+  echo "Never overwrite. Re-run only after moving/renaming the directory."
+  exit 0
+fi
 mkdir -p "${OUT}"
 
 echo "=== $(date) | teacher pack cache | ckpt=${CKPT} ==="
-echo "OUT=${OUT} tag=${TAG} ep=${EP}"
+echo "OUT=${OUT} run_tag=${TAG} recipe=${RECIPE_VERSION} pack_tag=${PACK_TAG} ep=${EP}"
 nvidia-smi -L || true
 
 python -u scripts/cache_source_predictions.py \
@@ -51,7 +66,7 @@ python -u scripts/cache_source_predictions.py \
   --out-dir "${OUT}" \
   --all-slides \
   --write-maxprob \
-  --run-tag "${TAG}" \
+  --run-tag "${PACK_TAG}" \
   --lambda-slide "${LAMBDA_SLIDE:-0.3}" \
   --lambda-grade "${LAMBDA_GRADE:-0.3}" \
   --batch-size 4 \

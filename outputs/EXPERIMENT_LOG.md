@@ -1,11 +1,12 @@
-# Experiment Log — PANDA Gleason Segmentation (Model C)
+## Between-round correction pipeline (2026-08-17)
 
-Living log of runs, changes, and decisions. **Update whenever a training/eval/protocol change lands.**  
-Day-by-day Cursor log: `outputs/DAILY_PROGRESS.md` (resume text never goes here).
+| | |
+|--|--|
+| **Why** | Run the same cache → validate → ISUP referee → G5-bias loop on several checkpoints without mixing outputs. Start with live ep29. |
+| **What** | Parameterized registry (`model_registry.json`) keyed by `{run_tag}_{recipe_version}_epNNN`. Cache skip-if-exists; one L40S via afterany. Referee CPU afterok. Comparison table; **no auto-train**. |
+| **Result** | Live ep29 is still **`488c5e7` / `pre_lora_fix`** (LoRA not in AdamW, λ_slide=0.3). VALIDATED (PANDA+ 0.609, ISUP 60.4%). Cache **5446919**, referee **5446920**. |
+| **Decision** | Round N+1 label source is a manual pick from `correction_comparison.md` after G5-bias is filled. Next models: locked r2 / λ015, same scripts, different `RECIPE_VERSION`. |
 
-Format: **Why → What → Result → Decision**
-
----
 
 ## PANDA / PANDA+ results draft through live ep34 (2026-08-17)
 
