@@ -58,6 +58,13 @@ def main() -> None:
     torch.cat(parts, dim=0).mean().backward()
     assert conv.weight.grad is not None and float(conv.weight.grad.abs().sum()) > 0
     print("checkpoint_chunk_grads_ok")
+
+    src = Path(__file__).resolve().parent.parent / "src" / "train_uni2_opt3_slidebag.py"
+    text = src.read_text(encoding="utf-8")
+    assert "_dummy_synced_backward()" in text
+    assert "dist.barrier()" in text
+    assert "eval_model = unwrap_model(model)" in text
+    print("ddp_bag_parity_and_val_unwrap_ok")
     print("OMAR6_WIRING_OK")
 
 

@@ -195,8 +195,9 @@ def train(args: argparse.Namespace) -> None:
     model: nn.Module = SegPlusGrade(seg, grade_head).to(device)
     if world_size > 1:
         # find_unused=True: pixel micro-loss does not produce grade-head grads.
-        # Collective *counts* are matched separately (no_sync + one synced
-        # backward per bag, dummy if empty or n<min_slide_patches).
+        # Every bag must then do exactly one DDP-synced backward (dummy if the
+        # ISUP path used unwrap_model / checkpoint). Mismatched counts → NCCL
+        # hang after the last bag (r2 5445276, ep10, ALLREDUCE timeout).
         model = DDP(model, device_ids=[local_rank], find_unused_parameters=True)
 
     def _build_optim(lr: float, backbone_on: bool) -> torch.optim.Optimizer:
@@ -498,9 +499,11 @@ def train(args: argparse.Namespace) -> None:
                     l_grade_val = float(l_grade.detach().item())
                     slide_term_val = float(slide_term.detach().item())
                     del images_g, imgs_g, logits_chunks, feat_chunks
-                else:
-                    # n<5: pixel grads sit locally (no_sync); dummy allreduces them.
-                    _dummy_synced_backward()
+                # One DDP allreduce per bag on every rank. ISUP backward goes
+                # through unwrap_model+checkpoint so it does not close the
+                # find_unused reducer; n<5 used to be the only dummy. r2
+                # 5445276 hung when ranks disagreed on that count at ep10 val.
+                _dummy_synced_backward()
 
             if args.grad_clip > 0:
                 scaler.unscale_(optimizer)
@@ -532,6 +535,9 @@ def train(args: argparse.Namespace) -> None:
                 is_main_process(rank)
                 and args.ckpt_every_slides > 0
                 and n_slides % args.ckpt_every_slides == 0
+                and not (
+                    args.slides_per_epoch and n_slides >= int(args.slides_per_epoch)
+                )
             ):
                 save_checkpoint(
                     ckpt_dir / "latest.pth",
@@ -550,8 +556,13 @@ def train(args: argparse.Namespace) -> None:
                     flush=True,
                 )
 
-        # Validation — patch-wise Dice on original masks
-        model.eval()
+        if world_size > 1:
+            dist.barrier()
+
+        # Validation — unwrap so find_unused DDP hooks cannot allreduce in eval
+        # while the other rank is still finishing train / a 3GB latest.pth write.
+        eval_model = unwrap_model(model)
+        eval_model.eval()
         dice_acc = PerClassDiceAccumulator(num_classes=6)  # keyword-only ok
         val_loss_sum = 0.0
         val_n = 0
@@ -561,7 +572,7 @@ def train(args: argparse.Namespace) -> None:
                 masks_v = masks_v.to(device, non_blocking=True)
                 weights_v = weights_v.to(device, non_blocking=True)
                 with torch.cuda.amp.autocast(enabled=use_amp):
-                    logits_v, _, _ = model(images_v)
+                    logits_v, _, _ = eval_model(images_v)
                     vloss = segmentation_loss(
                         logits_v,
                         masks_v,

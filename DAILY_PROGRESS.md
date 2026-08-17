@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-17
 
+- **13:27 PDT** | **Fixed r2 NCCL hang (DDP bag-count mismatch)** | **5445276** died 12:35 after ep10 bag 256/256 — NCCL ALLREDUCE timeout, last named **ep9**; `latest.pth` is mid-ep10 | Cause: ISUP `unwrap_model`+checkpoint never closed DDP `find_unused` buckets; only n&lt;5 ran `_dummy_synced_backward()`, so ranks disagreed on allreduce count at val. Fix: dummy sync **every** bag; `dist.barrier()` before val; val via `unwrap_model`; skip last-bag mid-epoch `latest.pth`. Test `ddp_bag_parity_and_val_unwrap_ok`. **5445445** will load this from disk. Do not scancel **5445588** / **5445430** (in-memory old code).
+
 - **12:37 PDT** | **Between-round correction pipeline, parameterized; ep29 queued** | Need separate packs per recipe so live / locked / λ015 cannot overwrite each other | Registry `outputs/pseudo_label/model_registry.json`. Live **ep29** (`epoch_029_cancer_0.5499.pth`, job **5443101**) is **`488c5e7` / `pre_lora_fix`** (in-memory; LoRA not in AdamW; λ_slide=0.3). VALIDATED: PANDA+ **0.609**, ISUP **60.4%**, G5 P/R **0.559 / 0.606**. Cache **5446919** (L40S, afterany **5446905**) → `teacher_opt3_omar6_grouped_soft01_pre_lora_fix_ep029/`. Referee **5446920** afterok cache → `corrections_…_pre_lora_fix_ep029/`. **No auto-train.** Comparison: `outputs/pseudo_label/correction_comparison.md`.
 
 - **09:25 PDT** | **Rewrote results MD: per-run epoch tables + short best compare** | Previous draft too messy | `outputs/docs/opt3_this_run/RESULTS_PANDA_PANDA_PLUS.md` — live ep1–34 losses, PANDA+ classes where scored; locked r2; λ015 (ep1 unfinished); Teacher A; no highlighting.

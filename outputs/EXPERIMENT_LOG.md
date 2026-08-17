@@ -1,3 +1,13 @@
+## r2 NCCL hang after last bag (2026-08-17)
+
+| | |
+|--|--|
+| **Why** | Locked r2 **5445276** FAILED 12:35 PDT: NCCL ALLREDUCE timeout after ep10 train 256/256, before the val line. Peak ~29G (not OOM). Last named ckpt **ep9**. |
+| **What** | Rank 0 wrote mid-epoch `latest.pth` (~3.3G) while rank 1 entered val. ISUP backward uses `unwrap_model`+checkpoint so it does **not** close DDP `find_unused_parameters=True` buckets; only n&lt;5 used `_dummy_synced_backward()`. Ranks disagreed on allreduce count (numel=1). |
+| **Result** | Trainer now: dummy sync **every** non-empty bag; `dist.barrier()` after train loop; val through `unwrap_model`; skip last-bag mid-epoch save. `scripts/test_omar6_wiring.py` prints `ddp_bag_parity_and_val_unwrap_ok`. |
+| **Decision** | Pending **5445445** (`opt3_r2_resume9d`) loads disk trainer + `latest.pth` (mid-ep10). Do not scancel live **5445588** / λ015 **5445430** — they still run in-memory old code. |
+
+
 ## Between-round correction pipeline (2026-08-17)
 
 | | |
