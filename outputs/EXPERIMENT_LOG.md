@@ -7,6 +7,16 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## PANDA / PANDA+ results draft through live ep34 (2026-08-17)
+
+| | |
+|--|--|
+| **Why** | Need one table of this live run (to ep34) vs Teacher A / first Opt3 / R4 / r2, with PANDA val + PANDA+ Dice + ISUP when it exists. |
+| **What** | Wrote `outputs/docs/opt3_this_run/RESULTS_PANDA_PANDA_PLUS.md`. |
+| **Result** | Live ep29 PANDA+ **0.609** still best scored. Teacher A peak PANDA+ is ep5 **0.563** (ep42 val 0.742 / PANDA+ 0.554). |
+| **Decision** | Prefer PANDA+ for claims. Do not fill missing ISUP with zeros. |
+
+
 ## Live OOM resume (2026-08-17)
 
 | | |
