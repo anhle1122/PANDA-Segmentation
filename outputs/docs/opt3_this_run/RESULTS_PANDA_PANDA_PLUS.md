@@ -1,162 +1,132 @@
-# PANDA / PANDA+ results (through live ep34)
+# PANDA / PANDA+ results
 
-**Date:** 2026-08-17  
-**Judge:** prefer **PANDA+ cancer Dice**, then PANDA+ ISUP / G5 precision. PANDA val Dice is in-domain and can disagree.
+2026-08-17. Blank cells were not scored.
 
-## How to read the columns
-
-| Column | What it is | n |
-|--------|------------|--:|
-| **PANDA val** | Train-log cancer Dice (20k-patch val subset) | 472 slides (Omar-6 grouped split) |
-| **PANDA ISUP** | Model paint → ISUP vs clinical, val split, thr=0 | 472 slides |
-| **PANDA+ Dice** | Cancer Dice on PANDA+, `gt≥2` labeled pixels only | 4,688 patches / 48 slides |
-| **PANDA+ ISUP** | Gland/mask-derived ISUP, thr=0, pred on labeled pixels | 48 slides |
-
-PANDA ISUP and PANDA+ ISUP are **not** the same test (clinical vs mask-derived; mixed 472 vs cancer-heavy 48).
-
-`—` = not scored. Do not treat missing as zero.
+PANDA val = in-domain cancer Dice (train log).  
+PANDA+ = external cancer / class Dice (`gt≥2`, 48 slides).  
+PANDA ISUP = val-split clinical match (472). PANDA+ ISUP = 48-slide mask-derived match.
 
 ---
 
-## Leaderboard (PANDA+ cancer Dice, scored ckpts only)
+## 1. Omar-6 live (`opt3_omar6_grouped_soft01`) — the ep29 run
 
-| Rank | Run | Ep | PANDA val | PANDA+ Dice | PANDA+ ISUP | PANDA ISUP |
-|-----:|-----|---:|----------:|------------:|------------:|-----------:|
-| 1 | **Omar-6 live** `opt3_omar6_grouped_soft01` | **29** | 0.550 | **0.609** | **60.4%** | **47.0%** |
-| 2 | Omar-6 live | 30 | 0.543 | 0.600 | 60.4% | 38.8% |
-| 3 | Omar-6 live | 7 | **0.608** | 0.587 | 62.5% | — |
-| 4 | Omar-6 live | 33 | 0.540 | 0.584 | 50.0% | 36.4% |
-| 5 | Omar-6 live | 32 | 0.507 | 0.582 | 60.4% | 38.8% |
-| 6 | Omar-6 live | 15 | 0.579 | 0.579 | 52.1% | — |
-| 7 | Omar-6 live | 34 | 0.520 | 0.573 | 60.4% | 41.3% |
-| 8 | Omar-6 live | 28 | 0.569 | 0.565 | 54.2% | 40.3% |
-| 9 | **Teacher A** `h200x4` | 5 | 0.602 | **0.563** | — | — |
-| 10 | Teacher A | 30 | 0.677 | 0.560 | — | — |
-| 11 | Teacher A | 25 | 0.668 | 0.558 | — | — |
-| 12 | Teacher A | 15 | 0.639 | 0.556 | — | — |
-| 13 | Teacher A | 35 | 0.726 | 0.554 | — | — |
-| 14 | Teacher A (usual cite) | **42** | **0.742** | 0.554 | *31.2% invalid* | 53.9% |
-| 15 | Rules R4 g45soft | 6 | 0.645 | 0.554 | — | — |
-| 16 | 10k g45soft | 72 | 0.716 | 0.552 | — | — |
-| 17 | First Opt3 | 12 | 0.619 | 0.551 | — | 52.6% *train* |
-| 18 | First Opt3 | 21 | **0.636** | 0.546 | 58.3%† | 57.3% *train* |
+Job 5443101. λ_slide → 0.3 from ep10. Grouped split. LoRA not in AdamW. Stopped ep37 (OOM).
 
-† First Opt3 PANDA+ ISUP used `min_area_pct=0.05`; Omar-6 live uses **0.0**.
+### Losses and PANDA val (ep1–34)
 
----
+| ep | train | L_pix | L_slide | L_grade | PANDA val |
+|---:|------:|------:|--------:|--------:|----------:|
+| 1 | 0.834 | 0.387 | 1.957 | 1.489 | 0.529 |
+| 2 | 0.697 | 0.348 | 1.807 | 1.164 | 0.505 |
+| 3 | 0.674 | 0.340 | 1.738 | 1.112 | 0.521 |
+| 4 | 0.681 | 0.333 | 1.732 | 1.159 | 0.600 |
+| 5 | 0.672 | 0.327 | 1.792 | 1.152 | 0.546 |
+| 6 | 0.781 | 0.348 | 1.777 | 1.090 | 0.600 |
+| 7 | 0.857 | 0.343 | 1.689 | 1.038 | 0.608 |
+| 8 | 0.988 | 0.346 | 1.686 | 1.130 | 0.553 |
+| 9 | 1.100 | 0.355 | 1.584 | 1.219 | 0.541 |
+| 10 | 1.130 | 0.353 | 1.569 | 1.023 | 0.560 |
+| 11 | 1.158 | 0.363 | 1.540 | 1.107 | 0.504 |
+| 12 | 1.073 | 0.343 | 1.449 | 0.984 | 0.457 |
+| 13 | 1.128 | 0.352 | 1.503 | 1.086 | 0.557 |
+| 14 | 1.159 | 0.352 | 1.588 | 1.104 | 0.537 |
+| 15 | 1.090 | 0.348 | 1.426 | 1.047 | 0.579 |
+| 16 | 1.085 | 0.347 | 1.517 | 0.942 | 0.521 |
+| 17 | 1.094 | 0.354 | 1.490 | 0.975 | 0.507 |
+| 18 | 1.091 | 0.350 | 1.468 | 1.003 | 0.460 |
+| 19 | 0.993 | 0.342 | 1.351 | 0.819 | 0.545 |
+| 20 | 1.070 | 0.337 | 1.496 | 0.947 | 0.497 |
+| 21 | 1.049 | 0.343 | 1.372 | 0.979 | 0.544 |
+| 22 | 1.136 | 0.349 | 1.532 | 1.093 | 0.541 |
+| 23 | 1.069 | 0.352 | 1.419 | 0.970 | 0.489 |
+| 24 | 1.047 | 0.344 | 1.449 | 0.893 | 0.550 |
+| 25 | 0.976 | 0.332 | 1.417 | 0.730 | 0.514 |
+| 26 | 1.059 | 0.342 | 1.455 | 0.935 | 0.542 |
+| 27 | 1.084 | 0.340 | 1.475 | 1.006 | 0.546 |
+| 28 | 1.047 | 0.337 | 1.376 | 0.989 | 0.569 |
+| 29 | 1.064 | 0.351 | 1.454 | 0.925 | 0.550 |
+| 30 | 1.021 | 0.330 | 1.440 | 0.864 | 0.543 |
+| 31 | 1.076 | 0.358 | 1.453 | 0.940 | 0.500 |
+| 32 | 1.021 | 0.339 | 1.466 | 0.809 | 0.507 |
+| 33 | 1.064 | 0.351 | 1.559 | 0.817 | 0.540 |
+| 34 | 1.009 | 0.328 | 1.465 | 0.804 | 0.520 |
 
-## 1. This run — Omar-6 live (`opt3_omar6_grouped_soft01`)
+### PANDA+ classes and ISUP (epochs that were evaluated)
 
-Job **5443101**, 2×H200, grouped split, λ_slide warmup → **0.3** from ep10, λ_grade=0.3.  
-Old in-memory trainer: LoRA wrapped but **not in AdamW**; ISUP live not chunk-checkpointed. OOMd ep37 (~131G). Named ckpts through ep36 still on disk.
+| ep | benign | G3 | G4 | G5 | PANDA+ cancer | PANDA+ ISUP | PANDA ISUP |
+|---:|-------:|---:|---:|---:|--------------:|------------:|-----------:|
+| 7 | 0.679 | 0.631 | 0.573 | 0.558 | 0.587 | 62.5% |  |
+| 15 | 0.635 | 0.617 | 0.571 | 0.549 | 0.579 | 52.1% |  |
+| 28 | 0.610 | 0.617 | 0.545 | 0.534 | 0.565 | 54.2% | 40.3% |
+| 29 | 0.657 | 0.658 | 0.587 | 0.582 | 0.609 | 60.4% | 47.0% |
+| 30 | 0.634 | 0.644 | 0.580 | 0.578 | 0.600 | 60.4% | 38.8% |
+| 31 | 0.618 | 0.624 | 0.514 | 0.474 | 0.538 | 47.9% | 36.4% |
+| 32 | 0.649 | 0.642 | 0.533 | 0.573 | 0.582 | 60.4% | 38.8% |
+| 33 | 0.629 | 0.614 | 0.573 | 0.565 | 0.584 | 50.0% | 36.4% |
+| 34 | 0.644 | 0.664 | 0.511 | 0.544 | 0.573 | 60.4% | 41.3% |
 
-**Best external:** ep29. **Best PANDA val:** ep7.
-
-### Scored external (plus ep7 / ep15)
-
-| Ep | PANDA val | PANDA ISUP | PANDA+ Dice | PANDA+ ISUP | G5 prec | L_pix | L_slide | L_grade |
-|---:|----------:|-----------:|------------:|------------:|--------:|------:|--------:|--------:|
-| 7 | **0.608** | — | 0.587 | **62.5%** | **0.569** | 0.343 | 1.689 | 1.038 |
-| 15 | 0.579 | — | 0.579 | 52.1% | 0.496 | 0.348 | 1.426 | 1.047 |
-| 28 | 0.569 | 40.3% | 0.565 | 54.2% | 0.475 | 0.337 | 1.376 | 0.989 |
-| **29** | 0.550 | **47.0%** | **0.609** | **60.4%** | **0.559** | 0.351 | 1.454 | 0.925 |
-| 30 | 0.543 | 38.8% | 0.600 | 60.4% | 0.544 | 0.330 | 1.440 | 0.864 |
-| 31 | 0.500 | 36.4% | 0.538 | 47.9% | 0.351 | 0.358 | 1.453 | 0.940 |
-| 32 | 0.507 | 38.8% | 0.582 | 60.4% | 0.453 | 0.339 | 1.466 | 0.809 |
-| 33 | 0.540 | 36.4% | 0.584 | 50.0% | 0.481 | 0.351 | 1.559 | 0.817 |
-| 34 | 0.520 | 41.3% | 0.573 | 60.4% | 0.486 | 0.328 | 1.465 | 0.804 |
-
-Ep8–14 and 16–27: **PANDA+ / ISUP not scored** (watcher did not backfill). Val Dice only:
-
-| Ep | PANDA val | Ep | PANDA val | Ep | PANDA val |
-|---:|----------:|---:|----------:|---:|----------:|
-| 1 | 0.529 | 10 | 0.560 | 19 | 0.545 |
-| 2 | 0.505 | 11 | 0.504 | 20 | 0.497 |
-| 3 | 0.521 | 12 | **0.457** | 21 | 0.544 |
-| 4 | 0.600 | 13 | 0.557 | 22 | 0.541 |
-| 5 | 0.546 | 14 | 0.537 | 23 | 0.489 |
-| 6 | 0.600 | 16 | 0.521 | 24 | 0.550 |
-| 8 | 0.553 | 17 | 0.507 | 25 | 0.514 |
-| 9 | 0.541 | 18 | **0.460** | 26 | 0.542 |
-|  |  |  |  | 27 | 0.546 |
-
-Val dips at ep12 / 18 / 20 / 23. That is **not** proof those epochs were bad on PANDA+.
+ep8–14 and 16–27 have no PANDA+ class or ISUP scores.
 
 ---
 
-## 2. Teacher A (`uni2_upernet_raw_h200x4`)
+## 2. Omar-6 locked r2 (`opt3_omar6_locked`)
 
-Pixel CE + soft Dice, adj-soft α=0.15, backbone freeze 3 epochs then unfrozen. **Old split** (pre–grouped fusion). No Opt3 \(L_\mathrm{slide}\).
+Job 5445276. Same recipe as the going-forward default: live=64, decoder chunk, LoRA in AdamW, λ_slide warmup to 0.3. Early; λ_slide still ramping.
 
-Sweep = PANDA+ **Dice only** on every ckpt still on disk (every-5 + named 35/41/42). ep50/55/60 evals are **broken** (Dice 0.000; ignore).
+### Losses, PANDA val, PANDA+ classes, ISUP
 
-| Ep | PANDA val | PANDA+ Dice | PANDA+ ISUP | PANDA ISUP |
-|---:|----------:|------------:|------------:|-----------:|
-| **5** | 0.602 | **0.563** | — | — |
-| 10 | 0.628 | 0.526 | — | — |
-| 15 | 0.639 | 0.556 | — | — |
-| 20 | 0.672 | 0.536 | — | — |
-| 25 | 0.668 | 0.558 | — | — |
-| 30 | 0.677 | 0.560 | — | — |
-| 35 | 0.726 | 0.554 | — | — |
-| 40 | 0.722 | 0.541 | — | — |
-| 41 | 0.730 | 0.541 | — | — |
-| **42** | **0.742** | 0.554 | 31.2% *(invalid: all derived 4+3)* | **53.9%** |
-| 45 | 0.669 | 0.538 | — | — |
-
-Val climbs 0.60 → 0.74 while PANDA+ stays ~0.54–0.56. High PANDA val here is **not** external skill (split leakage + mask overfit). **No Teacher A epoch beat live ep29 on PANDA+.**
+| ep | L_pix | L_slide | L_grade | PANDA val | benign | G3 | G4 | G5 | PANDA+ cancer | PANDA+ ISUP | PANDA ISUP |
+|---:|------:|--------:|--------:|----------:|-------:|---:|---:|---:|--------------:|------------:|-----------:|
+| 1 | 0.416 | 2.476 | 1.643 | 0.463 | 0.683 | 0.618 | 0.490 | 0.256 | 0.455 | 60.4% | 41.1% |
+| 2 | 0.366 | 2.482 | 1.366 | 0.440 | 0.660 | 0.600 | 0.569 | 0.074 | 0.414 | 66.7% | 43.4% |
+| 3 | 0.359 | 2.429 | 1.244 | 0.430 | 0.698 | 0.601 | 0.287 | 0.343 | 0.410 | 45.8% | 39.6% |
+| 4 | 0.355 | 2.487 | 1.266 | 0.430 | 0.685 | 0.621 | 0.304 | 0.370 | 0.432 | 43.8% | 40.3% |
+| 5 | 0.346 | 2.574 | 1.407 | 0.539 | 0.678 | 0.509 | 0.568 | 0.393 | 0.490 | 41.7% | 43.4% |
+| 6 | 0.370 | 2.492 | 1.415 | 0.397 | 0.684 | 0.675 | 0.258 | 0.429 | 0.454 | 39.6% | 24.8% |
+| 7 | 0.368 | 2.063 | 1.406 | 0.505 |  |  |  |  |  |  |  |
+| 8 | 0.379 | 1.994 | 1.483 | 0.440 |  |  |  |  |  |  |  |
 
 ---
 
-## 3. First Opt3 (`pseudo_r1_opt3_slidebag`)
+## 3. Omar-6 λ_slide=0.15 (`opt3_omar6_lambda015`)
 
-Same Opt3 losses, **pre-Omar-6** split / wiring. Only ep12 / 15 / 21 scored on PANDA+.
-
-| Ep | PANDA val | PANDA+ Dice | PANDA+ ISUP | Train-set ISUP |
-|---:|----------:|------------:|------------:|---------------:|
-| **12** | 0.619 | **0.551** | — | 52.6% |
-| 15 | 0.498 | 0.451 | — | — |
-| **21** | **0.636** | 0.546 | 58.3%† | **57.3%** |
-
-Val-best (ep21) is worse on PANDA+ than ep12. Ep12 ckpt later pruned.
+Job 5445430. Locked wiring, λ_slide target 0.15 with warmup. Started 2026-08-17 07:12. Still in epoch 1 (no finished epoch, no PANDA+ yet).
 
 ---
 
-## 4. Locked Omar-6 r2 (`opt3_omar6_locked`) — early
+## 4. Teacher A (`h200x4`)
 
-Job **5445276**, current wiring (`WIRING_OK live=64`, LoRA in AdamW). λ_slide still warming in this window. **Not** comparable to live ep29 yet.
+Pixel CE + Dice, α=0.15, backbone unfrozen after ep3. Old split. No L_slide / L_grade.  
+PANDA val classes are the train-log in-domain Dice. PANDA+ classes are the external labeled eval.  
+ep50 / 55 / 60 evals failed (Dice 0); omitted. PANDA+ ISUP only exists for ep42 and is invalid (all slides derived as 4+3).
 
-| Ep | PANDA val | PANDA ISUP | PANDA+ Dice | PANDA+ ISUP | G5 prec |
-|---:|----------:|-----------:|------------:|------------:|--------:|
-| 1 | 0.463 | 41.1% | 0.455 | 60.4% | 0.390 |
-| 2 | 0.440 | 43.4% | 0.414 | 66.7% | 0.660 |
-| 3 | 0.430 | 39.6% | 0.410 | 45.8% | 0.238 |
-| 4 | 0.430 | 40.3% | 0.432 | 43.8% | 0.253 |
-| 5 | 0.539 | 43.4% | 0.490 | 41.7% | 0.564 |
-| 6 | 0.397 | 24.8% | 0.454 | 39.6% | 0.309 |
-
----
-
-## 5. Other prior runs (PANDA+ Dice only unless noted)
-
-| Run | Ep | PANDA val | PANDA+ Dice | ISUP |
-|-----|---:|----------:|------------:|------|
-| Rules R4 `h200x4_40k_g45soft_bf16` | 6 | 0.645 | 0.554 | — |
-| Rules R4 | 15 | 0.707 | 0.540 | — |
-| Rules R4 | 35 | 0.722 | 0.539 | — |
-| Rules R4 | 61 | 0.739 | 0.528 | — |
-| from742 `h200x4_40k_bf16_from742` | 29 | 0.752 | 0.537 | — |
-| 10k g45soft | 72 | 0.716 | 0.552 | — |
-| wmfix `pseudo_r1_isup_wmfix` best | 27 | 0.650 | 0.508 | — |
+| ep | train | val loss | PANDA val | val benign | val G3 | val G4 | val G5 | P+ benign | P+ G3 | P+ G4 | P+ G5 | PANDA+ cancer | PANDA ISUP |
+|---:|------:|---------:|----------:|-----------:|-------:|-------:|-------:|----------:|------:|------:|------:|--------------:|-----------:|
+| 5 | 0.279 | 0.277 | 0.602 | 0.738 | 0.680 | 0.715 | 0.411 | 0.548 | 0.584 | 0.572 | 0.533 | 0.563 |  |
+| 10 | 0.273 | 0.271 | 0.628 | 0.766 | 0.703 | 0.736 | 0.446 | 0.372 | 0.566 | 0.567 | 0.445 | 0.526 |  |
+| 15 | 0.263 | 0.266 | 0.639 | 0.763 | 0.716 | 0.749 | 0.453 | 0.476 | 0.574 | 0.573 | 0.522 | 0.556 |  |
+| 20 | 0.258 | 0.262 | 0.672 | 0.779 | 0.725 | 0.773 | 0.518 | 0.499 | 0.558 | 0.570 | 0.481 | 0.536 |  |
+| 25 | 0.256 | 0.260 | 0.668 | 0.777 | 0.728 | 0.769 | 0.507 | 0.434 | 0.577 | 0.601 | 0.497 | 0.558 |  |
+| 30 | 0.245 | 0.255 | 0.677 | 0.781 | 0.737 | 0.779 | 0.515 | 0.490 | 0.575 | 0.589 | 0.516 | 0.560 |  |
+| 35 | 0.246 | 0.253 | 0.726 | 0.792 | 0.746 | 0.810 | 0.623 | 0.495 | 0.591 | 0.602 | 0.469 | 0.554 |  |
+| 40 | 0.242 | 0.252 | 0.722 | 0.801 | 0.752 | 0.806 | 0.609 | 0.467 | 0.589 | 0.587 | 0.449 | 0.541 |  |
+| 41 | 0.238 | 0.252 | 0.730 | 0.807 | 0.758 | 0.813 | 0.620 | 0.523 | 0.602 | 0.603 | 0.419 | 0.541 |  |
+| 42 | 0.238 | 0.253 | 0.742 | 0.801 | 0.757 | 0.819 | 0.650 | 0.618 | 0.586 | 0.547 | 0.528 | 0.554 | 53.9% |
+| 45 |  | 0.260 | 0.669 | 0.760 | 0.730 | 0.770 | 0.508 | 0.434 | 0.611 | 0.577 | 0.428 | 0.538 |  |
 
 ---
 
-## Caveats
+## Comparison (best we have per run)
 
-1. Live ep8–27 (except 15) have **no** PANDA+ / ISUP.
-2. Teacher A PANDA+ ISUP at ep42 is **not usable** (collapse to 4+3).
-3. Teacher A / first Opt3 / R4 used **older splits**; Omar-6 live/r2 use **grouped fusion** (0 confirmed twin leaks). PANDA val is not apples-to-apples across those eras.
-4. Live LoRA was not in AdamW; locked r2 / λ015 are the wired recipe.
-5. Teacher A ep50/55/60 periodic evals failed (Dice 0); omitted from leaderboard.
+Pick by PANDA+ cancer Dice (the external number). PANDA val is a different test.
 
-**Sources:** `training_log.csv` per ckpt dir; `outputs/docs/opt3_this_run/epoch_external_scorecard.csv`; `outputs/evaluation/uni2_upernet_raw_panda_plus_*_labeled.csv`; `outputs/pseudo_label/epoch_eval/` and gland-ISUP summaries.
+| run | ep | PANDA val | PANDA+ cancer | P+ G3 | P+ G4 | P+ G5 | PANDA+ ISUP | PANDA ISUP | losses |
+|-----|---:|----------:|--------------:|------:|------:|------:|------------:|-----------:|--------|
+| Live Omar-6 | 29 | 0.550 | 0.609 | 0.658 | 0.587 | 0.582 | 60.4% | 47.0% | L_pix 0.351, L_slide 1.454, L_grade 0.925 |
+| Live Omar-6 (early) | 7 | 0.608 | 0.587 | 0.631 | 0.573 | 0.558 | 62.5% |  | L_pix 0.343, L_slide 1.689, L_grade 1.038 |
+| Teacher A | 5 | 0.602 | 0.563 | 0.584 | 0.572 | 0.533 |  |  | train 0.279 / val 0.277 (no slide loss) |
+| Teacher A (usual cite) | 42 | 0.742 | 0.554 | 0.586 | 0.547 | 0.528 | invalid | 53.9% | train 0.238 / val 0.253 |
+| Locked r2 | 5 | 0.539 | 0.490 | 0.509 | 0.568 | 0.393 | 41.7% | 43.4% | L_pix 0.346, L_slide 2.574, L_grade 1.407 |
+| λ=0.15 | — |  |  |  |  |  |  |  | no finished epoch |
+
+Live ep29 is the highest PANDA+ cancer Dice we have measured (0.609), with the strongest G3/G4/G5 together. Teacher A’s highest PANDA+ is ep5 (0.563); ep42 has the highest PANDA val (0.742) but not PANDA+. Locked r2 is still early (best PANDA+ 0.490 at ep5). λ=0.15 has no epoch yet.

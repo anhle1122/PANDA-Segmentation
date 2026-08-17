@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-17
 
+- **09:25 PDT** | **Rewrote results MD: per-run epoch tables + short best compare** | Previous draft too messy | `outputs/docs/opt3_this_run/RESULTS_PANDA_PANDA_PLUS.md` — live ep1–34 losses, PANDA+ classes where scored; locked r2; λ015 (ep1 unfinished); Teacher A; no highlighting.
+
 - **09:16 PDT** | **Drafted PANDA/PANDA+ results MD through live ep34** | Clean table of this run + prior runs | `outputs/docs/opt3_this_run/RESULTS_PANDA_PANDA_PLUS.md`. Live ep29 still best PANDA+ **0.609**; Teacher A best **ep5 0.563**. Unscored live ep8–27 (except 15) marked explicitly.
 
 - **08:51 PDT** | **Resubmitted OOM live tag (no kill of r2/λ015)** | 5443101 CUDA OOM ep37 ~131G (no decoder-chunk) | Job **5445588** `opt3_live_resume` tag `opt3_omar6_grouped_soft01` `ALLOW_LIVE_TAG=1`, 2×H200, **9d**, auto-resume `latest.pth` (mid-ep37). **Current locked wiring** (live=64 + chunk=4 + decoder ckpt, LoRA in AdamW) so it should sit ~29G not 131G. r2 **5445276** / λ015 **5445430** untouched. PD: H200 busy.
