@@ -1,0 +1,87 @@
+{
+  "baseline_epochs": {
+    "opt3_omar6_grouped_soft01": [
+      5,
+      10,
+      15,
+      19
+    ],
+    "opt3_omar6_r2_everyep": []
+  },
+  "queued": [
+    {
+      "tag": "opt3_omar6_grouped_soft01",
+      "epoch": 20,
+      "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/epoch_020_cancer_0.4974.pth",
+      "pack_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/teacher_opt3_omar6_grouped_soft01_ep020"
+    },
+    {
+      "tag": "opt3_omar6_grouped_soft01",
+      "epoch": 21,
+      "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/epoch_021_cancer_0.5441.pth",
+      "pack_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/teacher_opt3_omar6_grouped_soft01_ep021"
+    },
+    {
+      "tag": "opt3_omar6_grouped_soft01",
+      "epoch": 22,
+      "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/epoch_022_cancer_0.5410.pth",
+      "pack_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/teacher_opt3_omar6_grouped_soft01_ep022"
+    },
+    {
+      "tag": "opt3_omar6_grouped_soft01",
+      "epoch": 23,
+      "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/epoch_023_cancer_0.4894.pth",
+      "pack_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/teacher_opt3_omar6_grouped_soft01_ep023"
+    },
+    {
+      "tag": "opt3_omar6_grouped_soft01",
+      "epoch": 24,
+      "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/epoch_024_cancer_0.5502.pth",
+      "pack_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/teacher_opt3_omar6_grouped_soft01_ep024"
+    },
+    {
+      "tag": "opt3_omar6_grouped_soft01",
+      "epoch": 25,
+      "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/epoch_025_cancer_0.5144.pth",
+      "pack_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/teacher_opt3_omar6_grouped_soft01_ep025"
+    },
+    {
+      "tag": "opt3_omar6_grouped_soft01",
+      "epoch": 26,
+      "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/epoch_026_cancer_0.5416.pth",
+      "pack_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/teacher_opt3_omar6_grouped_soft01_ep026"
+    },
+    {
+      "tag": "opt3_omar6_grouped_soft01",
+      "epoch": 27,
+      "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/epoch_027_cancer_0.5465.pth",
+      "pack_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/teacher_opt3_omar6_grouped_soft01_ep027"
+    },
+    {
+      "tag": "opt3_omar6_grouped_soft01",
+      "epoch": 28,
+      "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/epoch_028_cancer_0.5692.pth",
+      "pack_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/teacher_opt3_omar6_grouped_soft01_ep028"
+    },
+    {
+      "tag": "opt3_omar6_grouped_soft01",
+      "epoch": 29,
+      "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/epoch_029_cancer_0.5499.pth",
+      "pack_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/teacher_opt3_omar6_grouped_soft01_ep029"
+    },
+    {
+      "tag": "opt3_omar6_grouped_soft01",
+      "epoch": 30,
+      "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/epoch_030_cancer_0.5430.pth",
+      "pack_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/teacher_opt3_omar6_grouped_soft01_ep030"
+    },
+    {
+      "tag": "opt3_omar6_grouped_soft01",
+      "epoch": 31,
+      "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/epoch_031_cancer_0.5003.pth",
+      "pack_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/teacher_opt3_omar6_grouped_soft01_ep031"
+    }
+  ],
+  "active_job_id": null,
+  "submitted": []
+}

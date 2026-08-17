@@ -1,0 +1,99 @@
+{
+  "n_slides": 48,
+  "primary_match": 37,
+  "primary_match_rate": 0.7708333333333334,
+  "primary_mismatch_rate": 0.22916666666666666,
+  "secondary_match": 28,
+  "secondary_match_rate": 0.5833333333333334,
+  "secondary_mismatch_rate": 0.4166666666666667,
+  "primary_and_secondary_match": 28,
+  "primary_and_secondary_match_rate": 0.5833333333333334,
+  "pattern_match": 28,
+  "pattern_match_rate": 0.5833333333333334,
+  "pattern_mismatch_rate": 0.4166666666666667,
+  "isup_match": 29,
+  "isup_match_rate": 0.6041666666666666,
+  "isup_mismatch_rate": 0.3958333333333333,
+  "primary_confusion_mask_rows_model_cols": {
+    "3": {
+      "3": 19,
+      "4": 5,
+      "5": 0
+    },
+    "4": {
+      "3": 5,
+      "4": 14,
+      "5": 0
+    },
+    "5": {
+      "3": 0,
+      "4": 1,
+      "5": 4
+    }
+  },
+  "secondary_confusion_mask_rows_model_cols": {
+    "3": {
+      "3": 6,
+      "4": 4,
+      "5": 0
+    },
+    "4": {
+      "3": 7,
+      "4": 20,
+      "5": 0
+    },
+    "5": {
+      "3": 7,
+      "4": 2,
+      "5": 2
+    }
+  },
+  "top_pattern_mismatches": [
+    {
+      "mask": "4+3",
+      "model": "4+5",
+      "n": 6
+    },
+    {
+      "mask": "4+3",
+      "model": "3+4",
+      "n": 5
+    },
+    {
+      "mask": "3+4",
+      "model": "4+3",
+      "n": 4
+    },
+    {
+      "mask": "3+3",
+      "model": "3+4",
+      "n": 1
+    },
+    {
+      "mask": "3+4",
+      "model": "4+5",
+      "n": 1
+    },
+    {
+      "mask": "5+4",
+      "model": "5+5",
+      "n": 1
+    },
+    {
+      "mask": "4+3",
+      "model": "5+4",
+      "n": 1
+    },
+    {
+      "mask": "3+3",
+      "model": "3+5",
+      "n": 1
+    }
+  ],
+  "checkpoint": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/epoch_029_cancer_0.5499.pth",
+  "checkpoint_epoch": 29,
+  "split": "/common/omarmlab/members/anh/panda_project/outputs/panda_plus/panda_plus_patches.csv",
+  "min_area_pct": 0.0,
+  "pred_on_labeled_only": true,
+  "n_patches": 4688
+}

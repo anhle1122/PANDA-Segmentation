@@ -1,0 +1,79 @@
+{
+  "baseline_epochs": {
+    "opt3_omar6_grouped_soft01": [
+      5,
+      10,
+      15,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27
+    ],
+    "opt3_omar6_locked": []
+  },
+  "queued": [
+    {
+      "tag": "opt3_omar6_locked",
+      "epoch": 3,
+      "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_locked/epoch_003_cancer_0.4296.pth",
+      "eval_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/epoch_eval/opt3_omar6_locked/ep003",
+      "train_log": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_locked/training_log.csv"
+    }
+  ],
+  "active_job_id": 5445424,
+  "submitted": [
+    {
+      "tag": "opt3_omar6_grouped_soft01",
+      "epoch": 28,
+      "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/epoch_028_cancer_0.5692.pth",
+      "eval_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/epoch_eval/opt3_omar6_grouped_soft01/ep028",
+      "train_log": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/training_log.csv",
+      "job_id": 5445292
+    },
+    {
+      "tag": "opt3_omar6_locked",
+      "epoch": 1,
+      "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_locked/epoch_001_cancer_0.4628.pth",
+      "eval_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/epoch_eval/opt3_omar6_locked/ep001",
+      "train_log": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_locked/training_log.csv",
+      "job_id": 5445314
+    },
+    {
+      "tag": "opt3_omar6_grouped_soft01",
+      "epoch": 29,
+      "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/epoch_029_cancer_0.5499.pth",
+      "eval_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/epoch_eval/opt3_omar6_grouped_soft01/ep029",
+      "train_log": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/training_log.csv",
+      "job_id": 5445337
+    },
+    {
+      "tag": "opt3_omar6_locked",
+      "epoch": 2,
+      "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_locked/epoch_002_cancer_0.4401.pth",
+      "eval_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/epoch_eval/opt3_omar6_locked/ep002",
+      "train_log": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_locked/training_log.csv",
+      "job_id": 5445345
+    },
+    {
+      "tag": "opt3_omar6_grouped_soft01",
+      "epoch": 30,
+      "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/epoch_030_cancer_0.5430.pth",
+      "eval_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/epoch_eval/opt3_omar6_grouped_soft01/ep030",
+      "train_log": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/training_log.csv",
+      "job_id": 5445359
+    },
+    {
+      "tag": "opt3_omar6_grouped_soft01",
+      "epoch": 31,
+      "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/epoch_031_cancer_0.5003.pth",
+      "eval_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/epoch_eval/opt3_omar6_grouped_soft01/ep031",
+      "train_log": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_grouped_soft01/training_log.csv",
+      "job_id": 5445424
+    }
+  ]
+}

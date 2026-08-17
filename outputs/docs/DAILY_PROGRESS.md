@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-16
 
+- **22:02 PDT** | **Queued 9d r2 resume (no kill) + git harden today** | Wall ends Aug 19 14:03; cannot extend RUNNING | Job **5445445** `opt3_r2_resume9d` tag `opt3_omar6_locked`, 2×H200, **9-00:00:00**, `--dependency=afterany:5445276` → auto-resume `latest.pth` when r2 exits. Live **5443101** / r2 **5445276** / λ015 **5445430** untouched.
+
 - **21:59 PDT** | **Teacher A PANDA+ sweep queued (13× L40S)** | Check if any Teacher A epoch beats live ep29 PANDA+ 0.609 | Jobs **5445432–5445444** on periodics ep5–60 + named ep35/41 (skip ep42 already **0.554**). Not every train epoch — only ckpts on disk under `uni2_upernet_raw_h200x4/`. Scorecard: `outputs/docs/opt3_this_run/teacherA_panda_plus_sweep.csv`. H200 trains untouched.
 
 - **21:56 PDT** | **λ015 wall → 9d; r2 still 3d (extend denied)** | User asked 9-day wall for both | **5445430** TimeLimit now **9-00:00:00** (EndTime ~Aug 28 if starts Aug 19). **5445276** still **3-00:00:00** (EndTime **2026-08-19 14:03 PDT**); `scontrol update` → Access/permission denied on RUNNING. Do not scancel r2; near wall, queue a resume job on tag `opt3_omar6_locked` with 9d, or ask admin to extend.

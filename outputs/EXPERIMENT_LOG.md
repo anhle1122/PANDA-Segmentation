@@ -7,6 +7,16 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## r2 9-day resume queued (2026-08-16)
+
+| | |
+|--|--|
+| **Why** | Cannot raise TimeLimit on RUNNING **5445276** (denied). 3d wall ends ~Aug 19 14:03 PDT. |
+| **What** | Job **5445445** `opt3_r2_resume9d`, same tag `opt3_omar6_locked`, 2×H200, 9d, `dependency=afterany:5445276`. Script auto-resumes `…/opt3_omar6_locked/latest.pth`. |
+| **Result** | PENDING (Dependency). No scancel of r2. |
+| **Decision** | Continuity without kill. Confirm start: same WIRING_OK + resume path. |
+
+
 ## Teacher A PANDA+ epoch sweep (2026-08-16)
 
 | | |

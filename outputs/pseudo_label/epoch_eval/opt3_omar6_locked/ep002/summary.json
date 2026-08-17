@@ -1,0 +1,16 @@
+{
+  "tag": "opt3_omar6_locked",
+  "epoch": 2,
+  "ckpt": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_locked/epoch_002_cancer_0.4401.pth",
+  "panda_val_cancer_dice": 0.440141,
+  "mean_dice": 0.603904,
+  "L_slide": 2.482291,
+  "L_pixel": 0.365598,
+  "L_grade": 1.366391,
+  "panda_isup_match": 0.4343220338983051,
+  "panda_plus_cancer_dice": 0.414283,
+  "panda_plus_g5_precision": 0.660486,
+  "panda_plus_isup_match": 0.6666666666666666,
+  "job_id": "5445345",
+  "status": "complete"
+}

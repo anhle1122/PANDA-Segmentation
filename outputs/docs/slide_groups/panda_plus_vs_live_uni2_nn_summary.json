@@ -1,0 +1,143 @@
+{
+  "n_plus_embedded": 48,
+  "n_plus_missing": 0,
+  "missing_ids": [],
+  "n_live": 4683,
+  "n_mutual_nn_with_live": 22,
+  "max_nn_cos": 0.9843,
+  "median_nn_cos": 0.96915,
+  "mutual_pairs": [
+    {
+      "plus_id": "010670e9572e67e5a7e00fb791a343ef",
+      "nn_live_id": "778bd33e4eb7fbc28402051743b78aa2",
+      "nn_live_split": "train",
+      "nn_cos": 0.9843
+    },
+    {
+      "plus_id": "01227af585a47c16680f927d21a7f06a",
+      "nn_live_id": "f90b38ef792d1763de8a25d33fdff1cc",
+      "nn_live_split": "train",
+      "nn_cos": 0.9835
+    },
+    {
+      "plus_id": "018eabc8f4503ab89d0725b430e4808f",
+      "nn_live_id": "6bdd4158abad8cc5af266f1845eb065d",
+      "nn_live_split": "val",
+      "nn_cos": 0.9834
+    },
+    {
+      "plus_id": "58c9ebcb84cf500f25352367f27fba56",
+      "nn_live_id": "8e45b3d90a0b2ff168f2851d2b0efad7",
+      "nn_live_split": "train",
+      "nn_cos": 0.983
+    },
+    {
+      "plus_id": "d9a927bfb26b22cde6b52515c9adda7b",
+      "nn_live_id": "e47409feff05e7815c2908a2af47746b",
+      "nn_live_split": "train",
+      "nn_cos": 0.9825
+    },
+    {
+      "plus_id": "56e6cfc2a0ae0f493cf1a98689ca2afe",
+      "nn_live_id": "76646d841dfa7b647f6034e73417c1ee",
+      "nn_live_split": "train",
+      "nn_cos": 0.9802
+    },
+    {
+      "plus_id": "591da133fabcfdfa629d09729d356cda",
+      "nn_live_id": "eb341a42f1e27d3af125fa1bcba8c799",
+      "nn_live_split": "train",
+      "nn_cos": 0.9799
+    },
+    {
+      "plus_id": "9362ecc68839f01d586019a2782f3552",
+      "nn_live_id": "d54603c7b6fda2615c5576d137c750c4",
+      "nn_live_split": "train",
+      "nn_cos": 0.9791
+    },
+    {
+      "plus_id": "010dea54bfd0a4a1eb1c0719949bb4a4",
+      "nn_live_id": "6a452b5662c18fdefc5dd4c8669eb781",
+      "nn_live_split": "train",
+      "nn_cos": 0.9778
+    },
+    {
+      "plus_id": "59a0932027596ac986f52a74d30217bd",
+      "nn_live_id": "eca989843a1006206f8af3503b71b66c",
+      "nn_live_split": "train",
+      "nn_cos": 0.9764
+    },
+    {
+      "plus_id": "8f4389cc541dbe6eb4bcd793d0626891",
+      "nn_live_id": "4bb4bbbd6dec06f9938c52cbdfa0b1c9",
+      "nn_live_split": "train",
+      "nn_cos": 0.9752
+    },
+    {
+      "plus_id": "5554bf43ed8256dff3a716d9811a7afb",
+      "nn_live_id": "e31d9b2e94f0a5774796a8e8affe0180",
+      "nn_live_split": "train",
+      "nn_cos": 0.9746
+    },
+    {
+      "plus_id": "76b8865c3acb3c9ac2d796f523bd2da7",
+      "nn_live_id": "5491324b554f337dc1eaf3e0c93eebb4",
+      "nn_live_split": "train",
+      "nn_cos": 0.972
+    },
+    {
+      "plus_id": "022544d1446c2c44f8ca8ff53262dc5b",
+      "nn_live_id": "898c2d26d40846143d477f1b625971a1",
+      "nn_live_split": "train",
+      "nn_cos": 0.9717
+    },
+    {
+      "plus_id": "10218e6dc6a4fb9af7879333c11af510",
+      "nn_live_id": "ada83813085876c62c8bf0481f1693cf",
+      "nn_live_split": "train",
+      "nn_cos": 0.9692
+    },
+    {
+      "plus_id": "586eb142ad433841c18b748e580ab771",
+      "nn_live_id": "ec357f56de67acf8abceb244a2cdf49b",
+      "nn_live_split": "train",
+      "nn_cos": 0.9675
+    },
+    {
+      "plus_id": "0b73719f81c77051bb4b0ece8647a48e",
+      "nn_live_id": "6c31153c5dffb6276f8adee046a09166",
+      "nn_live_split": "test",
+      "nn_cos": 0.9649
+    },
+    {
+      "plus_id": "7e059274c3afb96b3a33191c804d5a0f",
+      "nn_live_id": "ebd3d4bfc5d1e9ce090e342869cbdefe",
+      "nn_live_split": "train",
+      "nn_cos": 0.9646
+    },
+    {
+      "plus_id": "59aa903a1ceb3e9793bedda411a4a2cd",
+      "nn_live_id": "a55cc8df950bcadf4cd61ff470d74246",
+      "nn_live_split": "train",
+      "nn_cos": 0.9585
+    },
+    {
+      "plus_id": "0a336d5bc71e1f83d453297413f11e9b",
+      "nn_live_id": "fbf1493e0d0f80318eb52c41d91f2180",
+      "nn_live_split": "val",
+      "nn_cos": 0.958
+    },
+    {
+      "plus_id": "022a0bb891701b0161a7d4518415d0f4",
+      "nn_live_id": "a1d31796040eff1d8223f486caa01ab8",
+      "nn_live_split": "train",
+      "nn_cos": 0.9561
+    },
+    {
+      "plus_id": "09f734438a9b2f3cf78c72eef5c45b30",
+      "nn_live_id": "eca065b700e4e44681c2b3d45235a6f9",
+      "nn_live_split": "train",
+      "nn_cos": 0.9554
+    }
+  ]
+}

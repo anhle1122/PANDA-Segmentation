@@ -1,0 +1,6 @@
+job_id=5445445
+dependency=afterany:5445276
+run_tag=opt3_omar6_locked
+time=9-00:00:00
+gres=gpu:h200:2
+resume=auto_latest.pth

@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""Read-only teacher-epoch gate for the live Omar-6 run.
+"""Read-only teacher-epoch gate for Omar-6 Opt3 runs.
 
 Qualify an epoch only if all of:
-  1. val cancer Dice >= 0.579 (ep15 remaining-best bar)
+  1. PANDA+ cancer Dice >= 0.58 (external bar; not in-domain val)
   2. L_slide <= L_slide from 3 epochs prior (falling or flat)
   3. PANDA+ G5 precision within --g5-precision-tol of ep7 (0.569370)
+  4. named epoch_XXX_*.pth still on disk
 
-Prints the most recent epoch's gaps when nothing qualifies.
+PANDA+ Dice / G5 come from labeled eval CSVs and/or
+outputs/docs/opt3_this_run/epoch_external_scorecard.csv.
 Safe to re-run: stdout only, no writes, no Slurm submits.
 """
 
@@ -24,13 +26,14 @@ DEFAULT_CKPT_DIR = (
     / "uni2_upernet_raw_opt3_omar6_grouped_soft01"
 )
 DEFAULT_LOG = DEFAULT_CKPT_DIR / "training_log.csv"
+DEFAULT_EXTERNAL = PROJECT / "outputs" / "docs" / "opt3_this_run" / "epoch_external_scorecard.csv"
 EVAL_DIR = PROJECT / "outputs" / "evaluation"
 EP7_LABELED = (
     EVAL_DIR
     / "uni2_upernet_raw_panda_plus_uni2_upernet_raw_opt3_omar6_grouped_soft01_best_labeled.csv"
 )
 EP7_G5_PRECISION = 0.569370
-VAL_CANCER_MIN = 0.579
+PANDA_PLUS_CANCER_MIN = 0.58
 L_SLIDE_LOOKBACK = 3
 
 
@@ -44,7 +47,7 @@ def _f(row: dict, key: str) -> float | None:
         return None
 
 
-def load_scorecard(path: Path) -> list[dict]:
+def load_train_log(path: Path) -> list[dict]:
     if not path.is_file():
         raise SystemExit(f"scorecard missing: {path}")
     with path.open(newline="", encoding="utf-8") as f:
@@ -57,7 +60,7 @@ def load_scorecard(path: Path) -> list[dict]:
             continue
         by_ep[ep] = {
             "epoch": ep,
-            "cancer_dice": _f(row, "cancer_dice"),
+            "cancer_dice": _f(row, "cancer_dice"),  # in-domain val (info only)
             "L_slide": _f(row, "L_slide"),
             "L_pixel": _f(row, "L_pixel"),
             "L_grade": _f(row, "L_grade"),
@@ -66,17 +69,40 @@ def load_scorecard(path: Path) -> list[dict]:
     return [by_ep[k] for k in sorted(by_ep)]
 
 
-def g5_precision_from_csv(path: Path) -> float | None:
+def load_external_scorecard(path: Path) -> dict[int, dict]:
+    """epoch -> {panda_plus_cancer_dice, panda_plus_g5_precision, ...}"""
+    out: dict[int, dict] = {}
     if not path.is_file():
-        return None
+        return out
     with path.open(newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
-            if str(row.get("class", "")).strip().upper() == "G5":
-                try:
-                    return float(row["precision"])
-                except (KeyError, ValueError, TypeError):
-                    return None
-    return None
+            try:
+                ep = int(float(row["epoch"]))
+            except (KeyError, ValueError, TypeError):
+                continue
+            out[ep] = {
+                "panda_plus_cancer_dice": _f(row, "panda_plus_cancer_dice"),
+                "panda_plus_g5_precision": _f(row, "panda_plus_g5_precision"),
+                "panda_plus_isup_match": _f(row, "panda_plus_isup_match"),
+                "src": "epoch_external_scorecard.csv",
+            }
+    return out
+
+
+def metrics_from_labeled_csv(path: Path) -> tuple[float | None, float | None]:
+    """Return (cancer_dice, g5_precision) from a PANDA+ labeled metrics CSV."""
+    if not path.is_file():
+        return None, None
+    cancer = None
+    g5 = None
+    with path.open(newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            name = str(row.get("class", "")).strip()
+            if name == "cancer_dice":
+                cancer = _f(row, "dice")
+            elif name.upper() == "G5":
+                g5 = _f(row, "precision")
+    return cancer, g5
 
 
 def named_ckpt(ckpt_dir: Path, epoch: int) -> Path | None:
@@ -84,32 +110,47 @@ def named_ckpt(ckpt_dir: Path, epoch: int) -> Path | None:
     return hits[-1] if hits else None
 
 
-def find_g5_precision(epoch: int, cancer: float | None) -> tuple[float | None, str]:
+def find_panda_plus_metrics(
+    epoch: int,
+    *,
+    val_cancer: float | None,
+    external: dict[int, dict],
+) -> tuple[float | None, float | None, str]:
+    """Return (panda_plus_cancer_dice, g5_precision, source_note)."""
     if epoch == 7:
-        val = g5_precision_from_csv(EP7_LABELED)
-        if val is not None:
-            return val, str(EP7_LABELED.name)
-        return EP7_G5_PRECISION, "hardcoded_ep7_ref"
+        cancer, g5 = metrics_from_labeled_csv(EP7_LABELED)
+        if cancer is not None or g5 is not None:
+            return cancer, g5 if g5 is not None else EP7_G5_PRECISION, EP7_LABELED.name
+        return None, EP7_G5_PRECISION, "hardcoded_ep7_g5_only"
+
+    ext = external.get(epoch)
+    if ext and ext.get("panda_plus_cancer_dice") is not None:
+        return (
+            ext["panda_plus_cancer_dice"],
+            ext.get("panda_plus_g5_precision"),
+            str(ext.get("src", "external_scorecard")),
+        )
+
     matches = sorted(
         EVAL_DIR.glob(f"uni2_upernet_raw_panda_plus_epoch_{epoch:03d}_cancer_*_labeled.csv"),
         key=lambda p: p.stat().st_mtime,
         reverse=True,
     )
-    if cancer is not None:
+    if val_cancer is not None:
         close = []
         for p in matches:
             try:
                 stem_c = float(p.name.split("cancer_")[1].split("_")[0])
             except (IndexError, ValueError):
                 continue
-            if abs(stem_c - cancer) <= 0.005:
+            if abs(stem_c - val_cancer) <= 0.005:
                 close.append(p)
         if close:
             matches = close
     if not matches:
-        return None, "not in scorecard (no PANDA+ labeled CSV)"
-    val = g5_precision_from_csv(matches[0])
-    return val, matches[0].name
+        return None, None, "no PANDA+ labeled CSV / external scorecard row"
+    cancer, g5 = metrics_from_labeled_csv(matches[0])
+    return cancer, g5, matches[0].name
 
 
 def fmt(v: float | None, digits: int = 3) -> str:
@@ -121,24 +162,27 @@ def fmt(v: float | None, digits: int = 3) -> str:
 def assess(
     rows: list[dict],
     *,
-    val_min: float,
+    plus_min: float,
     lookback: int,
     g5_ref: float,
     g5_tol: float,
     ckpt_dir: Path,
+    external: dict[int, dict],
 ) -> list[dict]:
     by_ep = {int(r["epoch"]): r for r in rows}
     out = []
     for r in rows:
         ep = int(r["epoch"])
-        cancer = r["cancer_dice"]
+        val_cancer = r["cancer_dice"]
         l_slide = r["L_slide"]
         prior = by_ep.get(ep - lookback)
         prior_l = prior["L_slide"] if prior else None
         ckpt = named_ckpt(ckpt_dir, ep)
-        g5, g5_src = find_g5_precision(ep, cancer)
+        plus_dice, g5, plus_src = find_panda_plus_metrics(
+            ep, val_cancer=val_cancer, external=external
+        )
 
-        cancer_ok = cancer is not None and cancer >= val_min
+        plus_ok = plus_dice is not None and plus_dice >= plus_min
         if prior_l is None:
             l_ok = None
             l_note = f"no ep{ep - lookback} yet"
@@ -152,21 +196,23 @@ def assess(
 
         if g5 is None:
             g5_ok = False
-            g5_note = g5_src
+            g5_note = plus_src if plus_dice is None else "G5 missing in labeled CSV"
         else:
             gap = abs(g5 - g5_ref)
             g5_ok = gap <= g5_tol
             g5_note = (
-                f"{g5:.3f} ({'within' if g5_ok else 'outside'} {g5_tol:.3f} of ep7 {g5_ref:.3f}; {g5_src})"
+                f"{g5:.3f} ({'within' if g5_ok else 'outside'} {g5_tol:.3f} of ep7 {g5_ref:.3f}; {plus_src})"
             )
 
         has_ckpt = ckpt is not None
-        qualifies = bool(cancer_ok and l_ok is True and g5_ok and has_ckpt)
+        qualifies = bool(plus_ok and l_ok is True and g5_ok and has_ckpt)
         out.append(
             {
                 "epoch": ep,
-                "cancer": cancer,
-                "cancer_ok": cancer_ok,
+                "val_cancer": val_cancer,
+                "plus_dice": plus_dice,
+                "plus_ok": plus_ok,
+                "plus_src": plus_src,
                 "l_slide": l_slide,
                 "l_ok": l_ok,
                 "l_note": l_note,
@@ -176,20 +222,23 @@ def assess(
                 "has_ckpt": has_ckpt,
                 "ckpt": str(ckpt) if ckpt else "",
                 "qualifies": qualifies,
-                "historical": bool(cancer_ok and l_ok is True and g5_ok and not has_ckpt),
+                "historical": bool(plus_ok and l_ok is True and g5_ok and not has_ckpt),
             }
         )
     return out
 
 
-def describe(a: dict, *, val_min: float) -> str:
-    cancer = a["cancer"]
-    if cancer is None:
-        c_bit = "val cancer n/a (need scorecard)"
-    elif a["cancer_ok"]:
-        c_bit = f"val cancer {cancer:.3f} (>= {val_min:.3f}, ok)"
+def describe(a: dict, *, plus_min: float) -> str:
+    plus = a["plus_dice"]
+    if plus is None:
+        c_bit = f"PANDA+ cancer n/a ({a['plus_src']})"
+    elif a["plus_ok"]:
+        c_bit = f"PANDA+ cancer {plus:.3f} (>= {plus_min:.3f}, ok)"
     else:
-        c_bit = f"val cancer {cancer:.3f} (need {val_min:.3f}, gap {val_min - cancer:.3f})"
+        c_bit = f"PANDA+ cancer {plus:.3f} (need {plus_min:.3f}, gap {plus_min - plus:.3f})"
+
+    val = a["val_cancer"]
+    v_bit = f"in-domain val {fmt(val)}"
 
     l_slide = a["l_slide"]
     if a["l_ok"] is True:
@@ -205,54 +254,73 @@ def describe(a: dict, *, val_min: float) -> str:
         g_bit = f"G5 precision: {a['g5']:.3f} (within threshold)"
     else:
         g_bit = f"G5 precision: {a['g5_note']}"
-    return f"ep{a['epoch']}: {c_bit}; {l_bit}; {g_bit}"
+    return f"ep{a['epoch']}: {c_bit}; {v_bit}; {l_bit}; {g_bit}"
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Read-only teacher-epoch selector")
-    ap.add_argument("--scorecard", type=Path, default=DEFAULT_LOG)
+    ap = argparse.ArgumentParser(description="Read-only teacher-epoch selector (PANDA+ Dice gate)")
+    ap.add_argument("--scorecard", type=Path, default=DEFAULT_LOG, help="training_log.csv")
+    ap.add_argument("--external-scorecard", type=Path, default=DEFAULT_EXTERNAL)
     ap.add_argument("--ckpt-dir", type=Path, default=DEFAULT_CKPT_DIR)
-    ap.add_argument("--val-cancer-min", type=float, default=VAL_CANCER_MIN)
+    ap.add_argument(
+        "--panda-plus-cancer-min",
+        type=float,
+        default=PANDA_PLUS_CANCER_MIN,
+        help="Minimum PANDA+ cancer Dice (default 0.58)",
+    )
     ap.add_argument("--l-slide-lookback", type=int, default=L_SLIDE_LOOKBACK)
     ap.add_argument("--g5-ref", type=float, default=EP7_G5_PRECISION)
     ap.add_argument("--g5-precision-tol", type=float, default=0.03)
     args = ap.parse_args()
 
-    rows = load_scorecard(args.scorecard)
+    rows = load_train_log(args.scorecard)
     if not rows:
         raise SystemExit(f"no epoch rows in {args.scorecard}")
+    external = load_external_scorecard(args.external_scorecard)
     assessed = assess(
         rows,
-        val_min=args.val_cancer_min,
+        plus_min=args.panda_plus_cancer_min,
         lookback=args.l_slide_lookback,
         g5_ref=args.g5_ref,
         g5_tol=args.g5_precision_tol,
         ckpt_dir=args.ckpt_dir,
+        external=external,
     )
     winners = [a for a in assessed if a["qualifies"]]
     historical = [a for a in assessed if a["historical"]]
     print(
         f"scorecard={args.scorecard} epochs={len(assessed)} "
-        f"val_cancer>={args.val_cancer_min:.3f} "
+        f"PANDA+_cancer>={args.panda_plus_cancer_min:.3f} "
         f"L_slide<=ep-3 G5 within {args.g5_precision_tol:.3f} of {args.g5_ref:.6f}"
     )
     latest = assessed[-1]
-    print(f"LATEST {describe(latest, val_min=args.val_cancer_min)}")
+    print(f"LATEST {describe(latest, plus_min=args.panda_plus_cancer_min)}")
     if historical:
         h = historical[-1]
-        print(f"HISTORICAL_ONLY ep{h['epoch']} (metrics pass, named ckpt gone) | {describe(h, val_min=args.val_cancer_min)}")
+        print(
+            f"HISTORICAL_ONLY ep{h['epoch']} (metrics pass, named ckpt gone) | "
+            f"{describe(h, plus_min=args.panda_plus_cancer_min)}"
+        )
     if winners:
-        best = max(winners, key=lambda a: (a["cancer"] or -1.0, a["epoch"]))
-        print(f"CANDIDATE ep{best['epoch']} | {describe(best, val_min=args.val_cancer_min)}")
+        best = max(winners, key=lambda a: (a["plus_dice"] or -1.0, a["epoch"]))
+        print(f"CANDIDATE ep{best['epoch']} | {describe(best, plus_min=args.panda_plus_cancer_min)}")
         print(f"CKPT {best['ckpt']}")
         for a in winners:
             if a is not best:
-                print(f"ALSO ep{a['epoch']} | {describe(a, val_min=args.val_cancer_min)}")
+                print(f"ALSO ep{a['epoch']} | {describe(a, plus_min=args.panda_plus_cancer_min)}")
         return
     print("NO_CANDIDATE")
-    near = [a for a in assessed if a["cancer_ok"] and a["has_ckpt"]]
+    near = [a for a in assessed if a["plus_ok"] and a["has_ckpt"]]
     if near and near[-1]["epoch"] != latest["epoch"]:
-        print(f"closest keepable val-cancer pass: {describe(near[-1], val_min=args.val_cancer_min)}")
+        print(
+            f"closest keepable PANDA+ pass: "
+            f"{describe(near[-1], plus_min=args.panda_plus_cancer_min)}"
+        )
+    elif latest["plus_dice"] is not None and not latest["plus_ok"]:
+        print(
+            f"latest PANDA+ gap={args.panda_plus_cancer_min - latest['plus_dice']:.3f} "
+            f"(in-domain val={fmt(latest['val_cancer'])})"
+        )
 
 
 if __name__ == "__main__":
