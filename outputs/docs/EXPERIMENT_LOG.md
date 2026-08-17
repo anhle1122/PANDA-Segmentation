@@ -7,13 +7,23 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## r2 / λ015 wall-time (2026-08-16)
+
+| | |
+|--|--|
+| **Why** | 3-day wall too short for early-peak + later PANDA+ compare. |
+| **What** | `scontrol update` TimeLimit=9d on **5445430** (ok) and **5445276** (denied on RUNNING). |
+| **Result** | λ015=9d. r2 remains 3d → ends **Aug 19 14:03 PDT** unless admin extends. |
+| **Decision** | Do not scancel r2. If wall hits, submit resume on same tag with 9d rather than kill. |
+
+
 ## λ_slide=0.15 ablation (2026-08-16)
 
 | | |
 |--|--|
 | **Why** | Live ep7 best early PANDA at λ≈0.12; full 0.3 correlates with later val soft. Test target λ=0.15 with standard warmup. |
 | **What** | Job **5445430** tag `opt3_omar6_lambda015`, 2×H200, 3-day, Omar-6 locked stack (`live=64`, LoRA in AdamW, decoder ckpt), `LAMBDA_SLIDE=0.15`, warmup **on**. Cold start. Duplicate **5445429** cancel when controller up. |
-| **Result** | PENDING (`ReqNodeNotAvail`). Live **5443101** / r2 **5445276** not cancelled. |
+| **Result** | PENDING. Wall raised to **9-00:00:00** via scontrol. Live **5443101** / r2 **5445276** not cancelled. |
 | **Decision** | Parallel ablation only; keep locked default λ=0.3. Compare on PANDA+ once named epochs exist. |
 
 ## Per-epoch PANDA / PANDA+ eval + L_slide vs Dice (2026-08-16)

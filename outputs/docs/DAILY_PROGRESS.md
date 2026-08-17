@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-16
 
+- **21:56 PDT** | **λ015 wall → 9d; r2 still 3d (extend denied)** | User asked 9-day wall for both | **5445430** TimeLimit now **9-00:00:00** (EndTime ~Aug 28 if starts Aug 19). **5445276** still **3-00:00:00** (EndTime **2026-08-19 14:03 PDT**); `scontrol update` → Access/permission denied on RUNNING. Do not scancel r2; near wall, queue a resume job on tag `opt3_omar6_locked` with 9d, or ask admin to extend.
+
 - **21:46 PDT** | **Queued λ_slide=0.15 ablation (2×H200, warmup ON)** | Parallel mid-λ vs locked 0.3; do not kill live/r2 | Keep job **5445430** `opt3_lam015` tag `opt3_omar6_lambda015`, LAMBDA_SLIDE=0.15, warmup on (0→0.15 by ep10), cold start. Duplicate PENDING **5445429** to cancel when Slurm responds. Live **5443101** / r2 **5445276** untouched. PD: H200 busy.
 
 - **14:56 PDT** | **Armed 5-min r2 health watch on 5445276** | User: make sure r2 does not fail unnoticed | Mid-ep1 ~104/256, `latest.pth` updating 14:55, peak 28.08G, no OOM/Traceback in err. Loop every 5m on out/err + progress. Do not scancel.
