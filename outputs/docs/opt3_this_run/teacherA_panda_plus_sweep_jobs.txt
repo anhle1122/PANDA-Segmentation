@@ -1,0 +1,13 @@
+5445432 epoch_005_periodic
+5445433 epoch_010_periodic
+5445434 epoch_015_periodic
+5445435 epoch_020_periodic
+5445436 epoch_025_periodic
+5445437 epoch_030_periodic
+5445438 epoch_035_cancer_0.7262
+5445439 epoch_040_periodic
+5445440 epoch_041_cancer_0.7301
+5445441 epoch_045_periodic
+5445442 epoch_050_periodic
+5445443 epoch_055_periodic
+5445444 epoch_060_periodic

@@ -7,6 +7,16 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## Teacher A PANDA+ epoch sweep (2026-08-16)
+
+| | |
+|--|--|
+| **Why** | Only Teacher A ep042 was scored on PANDA+ (0.554). Live ep29 is 0.609 — need to know if any Teacher A epoch on disk beats it. |
+| **What** | 13× 1×L40S `slurm_eval_uni2_panda_plus.sh` jobs **5445432–5445444** for ep5/10/…/60 periodics + ep35/41 named. Skip ep42 (done). Skip best/latest duplicates. |
+| **Result** | Queued (Priority). Scorecard `outputs/docs/opt3_this_run/teacherA_panda_plus_sweep.csv`. |
+| **Decision** | Compare cancer Dice vs live ep29 **0.609**. Disk only has every-5 (+035/041/042), not all 1–60 epochs. |
+
+
 ## r2 / λ015 wall-time (2026-08-16)
 
 | | |
