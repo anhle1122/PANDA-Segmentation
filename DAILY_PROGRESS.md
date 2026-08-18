@@ -10,6 +10,10 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-08-18
+
+- **11:43 PDT** | **Resumed live + λ015 with hang-fix trainer (no kill of r2)** | Both died on pre-fix NCCL ALLREDUCE timeout | Jobs **5452266** `opt3_live_resume` tag `opt3_omar6_grouped_soft01` `ALLOW_LIVE_TAG=1` (auto-resume `latest.pth` mid-ep41; last named **ep40**) and **5452267** `opt3_lam015` tag `opt3_omar6_lambda015` λ=0.15 (auto-resume `latest.pth` mid-ep11; last named **ep10**). Both 2×H200, **9d**, disk trainer `db017c0` (dummy sync every bag). PENDING (Priority). r2 **5445445** still R on `cp097`. Confirm start: `WIRING_OK live=64` + dummy-sync path.
+
 ## 2026-08-17
 
 - **13:27 PDT** | **Fixed r2 NCCL hang (DDP bag-count mismatch)** | **5445276** died 12:35 after ep10 bag 256/256 — NCCL ALLREDUCE timeout, last named **ep9**; `latest.pth` is mid-ep10 | Cause: ISUP `unwrap_model`+checkpoint never closed DDP `find_unused` buckets; only n&lt;5 ran `_dummy_synced_backward()`, so ranks disagreed on allreduce count at val. Fix: dummy sync **every** bag; `dist.barrier()` before val; val via `unwrap_model`; skip last-bag mid-epoch `latest.pth`. Test `ddp_bag_parity_and_val_unwrap_ok`. **5445445** will load this from disk. Do not scancel **5445588** / **5445430** (in-memory old code).

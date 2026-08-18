@@ -1,3 +1,13 @@
+## Live + λ015 hang-fix resume (2026-08-18)
+
+| | |
+|--|--|
+| **Why** | Live **5445588** and λ015 **5445430** FAILED on the same DDP/NCCL hang (pre-fix in-memory trainer). Disk already has `db017c0`. |
+| **What** | Resubmit same tags, auto-resume `latest.pth`, 2×H200, 9d. Live **5452266** `ALLOW_LIVE_TAG=1` (mid-ep41 / named ep40). λ015 **5452267** λ=0.15 (mid-ep11 / named ep10). |
+| **Result** | Both PENDING (Priority). r2 **5445445** left RUNNING on `cp097` (hang-fix already proven through ep13 val). |
+| **Decision** | Confirm start prints `WIRING_OK live=64`. Do not scancel r2. |
+
+
 ## r2 NCCL hang after last bag (2026-08-17)
 
 | | |
