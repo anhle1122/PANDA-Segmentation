@@ -45,6 +45,15 @@ KNOWN_JOBS: dict[str, dict[str, str]] = {
             "chunk=4 + decoder checkpoint, λ_slide warmup to 0.3."
         ),
     },
+    "5445445": {
+        "run_tag": "opt3_omar6_locked",
+        "recipe_version": "locked_r2",
+        "code_commit": "5a23882",
+        "code_commit_note": (
+            "Locked r2 (opt3_omar6_locked): Omar-6 wiring, hang-fix resume job 5445445. "
+            "Teacher for between-round correction is epoch 14 (PANDA+ cancer 0.642)."
+        ),
+    },
     "5445430": {
         "run_tag": "opt3_omar6_lambda015",
         "recipe_version": "post_lora_fix_lambda015",

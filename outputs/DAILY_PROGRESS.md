@@ -10,6 +10,14 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-08-21
+
+- **19:55 PDT** | **Logged ep14 referee triage (no train)** | Need a watchable status, not a chat dump | CORRECTED **3.24%** (3.07B / 94.84B px). G5 gate PASS. HTML/JSON: `outputs/docs/opt3_this_run/ep14_referee_status.html`. Spec §2–4 still open.
+
+- **13:40 PDT** | **Epoch-eval watcher requires full PANDA+ ISUP; src_keep no longer needs git on compute** | Live `src/scripts` is NFS RO; old watcher skipped baseline epochs | Mirror watcher marks an epoch done only if PANDA ISUP + PANDA+ Dice + PANDA+ ISUP exist. 63 named ckpts still missing full eval; queue backfills on 4 GPU slots. Source keep uses `/usr/bin/git` + file walk. Do not scancel H200 trains.
+
+- **13:10 PDT** | **Registered locked r2 ep14 as between-round teacher; submitted ISUP referee (no train)** | Best scored PANDA+ cancer on locked r2 is ep14 (0.642 / 54.2% ISUP); live ep37 is 0.642 too but has no teacher pack | Registry `selected_source_model=opt3_omar6_locked_locked_r2_ep014`. Pack already cached. Referee **5513153** (`isup_ref_ep14` on `cp036`) at τ=0.7 (three-way ISUP gate, not Rules 1–3). **No training.** Review `corrections_opt3_omar6_locked_locked_r2_ep014/` when done.
+
 ## 2026-08-18
 
 - **11:43 PDT** | **Resumed live + λ015 with hang-fix trainer (no kill of r2)** | Both died on pre-fix NCCL ALLREDUCE timeout | Jobs **5452266** `opt3_live_resume` tag `opt3_omar6_grouped_soft01` `ALLOW_LIVE_TAG=1` (auto-resume `latest.pth` mid-ep41; last named **ep40**) and **5452267** `opt3_lam015` tag `opt3_omar6_lambda015` λ=0.15 (auto-resume `latest.pth` mid-ep11; last named **ep10**). Both 2×H200, **9d**, disk trainer `db017c0` (dummy sync every bag). PENDING (Priority). r2 **5445445** still R on `cp097`. Confirm start: `WIRING_OK live=64` + dummy-sync path.

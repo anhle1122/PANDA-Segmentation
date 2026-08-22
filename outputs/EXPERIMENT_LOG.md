@@ -1,3 +1,21 @@
+## Locked ep14 referee finished (2026-08-21 19:55)
+
+| | |
+|--|--|
+| **Why** | Need a durable, watchable record of the three-way referee. |
+| **What** | Job **5513153** completed. Logged HTML + JSON at `outputs/docs/opt3_this_run/ep14_referee_status.*`. |
+| **Result** | CORRECTED **3.24%** of pixels (3.07B). G5 gate PASS. No training. Spec §2–4 still open. |
+| **Decision** | Review the HTML before any Round N+1 train. |
+
+## Locked r2 ep14 selected as between-round teacher (2026-08-21)
+
+| | |
+|--|--|
+| **Why** | Need a source model for the current three-way ISUP referee. Locked r2 ep14 is the best scored PANDA+ cancer among locked epochs (0.642) and already has a teacher pack. |
+| **What** | Register `opt3_omar6_locked_locked_r2_ep014`. Run referee at τ=0.7 on the cached pack. Compare slide overlap vs original wmfix Rules 1–3 as a sanity check only. |
+| **Result** | Registry updated. Referee job **5513100** submitted (CPU `defq`). **No training started.** |
+| **Decision** | Wait for referee G5-bias + wmfix overlap summary before any Round N+1 train. |
+
 ## Live + λ015 hang-fix resume (2026-08-18)
 
 | | |

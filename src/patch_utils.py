@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import openslide
 
-PROJECT = Path(__file__).resolve().parent.parent
+PROJECT = Path(os.environ.get("PANDA_PROJECT", Path(__file__).resolve().parent.parent))
 # Local: project/data. HPC: export PANDA_DATA_ROOT=/common/omarmlab/lea14/panda_data
 DATA = Path(os.environ.get("PANDA_DATA_ROOT", PROJECT / "data"))
 SLIDES_DIR = DATA / "slides"

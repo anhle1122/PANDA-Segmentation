@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Locked ep14 ISUP referee</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; font: 15px/1.45 ui-sans-serif, system-ui, sans-serif; background: #141414; color: #e8e8e8; }
+    main { max-width: 920px; margin: 0 auto; padding: 28px 20px 48px; }
+    h1 { font-size: 22px; font-weight: 600; margin: 0 0 6px; }
+    h2 { font-size: 15px; font-weight: 600; margin: 28px 0 10px; color: #c8c8c8; }
+    .sub { color: #9a9a9a; font-size: 13px; margin-bottom: 20px; }
+    .pills { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 18px; }
+    .pill { font-size: 12px; padding: 2px 8px; border: 1px solid #3a3a3a; }
+    .pill.ok { color: #8fd19e; border-color: #3d5a42; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .stat { background: #1c1c1c; padding: 14px 12px; }
+    .stat b { display: block; font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
+    .stat span { color: #9a9a9a; font-size: 12px; }
+    .stat.warn b { color: #e0b15a; }
+    .stat.ok b { color: #8fd19e; }
+    .bar { display: flex; height: 18px; margin: 8px 0 6px; background: #2a2a2a; }
+    .bar i { display: block; height: 100%; }
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: #9a9a9a; }
+    .legend i { display: inline-block; width: 10px; height: 10px; margin-right: 5px; vertical-align: -1px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid #2a2a2a; }
+    th:last-child, td:last-child { text-align: right; }
+    tr.swap td { color: #e0b15a; }
+    .note { background: #1c1c1c; padding: 12px 14px; font-size: 13px; color: #c4c4c4; margin: 16px 0; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 720px) { .stats, .two { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Locked ep14 ISUP referee</h1>
+  <div class="pills">
+    <span class="pill ok">finished</span>
+    <span class="pill">no train</span>
+    <span class="pill">τ = 0.7</span>
+    <span class="pill">job 5513153 · 2h 9m</span>
+  </div>
+  <p class="sub">Teacher pack locked r2 epoch 14. Snapshot 2026-08-21 19:55 PDT. Numbers from balance_report.json.</p>
+
+  <div class="stats">
+    <div class="stat warn"><b>3.24%</b><span>CORRECTED (swap / all px)</span></div>
+    <div class="stat"><b>3.07B</b><span>Pixels swapped</span></div>
+    <div class="stat"><b>0.642</b><span>Best PANDA+ cancer (ep14)</span></div>
+    <div class="stat ok"><b>PASS</b><span>G5-bias gate</span></div>
+  </div>
+
+  <div class="note">Only high-confidence illegal G3/G4/G5 pixels were rewritten. Agree, low-conf ignore, and legal-grade fights keep the expert mask. ISUP-0 slides skipped (757).</div>
+
+  <h2>Pixel triage — 94.84B non–ISUP-0 pixels</h2>
+  <div class="bar" title="agree / ignore / legal keep / swap">
+    <i style="width:57.29%;background:#3d7a4a"></i>
+    <i style="width:23.60%;background:#8a7a32"></i>
+    <i style="width:15.87%;background:#3a5f8a"></i>
+    <i style="width:3.24%;background:#a06a2a"></i>
+  </div>
+  <div class="legend">
+    <span><i style="background:#3d7a4a"></i>Agree 57.3%</span>
+    <span><i style="background:#8a7a32"></i>Ignore 23.6%</span>
+    <span><i style="background:#3a5f8a"></i>Legal keep 15.9%</span>
+    <span><i style="background:#a06a2a"></i>Swapped 3.24%</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Branch</th><th>Pixels</th><th>Share</th></tr></thead>
+    <tbody>
+      <tr><td>Total (non–ISUP-0)</td><td>94.84B</td><td>100%</td></tr>
+      <tr><td>Agree → keep mask</td><td>54.33B</td><td>57.29%</td></tr>
+      <tr><td>Disagree, low conf → ignore</td><td>22.38B</td><td>23.60%</td></tr>
+      <tr><td>Disagree, high conf</td><td>18.12B</td><td>19.11%</td></tr>
+      <tr><td>→ legal, mask kept</td><td>15.06B</td><td>83.07% of high-conf</td></tr>
+      <tr class="swap"><td>→ illegal, swapped</td><td>3.07B</td><td>16.93% of high-conf / 3.24% of all</td></tr>
+    </tbody>
+  </table>
+
+  <div class="two">
+    <div>
+      <h2>Slides</h2>
+      <table>
+        <tbody>
+          <tr><td>Pack slides</td><td>3,739</td></tr>
+          <tr><td>ISUP-0 skipped</td><td>757</td></tr>
+          <tr><td>Corrected H5 written</td><td>2,982</td></tr>
+          <tr><td>Slides with any swap</td><td>2,487</td></tr>
+          <tr><td>Swaps to G5</td><td>5.50%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h2>vs wmfix (slide sanity)</h2>
+      <table>
+        <tbody>
+          <tr><td>Referee swap slides</td><td>2,487</td></tr>
+          <tr><td>wmfix correcting</td><td>442</td></tr>
+          <tr><td>Overlap</td><td>319</td></tr>
+        </tbody>
+      </table>
+      <p class="sub">Low overlap is expected. Referee does not fix legal-grade order fights.</p>
+    </div>
+  </div>
+
+  <h2>Still open</h2>
+  <table>
+    <tbody>
+      <tr><td>Section 2</td><td>maxprob histograms</td></tr>
+      <tr><td>Section 3</td><td>nearest-allowed / ties</td></tr>
+      <tr><td>Section 4</td><td>pixel-level wmfix overlap</td></tr>
+      <tr><td>GitHub</td><td>still c60f60f · HPC .git read-only</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Cluster left running</h2>
+  <table>
+    <tbody>
+      <tr><td>5513183</td><td>epoch eval watcher · 44/111 full PANDA+ ISUP</td></tr>
+      <tr><td>5513184</td><td>source keep</td></tr>
+      <tr><td>5445445</td><td>locked r2 train</td></tr>
+      <tr><td>5452266</td><td>live train</td></tr>
+    </tbody>
+  </table>
+  <p class="sub">JSON twin: ep14_referee_status.json</p>
+</main>
+</body>
+</html>

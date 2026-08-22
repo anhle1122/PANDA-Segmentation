@@ -1,0 +1,54 @@
+{
+  "title": "Locked ep14 ISUP referee status",
+  "written_at": "2026-08-21T19:55:00-07:00",
+  "auto_train": false,
+  "source": {
+    "model_id": "opt3_omar6_locked_locked_r2_ep014",
+    "tau": 0.7,
+    "job_id": "5513153",
+    "elapsed": "02:08:56",
+    "node": "esplhpc-cp036",
+    "teacher_pack": "outputs/pseudo_label/teacher_opt3_omar6_locked_locked_r2_ep014",
+    "corrections": "outputs/pseudo_label/corrections_opt3_omar6_locked_locked_r2_ep014",
+    "balance_report": "outputs/pseudo_label/corrections_opt3_omar6_locked_locked_r2_ep014/balance_report.json"
+  },
+  "headline": {
+    "corrected_pixels": 3069107759,
+    "corrected_pct_of_all": 0.03236,
+    "best_panda_plus_cancer_dice": 0.642487,
+    "g5_bias_gate": "PASS"
+  },
+  "pixels": {
+    "n_pixels": 94839504896,
+    "n_agree": 54332844648,
+    "n_ignore": 22382133624,
+    "n_high_conf_disagree": 18124526624,
+    "n_legal_kept": 15055418865,
+    "n_swap": 3069107759
+  },
+  "slides": {
+    "n_pack": 3739,
+    "n_isup0_skipped": 757,
+    "n_corrected_h5": 2982,
+    "n_swap_slides": 2487
+  },
+  "g5": {
+    "pct_swaps_to_g5": 5.5014,
+    "pct_original_mask_g5": 1.8059,
+    "flag": false
+  },
+  "wmfix_slide_overlap": {
+    "referee_swap_slides": 2487,
+    "wmfix_correcting_slides": 442,
+    "overlap": 319,
+    "note": "Expected low overlap; referee does not fix legal-grade order fights."
+  },
+  "spec_remaining": ["section2_confidence_histograms", "section3_nearest_allowed", "section4_pixel_wmfix"],
+  "cluster": {
+    "eval_watcher": "5513183",
+    "src_keep": "5513184",
+    "r2_train": "5445445",
+    "live_train": "5452266",
+    "git": "c60f60f origin/main, HPC .git read-only"
+  }
+}

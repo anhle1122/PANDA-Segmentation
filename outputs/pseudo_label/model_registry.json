@@ -1,12 +1,49 @@
 {
-  "updated_at": "2026-08-17T12:37:28-07:00",
+  "updated_at": "2026-08-21T13:04:00-07:00",
   "auto_train": false,
+  "selected_source_model": "opt3_omar6_locked_locked_r2_ep014",
   "incumbent_teacher": {
     "label": "teacher_A_ep5",
     "panda_plus_cancer_dice": 0.563,
     "panda_plus_isup_match": null
   },
   "models": {
+    "opt3_omar6_locked_locked_r2_ep014": {
+      "model_id": "opt3_omar6_locked_locked_r2_ep014",
+      "run_tag": "opt3_omar6_locked",
+      "recipe_version": "locked_r2",
+      "pack_tag": "opt3_omar6_locked_locked_r2",
+      "epoch": 14,
+      "checkpoint_filename": "epoch_014_cancer_0.3885.pth",
+      "checkpoint_path": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_locked/epoch_014_cancer_0.3885.pth",
+      "source_job_id": "5445445",
+      "code_commit": "5a23882",
+      "code_commit_note": "Locked r2 Omar-6 (LoRA in AdamW, WIRING_OK live=64, hang-fix resume 5445445). Selected between-round teacher: PANDA+ cancer Dice 0.642, PANDA+ ISUP 54.2%.",
+      "paths": {
+        "teacher_pack": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/teacher_opt3_omar6_locked_locked_r2_ep014",
+        "corrections": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/corrections_opt3_omar6_locked_locked_r2_ep014",
+        "eval_dir": "/common/omarmlab/members/anh/panda_project/outputs/pseudo_label/epoch_eval/opt3_omar6_locked/ep014",
+        "train_log": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_locked/training_log.csv"
+      },
+      "metrics": {
+        "panda_val_cancer_dice": 0.388458,
+        "panda_isup_match": 0.3305084745762712,
+        "panda_plus_cancer_dice": 0.642487,
+        "panda_plus_isup_match": 0.5416666666666666,
+        "panda_plus_g5_precision": 0.510451,
+        "panda_plus_g5_recall": 0.725599
+      },
+      "validation_status": "VALIDATED",
+      "validation_flags": [],
+      "g5_bias": {},
+      "jobs": {
+        "cache": "complete_on_disk",
+        "referee": "5513153",
+        "eval": "5452342"
+      },
+      "auto_train": false,
+      "registered_at": "2026-08-21T13:04:00-07:00"
+    },
     "opt3_omar6_grouped_soft01_pre_lora_fix_ep029": {
       "model_id": "opt3_omar6_grouped_soft01_pre_lora_fix_ep029",
       "run_tag": "opt3_omar6_grouped_soft01",
@@ -34,7 +71,16 @@
       },
       "validation_status": "VALIDATED",
       "validation_flags": [],
-      "g5_bias": {},
+      "g5_bias": {
+        "pct_high_conf_swaps_to_g5": 2.188940598349142,
+        "n_swap_to_g5": 31745506,
+        "n_high_conf_swap": 1450268044,
+        "pct_original_mask_g5": 1.8059142146283353,
+        "n_original_mask_g5": 1712720100,
+        "n_original_mask_pixels": 94839504896,
+        "g5_bias_flag": false,
+        "ratio_swap_g5_vs_mask_g5": 1.2120955583704927
+      },
       "jobs": {
         "cache": "5446919",
         "referee": "5446920",
