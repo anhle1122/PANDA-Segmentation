@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-21
 
+- **20:05 PDT** | **Pushed origin/main from writable /tmp clone; G5 margin confirmed; Section 4 queued** | HPC `.git` is RO — same failure mode as the two prior code-loss incidents | Commit **813986e** on `anhle1122/PANDA-Segmentation`. G5 flag uses swaps **from** G5 25.7% vs trip line **49.6%** (not the 5.5% to-G5 print). Pixel-overlap job **5514638**. **No train.**
+
 - **19:55 PDT** | **Logged ep14 referee triage (no train)** | Need a watchable status, not a chat dump | CORRECTED **3.24%** (3.07B / 94.84B px). G5 gate PASS. HTML/JSON: `outputs/docs/opt3_this_run/ep14_referee_status.html`. Spec §2–4 still open.
 
 - **13:40 PDT** | **Epoch-eval watcher requires full PANDA+ ISUP; src_keep no longer needs git on compute** | Live `src/scripts` is NFS RO; old watcher skipped baseline epochs | Mirror watcher marks an epoch done only if PANDA ISUP + PANDA+ Dice + PANDA+ ISUP exist. 63 named ckpts still missing full eval; queue backfills on 4 GPU slots. Source keep uses `/usr/bin/git` + file walk. Do not scancel H200 trains.

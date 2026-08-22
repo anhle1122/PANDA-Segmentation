@@ -33,9 +33,19 @@
     "n_swap_slides": 2487
   },
   "g5": {
+    "note": "The 5.5% figure is swaps TO G5 (surface print). The live flag uses swaps FROM G5.",
     "pct_swaps_to_g5": 5.5014,
+    "pct_swaps_from_g5": 25.6685,
+    "teacher_g5_among_cancer_pred": 24.7760,
+    "g5_swap_max_ratio": 2.0,
+    "threshold_formula": "max(0.05, 2.0 * teacher_G5_share_of_cancer_pred)",
+    "threshold_pct": 49.5521,
+    "margin_pp": 23.88,
+    "ratio_of_line": 0.518,
+    "comfortably_under": true,
     "pct_original_mask_g5": 1.8059,
-    "flag": false
+    "flag": false,
+    "fail_on_g5_bias": false
   },
   "wmfix_slide_overlap": {
     "referee_swap_slides": 2487,
@@ -49,6 +59,7 @@
     "src_keep": "5513184",
     "r2_train": "5445445",
     "live_train": "5452266",
-    "git": "c60f60f origin/main, HPC .git read-only"
+    "git": "813986e on origin/main (pushed from /tmp/PANDA-Segmentation)",
+    "section4_job": "5514638"
   }
 }
