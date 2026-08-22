@@ -23,7 +23,8 @@ source .env.hpc 2>/dev/null || export PANDA_DATA_ROOT=/common/omarmlab/members/a
 module load miniconda3/23.11.0-2
 source /apps/miniconda/23.11.0-2/etc/profile.d/conda.sh
 conda activate wsi_seg
-export PYTHONPATH="${PANDA_PROJECT}/src:${PYTHONPATH:-}"
+source "${PANDA_PROJECT}/outputs/_code_mirror/scripts/hpc_use_code.sh"
+export PYTHONPATH="${PANDA_CODE_SRC}:${PYTHONPATH:-}"
 export OMP_NUM_THREADS=1
 export TORCH_CUDNN_ENABLED="${TORCH_CUDNN_ENABLED:-0}"
 
@@ -69,7 +70,7 @@ if [[ -f "${SUMMARY}" ]] && grep -q '"status": "complete"' "${SUMMARY}"; then
 fi
 
 # 1) In-domain PANDA ISUP (val split, thr=0). Never scored during train.
-python -u src/isup_diagnostic.py \
+python -u "${PANDA_CODE_SRC}/isup_diagnostic.py" \
   --checkpoint "${CKPT}" \
   --split "${PANDA_PROJECT}/outputs/splits/panda_val.csv" \
   --metadata "${PANDA_PROJECT}/data/train.csv" \
@@ -84,7 +85,7 @@ python -u src/isup_diagnostic.py \
   --allow-missing-h5
 
 # 2) PANDA+ Dice (gt>=2, classes 2–5)
-python -u src/evaluate.py \
+python -u "${PANDA_CODE_SRC}/evaluate.py" \
   --checkpoint "${CKPT}" \
   --arch uni2_upernet \
   --split "${PANDA_PROJECT}/outputs/panda_plus/panda_plus_patches.csv" \
@@ -100,7 +101,7 @@ python -u src/evaluate.py \
   --panda-plus-eval
 
 # 3) PANDA+ gland ISUP (thr=0, pred on labeled pixels) — same protocol as ep7/ep15
-python -u src/panda_plus_gleason_mismatch.py \
+python -u "${PANDA_CODE_SRC}/panda_plus_gleason_mismatch.py" \
   --checkpoint "${CKPT}" \
   --out "${PLUS_ISUP}" \
   --min-area-pct 0.0 \
@@ -109,7 +110,7 @@ python -u src/panda_plus_gleason_mismatch.py \
   --batch-size 8 \
   --num-workers 4
 
-python -u scripts/summarize_epoch_eval.py \
+python -u "${PANDA_CODE_SCRIPTS}/summarize_epoch_eval.py" \
   --tag "${RUN_TAG}" \
   --ckpt "${CKPT}" \
   --train-log "${TRAIN_LOG}" \

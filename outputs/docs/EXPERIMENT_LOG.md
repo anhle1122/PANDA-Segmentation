@@ -7,6 +7,15 @@ Format: **Why → What → Result → Decision**
 
 ---
 
+## Round 2 auto PANDA+ / ISUP eval (2026-08-22)
+
+| | |
+|--|--|
+| **Why** | Per-epoch watcher only targeted live / locked / λ015. Round 2 `opt3_omar6_round2_ep14ref` would have trained without PANDA+ Dice or ISUP. |
+| **What** | Added the tag to `scripts/epoch_eval_targets.json`. Eval jobs load `_code_mirror` (live `src/` is gone). Restarted CPU watcher **5565831**; prepended named ep4→ep1. Same three scores: PANDA ISUP + PANDA+ Dice + PANDA+ ISUP. |
+| **Result** | Watcher START lists all four tags. Queue depth 68; next free H100/A100 slot takes Round 2 ep4. Scorecard `outputs/docs/opt3_this_run/epoch_external_scorecard.csv`. |
+| **Decision** | Keep this tag on the watcher for the rest of the run. Do not scancel H200 trains. |
+
 ## Locked ep14 referee finished (2026-08-21 19:55)
 
 | | |
@@ -268,6 +277,7 @@ Format: **Why → What → Result → Decision**
 | Handoff README | `/common/omarmlab/members/anh/panda_project/README.md` |
 | Checkpoint prune | **off** (`--keep-checkpoints 0`); **every epoch** writes immutable `epoch_XXX_cancer_Y.pth` (never `--save-every 5`) |
 | **Opt3 recipe** | **Omar-6 locked**: tag `opt3_omar6_grouped_soft01`; α=0.1 benign↔G3–G5; min_area=0; n≥5 skip; LoRA+GN; live=64; λ_slide warmup |
+| **Epoch eval watcher** | Tags: live / locked / λ015 / **`opt3_omar6_round2_ep14ref`**. Complete = PANDA ISUP + PANDA+ Dice + PANDA+ ISUP. CPU job **5565831**. |
 
 ---
 

@@ -1,6 +1,6 @@
 # Current pipeline state
 
-Master record for between-round label correction. Updated **2026-08-21**.
+Master record for between-round label correction. Updated **2026-08-22**.
 
 ## Selected teacher (do not train Round N+1 until referee is reviewed)
 
@@ -20,7 +20,9 @@ Master record for between-round label correction. Updated **2026-08-21**.
 | **GitHub** | `d84135c` on `origin/main` (writable `/tmp/PANDA-Segmentation`; HPC `.git` is RO) |
 | **Referee job** | **5513153** (`isup_ref_ep14`, CPU `defq`, τ=0.7; prior **5513100** failed in 15s on mirror data path) |
 | **Registry id** | `opt3_omar6_locked_locked_r2_ep014` |
-| **Train job** | **5445445** (`opt3_r2_resume9d`) |
+| **Train job (source teacher)** | **5445445** (`opt3_r2_resume9d`, locked r2, still RUNNING) |
+| **Round N+1 train** | **5514795** `opt3_omar6_round2_ep14ref` (corrected labels, 2×H200). 9-day follow-on **5514798** afterany. |
+| **Epoch eval** | CPU watcher **5565831** targets include `opt3_omar6_round2_ep14ref`. Each named `epoch_*.pth` → PANDA ISUP + PANDA+ Dice + PANDA+ ISUP on 1× H100/A100 (never H200). Scorecard `outputs/docs/opt3_this_run/epoch_external_scorecard.csv`. |
 | **auto_train** | **false** |
 
 Live ep37 also hit 0.642 PANDA+ cancer / 56.2% ISUP but has **no** teacher pack. Not used.

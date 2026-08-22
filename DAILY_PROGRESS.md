@@ -10,7 +10,13 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-08-22
+
+- **11:44 PDT** | **Round 2 now on the auto epoch-eval watcher** | Tag `opt3_omar6_round2_ep14ref` was missing from the CPU watcher, so PANDA+ Dice / PANDA+ ISUP / PANDA ISUP would not have scored | Added the tag; restarted CPU watcher **5565831** (`AUTO_SUBMIT=1`). Queue front is Round 2 ep4→ep1 (then the old 64-epoch backfill). Complete = PANDA ISUP + PANDA+ Dice + PANDA+ ISUP → `outputs/docs/opt3_this_run/epoch_external_scorecard.csv`. Did **not** touch H200 trains **5514795** / **5445445**.
+
 ## 2026-08-21
+
+- **20:20 PDT** | **Section 4 pixel overlap done; G5 trip line confirmed; git on origin** | Pixel-level check most likely to catch a real problem before train | Overlap **3.3%** of wmfix flags, **4.3%** of referee swaps; 78% of referee volume is outside wmfix slides; Rule 1 **0.44%**. G5 from-G5 **25.67%** vs line **49.55%** (~24 pp under). Pushed **d84135c**. Job **5514638**. **No train until Section 4 is reviewed.**
 
 - **20:05 PDT** | **Pushed origin/main from writable /tmp clone; G5 margin confirmed; Section 4 queued** | HPC `.git` is RO — same failure mode as the two prior code-loss incidents | Commit **813986e** on `anhle1122/PANDA-Segmentation`. G5 flag uses swaps **from** G5 25.7% vs trip line **49.6%** (not the 5.5% to-G5 print). Pixel-overlap job **5514638**. **No train.**
 

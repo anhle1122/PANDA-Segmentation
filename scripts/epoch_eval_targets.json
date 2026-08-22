@@ -22,6 +22,11 @@
       "tag": "opt3_omar6_lambda015",
       "ckpt_dir": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_lambda015",
       "train_log": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_lambda015/training_log.csv"
+    },
+    {
+      "tag": "opt3_omar6_round2_ep14ref",
+      "ckpt_dir": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_round2_ep14ref",
+      "train_log": "/common/omarmlab/members/anh/panda_project/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_round2_ep14ref/training_log.csv"
     }
   ]
 }
