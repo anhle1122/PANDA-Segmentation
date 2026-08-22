@@ -15,6 +15,9 @@ Master record for between-round label correction. Updated **2026-08-21**.
 | **Teacher pack** | `outputs/pseudo_label/teacher_opt3_omar6_locked_locked_r2_ep014/` (3739 `*_srcpred.h5`, `pack_config.json` complete) |
 | **Corrections** | `outputs/pseudo_label/corrections_opt3_omar6_locked_locked_r2_ep014/` (2982 H5, job **5513153** COMPLETED) |
 | **CORRECTED** | **3.24%** of evaluated pixels (3.07B illegal high-conf swaps). Status: `outputs/docs/opt3_this_run/ep14_referee_status.html` |
+| **G5 gate** | Swaps **from** G5 = **25.67%** vs trip line **49.55%** (2× teacher G5 pred share). Flag false. ~24 pp margin. Job used `--no-fail-on-g5-bias`. |
+| **Section 4** | Pixel overlap **3.3%** of wmfix flags / **4.3%** of all referee swaps. 78% of referee swaps are on non-wmfix slides. Rule 1 overlap **0.44%**. Job **5514638**. **No train until reviewed.** |
+| **GitHub** | `d84135c` on `origin/main` (writable `/tmp/PANDA-Segmentation`; HPC `.git` is RO) |
 | **Referee job** | **5513153** (`isup_ref_ep14`, CPU `defq`, τ=0.7; prior **5513100** failed in 15s on mirror data path) |
 | **Registry id** | `opt3_omar6_locked_locked_r2_ep014` |
 | **Train job** | **5445445** (`opt3_r2_resume9d`) |

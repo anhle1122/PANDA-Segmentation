@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-21
 
+- **20:20 PDT** | **Section 4 pixel overlap done; G5 trip line confirmed; git on origin** | Pixel-level check most likely to catch a real problem before train | Overlap **3.3%** of wmfix flags, **4.3%** of referee swaps; 78% of referee volume is outside wmfix slides; Rule 1 **0.44%**. G5 from-G5 **25.67%** vs line **49.55%** (~24 pp under). Pushed **d84135c**. Job **5514638**. **No train until Section 4 is reviewed.**
+
 - **20:05 PDT** | **Pushed origin/main from writable /tmp clone; G5 margin confirmed; Section 4 queued** | HPC `.git` is RO — same failure mode as the two prior code-loss incidents | Commit **813986e** on `anhle1122/PANDA-Segmentation`. G5 flag uses swaps **from** G5 25.7% vs trip line **49.6%** (not the 5.5% to-G5 print). Pixel-overlap job **5514638**. **No train.**
 
 - **19:55 PDT** | **Logged ep14 referee triage (no train)** | Need a watchable status, not a chat dump | CORRECTED **3.24%** (3.07B / 94.84B px). G5 gate PASS. HTML/JSON: `outputs/docs/opt3_this_run/ep14_referee_status.html`. Spec §2–4 still open.

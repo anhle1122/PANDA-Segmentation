@@ -51,15 +51,46 @@
     "referee_swap_slides": 2487,
     "wmfix_correcting_slides": 442,
     "overlap": 319,
-    "note": "Expected low overlap; referee does not fix legal-grade order fights."
+    "note": "Slide-level only. See section4_pixel."
   },
-  "spec_remaining": ["section2_confidence_histograms", "section3_nearest_allowed", "section4_pixel_wmfix"],
+  "section4_pixel": {
+    "job": "5514638",
+    "status": "complete",
+    "n_wmfix_correcting_slides": 442,
+    "n_comparable_both_h5": 350,
+    "n_wmfix_slides_not_in_current_pack": 92,
+    "n_wmfix_flagged_pixels": 3954077293,
+    "n_overlap_pixels": 130976321,
+    "frac_wmfix_also_referee": 0.0331,
+    "frac_wmfix_also_referee_comparable": 0.0423,
+    "frac_all_ref_also_wmfix": 0.0427,
+    "frac_referee_swaps_outside_wmfix_slides": 0.784,
+    "rule1_soft_tie_overlap_of_wmfix": 0.0044,
+    "rule2_overlap_of_wmfix": 0.0202,
+    "rule3_overlap_of_wmfix": 0.0557,
+    "verdict": "Low structured overlap. Referee is catching different problems, not replaying wmfix. Rule 1 legal fights left alone. No train until reviewed."
+  },
+  "section3": {
+    "status": "complete",
+    "share_from_g3": 0.6689,
+    "share_from_g4": 0.0744,
+    "share_from_g5": 0.2567,
+    "share_to_g3": 0.0716,
+    "share_to_g4": 0.8734,
+    "share_to_g5": 0.0550,
+    "frac_to_primary": 0.3679,
+    "frac_to_secondary": 0.1118,
+    "frac_to_p_equals_s": 0.5203,
+    "n_pixels_g4_to_g3_on_3plus5": 145332814,
+    "frac_3plus5_g4_tie": 0.0474
+  },
+  "spec_remaining": ["section2_confidence_histograms"],
   "cluster": {
     "eval_watcher": "5513183",
     "src_keep": "5513184",
     "r2_train": "5445445",
     "live_train": "5452266",
-    "git": "813986e on origin/main (pushed from /tmp/PANDA-Segmentation)",
+    "git": "d84135c on origin/main (pushed from /tmp/PANDA-Segmentation)",
     "section4_job": "5514638"
   }
 }

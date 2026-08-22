@@ -41,7 +41,7 @@
     <span class="pill">τ = 0.7</span>
     <span class="pill">job 5513153 · 2h 9m</span>
   </div>
-  <p class="sub">Teacher pack locked r2 epoch 14. Snapshot 2026-08-21 19:55 PDT. Numbers from balance_report.json.</p>
+  <p class="sub">Teacher pack locked r2 epoch 14. Snapshot 2026-08-21 20:20 PDT. Numbers from balance_report.json + Section 4 job 5514638.</p>
 
   <div class="stats">
     <div class="stat warn"><b>3.24%</b><span>CORRECTED (swap / all px)</span></div>
@@ -95,26 +95,39 @@
       </table>
     </div>
     <div>
-      <h2>vs wmfix (slide sanity)</h2>
+      <h2>vs wmfix (slide sanity only)</h2>
       <table>
         <tbody>
           <tr><td>Referee swap slides</td><td>2,487</td></tr>
           <tr><td>wmfix correcting</td><td>442</td></tr>
-          <tr><td>Overlap</td><td>319</td></tr>
+          <tr><td>Slide overlap</td><td>319</td></tr>
         </tbody>
       </table>
-      <p class="sub">Low overlap is expected. Referee does not fix legal-grade order fights.</p>
+      <p class="sub">Not a score. Pixel-level is Section 4 below.</p>
     </div>
   </div>
+
+  <h2>Section 4 — pixel-level wmfix overlap (done)</h2>
+  <table>
+    <thead><tr><th>Cut</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>wmfix flagged pixels also referee</td><td>3.3% (4.2% on 350 comparable slides)</td></tr>
+      <tr><td>All referee swaps that hit a wmfix flag</td><td>4.3%</td></tr>
+      <tr><td>Referee swaps on slides wmfix never touched</td><td>78%</td></tr>
+      <tr><td>Rule 1 legal-fight overlap</td><td>0.44% of those wmfix px</td></tr>
+      <tr><td>Rule 3 invented-class overlap</td><td>5.57% of those wmfix px</td></tr>
+      <tr><td>wmfix slides not in current pack</td><td>92 / 442</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Low structured overlap. Referee is catching different problems, not replaying wmfix. Rule 1 left alone. No train until this is reviewed.</p>
 
   <h2>Still open</h2>
   <table>
     <tbody>
-      <tr><td>Section 2</td><td>maxprob histograms</td></tr>
-      <tr><td>Section 3</td><td>nearest-allowed / ties</td></tr>
-      <tr><td>Section 4</td><td>pixel-level wmfix overlap</td></tr>
-      <tr><td>GitHub</td><td>813986e on origin/main</td></tr>
-      <tr><td>Section 4 job</td><td>5514638 running</td></tr>
+      <tr><td>Section 2</td><td>5514641 running — maxprob histograms</td></tr>
+      <tr><td>Section 3</td><td>done — 87% of swaps → G4; 3+5/G4 ties 4.7%</td></tr>
+      <tr><td>GitHub</td><td>d84135c on origin/main</td></tr>
+      <tr><td>Section 4</td><td>5514638 complete</td></tr>
     </tbody>
   </table>
 
