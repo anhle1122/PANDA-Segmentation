@@ -160,6 +160,8 @@ def detect_new(state, targets, cfg, active_ids):
         for s in state.get("submitted", []):
             if s.get("job_id") in active_ids:
                 inflight_keys.add(queue_key(s["tag"], int(s["epoch"])))
+    now = time.time()
+    last_submit = state.get("last_submit") or {}
     found = []
     for t in targets:
         tag = t["tag"]
@@ -170,6 +172,8 @@ def detect_new(state, targets, cfg, active_ids):
             if st in {"complete", "partial"}:
                 continue
             if key in queued_keys or key in inflight_keys:
+                continue
+            if now - float(last_submit.get(key, 0)) < SUBMIT_COOLDOWN_SEC:
                 continue
             item = {
                 "tag": tag,
@@ -183,11 +187,36 @@ def detect_new(state, targets, cfg, active_ids):
     return found
 
 
+PRIORITY_TAG = "opt3_omar6_round2_ep14ref"
+SUBMIT_COOLDOWN_SEC = 900
+
+
+def prioritize_queue(state):
+    """Round 2 first (newest epoch first), then everyone else. Dedup keys."""
+    queued = state.get("queued") or []
+    seen = set()
+    uniq = []
+    for item in queued:
+        key = queue_key(item["tag"], int(item["epoch"]))
+        if key in seen:
+            continue
+        seen.add(key)
+        uniq.append(item)
+    uniq.sort(
+        key=lambda it: (
+            0 if it.get("tag") == PRIORITY_TAG else 1,
+            -int(it["epoch"]),
+        )
+    )
+    state["queued"] = uniq
+
+
 def submit_eval(item, cfg, gres):
-    script = str(code_file("scripts", "slurm_eval_opt3_epoch.sh"))
-    configured = Path(str(cfg.get("eval_script") or ""))
-    if configured.is_file() and "outputs/_code_mirror" in str(configured):
-        script = str(configured)
+    # Live scripts/ is often wiped. Never fall back to a missing live path.
+    script = str(MIRROR / "scripts" / "slurm_eval_opt3_epoch.sh")
+    if not Path(script).is_file():
+        log("SUBMIT_FAIL missing mirror eval script {0}".format(script))
+        return None
     bs = "8" if "a100" in gres else str(cfg.get("eval_bs", 16))
     cmd = [
         "sbatch",
@@ -275,6 +304,9 @@ def drain_queue(state, cfg, auto_submit, active_ids):
         state.setdefault("submitted", []).append(
             dict(head, job_id=job_id, gres=gres)
         )
+        state.setdefault("last_submit", {})[
+            queue_key(head["tag"], int(head["epoch"]))
+        ] = time.time()
 
 
 def tick(cfg, state, auto_submit):
@@ -287,6 +319,7 @@ def tick(cfg, state, auto_submit):
                 item["tag"], int(item["epoch"]), len(state["queued"])
             )
         )
+    prioritize_queue(state)
     drain_queue(state, cfg, auto_submit, active_ids)
     return state
 
@@ -331,6 +364,7 @@ def main():
     )
     try:
         while True:
+            cfg = load_config(args.config)
             state = tick(cfg, state, auto_submit)
             save_state(state_path, state)
             if args.once:

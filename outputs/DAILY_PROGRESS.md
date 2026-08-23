@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-08-22
 
+- **21:01 PDT** | **PANDA+ evals actually running for Round 2** | Mirror wipe dropped `patch_utils.py` + eval scripts; watcher then sbatched a missing live script and every job died in seconds | Restored `_code_mirror` from `/tmp/PANDA-Segmentation`. Watcher now always uses the mirror script, Round 2 jumps the queue, 15 min resubmit cooldown. CPU watcher **5571091**. Round 2 ep8/7/6/5 on H100/A100 (**5571092–95**). New named Round 2 epochs auto-enqueue. Unscored locked/live/λ015 stay in the backfill. Did **not** touch H200 trains **5514795** / **5445445**.
+
 - **11:44 PDT** | **Round 2 now on the auto epoch-eval watcher** | Tag `opt3_omar6_round2_ep14ref` was missing from the CPU watcher, so PANDA+ Dice / PANDA+ ISUP / PANDA ISUP would not have scored | Added the tag; restarted CPU watcher **5565831** (`AUTO_SUBMIT=1`). Queue front is Round 2 ep4→ep1 (then the old 64-epoch backfill). Complete = PANDA ISUP + PANDA+ Dice + PANDA+ ISUP → `outputs/docs/opt3_this_run/epoch_external_scorecard.csv`. Did **not** touch H200 trains **5514795** / **5445445**.
 
 ## 2026-08-21

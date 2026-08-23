@@ -1,3 +1,12 @@
+## PANDA+ evals unblocked after mirror wipe (2026-08-22 21:01)
+
+| | |
+|--|--|
+| **Why** | Round 2 and the unscored older epochs never got PANDA+. Watcher was sbatching a wiped live script; jobs that did start died on missing `patch_utils.py`. |
+| **What** | Restored `_code_mirror` src+scripts. Watcher always uses the mirror eval script, Round 2 priority, 15 min cooldown. CPU watcher **5571091**. |
+| **Result** | Round 2 ep8/7/6/5 RUNNING on H100/A100 (**5571092–95**). Later named Round 2 epochs auto-queue. Locked/live/λ015 backfill after those. |
+| **Decision** | Keep this tag on the watcher. Do not scancel H200 trains. |
+
 ## Round 2 auto PANDA+ / ISUP eval (2026-08-22)
 
 | | |
@@ -267,7 +276,7 @@
 | Handoff README | `/common/omarmlab/members/anh/panda_project/README.md` |
 | Checkpoint prune | **off** (`--keep-checkpoints 0`); **every epoch** writes immutable `epoch_XXX_cancer_Y.pth` (never `--save-every 5`) |
 | **Opt3 recipe** | **Omar-6 locked**: tag `opt3_omar6_grouped_soft01`; α=0.1 benign↔G3–G5; min_area=0; n≥5 skip; LoRA+GN; live=64; λ_slide warmup |
-| **Epoch eval watcher** | Tags: live / locked / λ015 / **`opt3_omar6_round2_ep14ref`**. Complete = PANDA ISUP + PANDA+ Dice + PANDA+ ISUP. CPU job **5565831**. |
+| **Epoch eval watcher** | Tags: live / locked / λ015 / **`opt3_omar6_round2_ep14ref`** (priority). Complete = PANDA ISUP + PANDA+ Dice + PANDA+ ISUP. CPU job **5571091**. |
 
 ---
 

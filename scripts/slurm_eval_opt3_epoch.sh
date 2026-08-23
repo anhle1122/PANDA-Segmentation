@@ -23,8 +23,18 @@ source .env.hpc 2>/dev/null || export PANDA_DATA_ROOT=/common/omarmlab/members/a
 module load miniconda3/23.11.0-2
 source /apps/miniconda/23.11.0-2/etc/profile.d/conda.sh
 conda activate wsi_seg
-source "${PANDA_PROJECT}/outputs/_code_mirror/scripts/hpc_use_code.sh"
-export PYTHONPATH="${PANDA_CODE_SRC}:${PYTHONPATH:-}"
+MIRROR="${PANDA_PROJECT}/outputs/_code_mirror"
+if [[ -f "${MIRROR}/scripts/hpc_use_code.sh" ]]; then
+  source "${MIRROR}/scripts/hpc_use_code.sh"
+else
+  export PANDA_CODE_SRC="${MIRROR}/src"
+  export PANDA_CODE_SCRIPTS="${MIRROR}/scripts"
+fi
+export PYTHONPATH="${PANDA_CODE_SRC}:${PANDA_PROJECT}/vendor/TRIDENT:${PYTHONPATH:-}"
+if [[ ! -f "${PANDA_CODE_SRC}/patch_utils.py" ]]; then
+  echo "ERROR: ${PANDA_CODE_SRC}/patch_utils.py missing — restore _code_mirror before eval"
+  exit 1
+fi
 export OMP_NUM_THREADS=1
 export TORCH_CUDNN_ENABLED="${TORCH_CUDNN_ENABLED:-0}"
 
