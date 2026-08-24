@@ -188,6 +188,8 @@ def detect_new(state, targets, cfg, active_ids):
 
 
 PRIORITY_TAG = "opt3_omar6_round2_ep14ref"
+# New Round 2 epochs used to take all 4 slots, so locked/live/λ015 never ran.
+MAX_PRIORITY_SLOTS = 2
 SUBMIT_COOLDOWN_SEC = 900
 
 
@@ -281,9 +283,21 @@ def drain_queue(state, cfg, auto_submit, active_ids):
     if not auto_submit:
         log("QUEUE hold (AUTO_SUBMIT=0) — detection only, no sbatch")
         return
-    submitted_n = len(state.get("submitted", []))
+    submitted = state.get("submitted") or []
+    n_priority = sum(
+        1
+        for s in submitted
+        if s.get("job_id") in active_ids and s.get("tag") == PRIORITY_TAG
+    )
+    submitted_n = len(submitted)
     while queued and n_active < max_p:
-        head = queued[0]
+        idx = 0
+        if n_priority >= MAX_PRIORITY_SLOTS:
+            for i, item in enumerate(queued):
+                if item.get("tag") != PRIORITY_TAG:
+                    idx = i
+                    break
+        head = queued[idx]
         gres = "gpu:{0}:1".format(gpus[submitted_n % len(gpus)])
         job_id = submit_eval(head, cfg, gres)
         if job_id is None:
@@ -296,7 +310,9 @@ def drain_queue(state, cfg, auto_submit, active_ids):
         if job_id is None:
             log("QUEUE submit failed; will retry next tick")
             return
-        queued.pop(0)
+        queued.pop(idx)
+        if head.get("tag") == PRIORITY_TAG:
+            n_priority += 1
         n_active += 1
         submitted_n += 1
         active_ids.add(job_id)
