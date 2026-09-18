@@ -31,7 +31,6 @@ fi
 TEACHER="$(readlink -f "${TEACHER}")"
 NAME="$(basename "${TEACHER}")"
 TAU="${CONF_THRESHOLD:-0.7}"
-# teacher_<pack_tag>_epNNN -> corrections_<pack_tag>_epNNN (recipe lives in pack_tag)
 if [[ "${NAME}" == teacher_* ]]; then
   CORR_NAME="corrections_${NAME#teacher_}"
 else
@@ -44,7 +43,7 @@ if [[ -e "${OUT}" ]]; then
 fi
 
 echo "=== $(date) | ISUP referee | teacher=${TEACHER} ==="
-echo "OUT=${OUT} tau=${TAU}"
+echo "OUT=${OUT} tau=${TAU} CODE_SRC=${PANDA_CODE_SRC}"
 EXTRA=()
 if [[ "${ALLOW_VALIDATION_ONLY:-0}" == "1" ]]; then
   EXTRA+=(--allow-validation-only)

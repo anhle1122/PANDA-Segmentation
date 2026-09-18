@@ -35,6 +35,11 @@ import pandas as pd  # noqa: E402
 
 from patch_utils import OUTPUTS  # noqa: E402
 from train.baseline_dataset import BaselinePatchDataset  # noqa: E402
+from train.corrected_label_dataset import (  # noqa: E402
+    LABEL_SOURCE_CORRECTED,
+    assert_corrected_wiring,
+    wrap_baseline_with_corrections,
+)
 from train.class_weights import get_or_compute_class_weights  # noqa: E402
 from train.grade_head import (  # noqa: E402
     ISUPGradeHead,
@@ -114,6 +119,18 @@ def train(args: argparse.Namespace) -> None:
         augment=bool(args.augment),
         augment_mode="both",
     )
+    label_source = str(getattr(args, "label_source", "original")).strip().lower()
+    if label_source == LABEL_SOURCE_CORRECTED:
+        corr = Path(args.corrected_dir)
+        if not corr.is_dir():
+            raise SystemExit(f"label_source=corrected but missing dir {corr}")
+        train_ds.base = wrap_baseline_with_corrections(train_ds.base, corr)
+        if is_main_process(rank):
+            assert_corrected_wiring(train_ds.base, corr)
+    elif label_source not in {"original", "expert", ""}:
+        raise SystemExit(f"Unknown --label-source {label_source}")
+    elif is_main_process(rank):
+        print("WIRING_OK label_source=original (expert masks, no referee overlay)", flush=True)
     val_csv = SPLITS_DIR / "panda_val.csv"
     if args.max_val_patches:
         val_csv = subsample_split_csv(val_csv, args.max_val_patches, args.seed)
@@ -795,6 +812,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="Max epoch_*.pth to retain (by mtime). 0 = keep all (default; never auto-delete).",
     )
     p.add_argument("--seed", type=int, default=42)
+    p.add_argument(
+        "--label-source",
+        default="original",
+        choices=["original", "corrected"],
+        help="Train pixel target. original=expert mask (Omar-6 default). "
+        "corrected=ISUP-referee h5 overlay. Val always stays expert mask.",
+    )
+    p.add_argument(
+        "--corrected-dir",
+        default="",
+        help="Directory of <slide>_corrected.h5. Required when --label-source corrected.",
+    )
     return p
 
 

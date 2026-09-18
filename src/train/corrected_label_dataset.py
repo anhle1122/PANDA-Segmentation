@@ -72,6 +72,12 @@ class CorrectedLabelReader:
         self._handles.clear()
         self._index.clear()
 
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state["_handles"] = {}
+        state["_index"] = {}
+        return state
+
 
 def overlay_corrected(
     mask: np.ndarray,
@@ -132,6 +138,103 @@ class RefereeCorrectedPatchDataset(Dataset):
         reader = getattr(self, "reader", None)
         if reader is not None:
             reader.close()
+
+
+class BaselineCorrectionWrapper:
+    """Drop-in for ``BaselinePatchDataset`` used as ``SlideBagPatchDataset.base``.
+
+    ``load_patch_batch`` calls ``base[i]``. Overlay happens there. Other
+    attributes (``df``, ``set_slide_aug_params``, ``clear_open_handles``)
+    delegate to the wrapped baseline.
+    """
+
+    def __init__(self, base: BaselinePatchDataset, corrected_dir: str | Path) -> None:
+        self.base = base
+        self.reader = CorrectedLabelReader(corrected_dir)
+        self.n_overlaid = 0
+        self.n_fallback = 0
+        self.n_changed_px = 0
+        self.n_ignored_px = 0
+
+    def __getitem__(self, idx: int) -> tuple[Tensor, Tensor, Tensor]:
+        image_t, mask_t, weight_t = self.base[idx]
+        row = self.base.df.iloc[idx]
+        slide_id = str(row["image_id"])
+        x, y = int(row["x"]), int(row["y"])
+        got = self.reader.read(slide_id, x, y)
+        if got is None:
+            self.n_fallback += 1
+            return image_t, mask_t, weight_t
+        target, ignore = got
+        orig = mask_t.detach().cpu().numpy()
+        mask_np, weight_np = overlay_corrected(orig, weight_t.detach().cpu().numpy(), target, ignore)
+        self.n_overlaid += 1
+        self.n_changed_px += int((np.asarray(target) != orig).sum())
+        self.n_ignored_px += int(np.asarray(ignore).astype(bool).sum())
+        return (
+            image_t,
+            torch.from_numpy(mask_np.astype(np.int64)),
+            torch.from_numpy(weight_np.astype(np.float32)),
+        )
+
+    def __getattr__(self, name: str):
+        return getattr(self.base, name)
+
+    def __len__(self) -> int:
+        return len(self.base)
+
+    def close(self) -> None:
+        self.reader.close()
+
+
+def wrap_baseline_with_corrections(
+    base: BaselinePatchDataset, corrected_dir: str | Path
+) -> BaselineCorrectionWrapper:
+    return BaselineCorrectionWrapper(base, corrected_dir)
+
+
+def assert_corrected_wiring(base: BaselineCorrectionWrapper, corrected_dir: str | Path) -> dict:
+    """Abort unless at least one train patch actually changes vs the expert mask."""
+    import pandas as pd
+
+    corr = Path(corrected_dir)
+    n_h5 = len(list(corr.glob("*_corrected.h5")))
+    if n_h5 < 100:
+        raise SystemExit(f"WIRING_FAIL corrected_dir has only {n_h5} *_corrected.h5: {corr}")
+    man_path = corr / "correction_manifest.csv"
+    if not man_path.is_file():
+        raise SystemExit(f"WIRING_FAIL missing {man_path}")
+    man = pd.read_csv(man_path, dtype={"slide_id": str})
+    man["n_swap"] = man.get("n_swap", 0).fillna(0)
+    swap_ids = set(man.loc[man["n_swap"] > 0, "slide_id"].astype(str))
+    df = base.base.df.copy()
+    df["image_id"] = df["image_id"].astype(str)
+    hits = df[df["image_id"].isin(swap_ids)]
+    if hits.empty:
+        raise SystemExit("WIRING_FAIL no swap slides in the train split")
+    probed = 0
+    for idx in hits.index.tolist()[:80]:
+        probed += 1
+        before = base.base[int(idx)]
+        after = base[int(idx)]
+        if not torch.equal(before[1], after[1]) or not torch.equal(before[2], after[2]):
+            info = {
+                "n_h5": n_h5,
+                "probe_slide": str(hits.loc[idx, "image_id"]),
+                "probe_idx": int(idx),
+                "probed": probed,
+                "mask_changed": not torch.equal(before[1], after[1]),
+                "weight_changed": not torch.equal(before[2], after[2]),
+            }
+            print(
+                "WIRING_OK label_source=corrected "
+                + " ".join(f"{k}={v}" for k, v in info.items()),
+                flush=True,
+            )
+            return info
+    raise SystemExit(
+        f"WIRING_FAIL probed {probed} swap-slide patches and none differed from the expert mask"
+    )
 
 
 def build_label_dataset(label_source: str, split_csv: str | Path, **kwargs):

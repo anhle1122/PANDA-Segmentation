@@ -23,7 +23,7 @@ source .env.hpc 2>/dev/null || export PANDA_DATA_ROOT=/common/omarmlab/members/a
 module load miniconda3/23.11.0-2
 source /apps/miniconda/23.11.0-2/etc/profile.d/conda.sh
 conda activate wsi_seg
-export PYTHONPATH="${PANDA_PROJECT}/src:${PYTHONPATH:-}"
+source "${PANDA_PROJECT}/outputs/_code_mirror/scripts/hpc_use_code.sh"
 export OMP_NUM_THREADS=1
 export TORCH_CUDNN_ENABLED="${TORCH_CUDNN_ENABLED:-0}"
 
@@ -50,10 +50,13 @@ if [[ -z "${PACK_TAG:-}" ]]; then
 fi
 OUT="${OUT_DIR:-${PANDA_PROJECT}/outputs/pseudo_label/teacher_${PACK_TAG}_ep${EP}}"
 
-if [[ -d "${OUT}" ]] && { [[ -f "${OUT}/pack_config.json" ]] || compgen -G "${OUT}/*_srcpred.h5" >/dev/null; }; then
+if [[ "${RESUME_PACK:-0}" != "1" ]] && [[ -d "${OUT}" ]] && { [[ -f "${OUT}/pack_config.json" ]] || compgen -G "${OUT}/*_srcpred.h5" >/dev/null; }; then
   echo "SKIP existing pack for this tag+epoch: ${OUT}"
-  echo "Never overwrite. Re-run only after moving/renaming the directory."
+  echo "Never overwrite. Re-run only after moving/renaming the directory. RESUME_PACK=1 to finish remaining slides."
   exit 0
+fi
+if [[ "${RESUME_PACK:-0}" == "1" ]]; then
+  echo "RESUME_PACK=1 finishing remaining slides in ${OUT} (existing *_srcpred.h5 kept)"
 fi
 mkdir -p "${OUT}"
 
@@ -61,9 +64,10 @@ echo "=== $(date) | teacher pack cache | ckpt=${CKPT} ==="
 echo "OUT=${OUT} run_tag=${TAG} recipe=${RECIPE_VERSION} pack_tag=${PACK_TAG} ep=${EP}"
 nvidia-smi -L || true
 
-python -u scripts/cache_source_predictions.py \
+python -u "${PANDA_CODE_SCRIPTS}/cache_source_predictions.py" \
   --checkpoint "${CKPT}" \
   --out-dir "${OUT}" \
+  --split "${PANDA_PROJECT}/outputs/splits/panda_train.csv" \
   --all-slides \
   --write-maxprob \
   --run-tag "${PACK_TAG}" \

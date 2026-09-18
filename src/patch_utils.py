@@ -9,8 +9,13 @@ from pathlib import Path
 import numpy as np
 import openslide
 
-PROJECT = Path(os.environ.get("PANDA_PROJECT", Path(__file__).resolve().parent.parent))
-# Local: project/data. HPC: export PANDA_DATA_ROOT=/common/omarmlab/lea14/panda_data
+_SRC_DIR = Path(__file__).resolve().parent
+_DEFAULT_ROOT = _SRC_DIR.parent
+# Code mirror lives at outputs/_code_mirror/src — do not treat that as PROJECT.
+if _DEFAULT_ROOT.name == "_code_mirror":
+    _DEFAULT_ROOT = _DEFAULT_ROOT.parent.parent
+PROJECT = Path(os.environ.get("PANDA_PROJECT", str(_DEFAULT_ROOT)))
+# Local: project/data. HPC: export PANDA_DATA_ROOT=/common/omarmlab/members/anh/panda_data
 DATA = Path(os.environ.get("PANDA_DATA_ROOT", PROJECT / "data"))
 SLIDES_DIR = DATA / "slides"
 MASKS_DIR = DATA / "masks"
