@@ -3,7 +3,9 @@
 
 /common is often mounted RO; outputs/ is RW. This watcher:
 1. Copies tracked src/scripts into outputs/_code_mirror when live is healthy.
-2. If canary files vanish, restores them from git HEAD or the mirror.
+2. If live canaries vanish, refreshes the mirror from git HEAD.
+3. Tries to restore live files; if the mount is RO, the mirror stays the
+   source of truth for PYTHONPATH / sbatch.
 Does not git-commit. Does not touch training jobs.
 """
 
@@ -19,15 +21,18 @@ from pathlib import Path
 
 PROJECT = Path("/common/omarmlab/members/anh/panda_project")
 MIRROR = PROJECT / "outputs" / "_code_mirror"
+HOME_BAK = Path.home() / "panda_code_backup"
 TREES = ("src", "scripts", ".cursor/rules")
 CANARIES = (
-    PROJECT / "src" / "evaluate.py",
-    PROJECT / "src" / "train" / "uni2_upernet.py",
-    PROJECT / "src" / "train_uni2_opt3_slidebag.py",
-    PROJECT / "scripts" / "slurm_train_opt3_slidebag.sh",
-    PROJECT / "scripts" / "slurm_eval_opt3_epoch.sh",
-    PROJECT / "scripts" / "watch_opt3_epoch_eval.py",
+    "src/evaluate.py",
+    "src/train/uni2_upernet.py",
+    "src/train_uni2_opt3_slidebag.py",
+    "src/train/corrected_label_dataset.py",
+    "scripts/slurm_train_opt3_round4_corrected.sh",
+    "scripts/hpc_use_code.sh",
 )
+LABEL_SOURCE_MARKERS = ("--label-source", "--corrected-dir")
+SKIP_NAMES = {"__pycache__", ".pytest_cache"}
 
 
 def log(msg: str) -> None:
@@ -43,68 +48,114 @@ def git_tracked() -> list[str]:
     return [ln.strip() for ln in out.splitlines() if ln.strip()]
 
 
-def live_healthy() -> bool:
-    return all(p.is_file() and p.stat().st_size > 0 for p in CANARIES)
+def trainer_has_corrected_flags(root: Path) -> bool:
+    trainer = root / "src" / "train_uni2_opt3_slidebag.py"
+    if not trainer.is_file():
+        return False
+    text = trainer.read_text(encoding="utf-8", errors="replace")
+    return all(mark in text for mark in LABEL_SOURCE_MARKERS)
 
 
-def copy_file(src: Path, dest: Path) -> bool:
+def is_healthy(root: Path) -> bool:
+    if not all((root / rel).is_file() and (root / rel).stat().st_size > 0 for rel in CANARIES):
+        return False
+    return trainer_has_corrected_flags(root)
+
+
+def copy_file(src: Path, dest: Path) -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
     tmp = dest.with_name(f".{dest.name}.tmp.{os.getpid()}")
     shutil.copy2(src, tmp)
     os.replace(tmp, dest)
-    shutil.copymode(src, dest)
-    return True
+    try:
+        shutil.copymode(src, dest)
+    except OSError:
+        pass
 
 
-def sync_live_to_mirror(rels: list[str]) -> int:
+def same_file(a: Path, b: Path) -> bool:
+    if not a.is_file() or not b.is_file():
+        return False
+    sa, sb = a.stat(), b.stat()
+    return sa.st_size == sb.st_size and int(sa.st_mtime) == int(sb.st_mtime)
+
+
+def sync_tree(src_root: Path, dest_root: Path, rels: list[str]) -> int:
     n = 0
     for rel in rels:
-        src = PROJECT / rel
-        dest = MIRROR / rel
+        src = src_root / rel
+        dest = dest_root / rel
         if not src.is_file():
             continue
-        if dest.is_file() and dest.stat().st_size == src.stat().st_size:
-            if int(dest.stat().st_mtime) == int(src.stat().st_mtime):
-                continue
+        if any(part in SKIP_NAMES for part in Path(rel).parts):
+            continue
+        if same_file(src, dest):
+            continue
         copy_file(src, dest)
         n += 1
     return n
 
 
-def restore_one(rel: str) -> str | None:
-    dest = PROJECT / rel
-    mirror = MIRROR / rel
-    if dest.is_file() and dest.stat().st_size > 0:
-        return None
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    if mirror.is_file() and mirror.stat().st_size > 0:
-        try:
-            copy_file(mirror, dest)
-            return "mirror"
-        except OSError:
-            pass
+def git_blob(rel: str) -> bytes | None:
     try:
-        data = subprocess.check_output(["git", "-C", str(PROJECT), "show", f"HEAD:{rel}"])
-        tmp = dest.with_name(f".{dest.name}.tmp.{os.getpid()}")
-        tmp.write_bytes(data)
-        os.replace(tmp, dest)
-        return "git"
-    except (OSError, subprocess.CalledProcessError):
+        return subprocess.check_output(["git", "-C", str(PROJECT), "show", f"HEAD:{rel}"])
+    except subprocess.CalledProcessError:
         return None
 
 
-def restore_live(rels: list[str]) -> tuple[int, int]:
-    ok = fail = 0
+def restore_from_git(dest_root: Path, rels: list[str]) -> int:
+    n = 0
+    for rel in rels:
+        dest = dest_root / rel
+        if dest.is_file() and dest.stat().st_size > 0:
+            continue
+        blob = git_blob(rel)
+        if blob is None:
+            continue
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        tmp = dest.with_name(f".{dest.name}.tmp.{os.getpid()}")
+        tmp.write_bytes(blob)
+        os.replace(tmp, dest)
+        n += 1
+    return n
+
+
+def try_restore_live(rels: list[str]) -> tuple[int, str]:
+    ok = 0
+    last_err = "none"
     for rel in rels:
         dest = PROJECT / rel
         if dest.is_file() and dest.stat().st_size > 0:
             continue
-        src = restore_one(rel)
-        if src:
+        src = MIRROR / rel
+        try:
+            if src.is_file() and src.stat().st_size > 0:
+                copy_file(src, dest)
+                ok += 1
+                continue
+            blob = git_blob(rel)
+            if blob is None:
+                continue
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            tmp = dest.with_name(f".{dest.name}.tmp.{os.getpid()}")
+            tmp.write_bytes(blob)
+            os.replace(tmp, dest)
             ok += 1
-        else:
-            fail += 1
-    return ok, fail
+        except OSError as exc:
+            last_err = str(exc)
+            return ok, last_err
+    return ok, last_err
+
+
+def write_heartbeat() -> None:
+    path = PROJECT / "outputs" / "_code_mirror" / "HEARTBEAT"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        f"{datetime.now().astimezone().isoformat()}\n"
+        f"live_healthy={is_healthy(PROJECT)}\n"
+        f"mirror_healthy={is_healthy(MIRROR)}\n",
+        encoding="utf-8",
+    )
 
 
 def tick() -> None:
@@ -113,18 +164,29 @@ def tick() -> None:
     except subprocess.CalledProcessError as e:
         log(f"git ls-files failed: {e}")
         return
-    if live_healthy():
-        n = sync_live_to_mirror(rels)
+    live_ok = is_healthy(PROJECT)
+    mirror_ok = is_healthy(MIRROR)
+    if live_ok:
+        n = sync_tree(PROJECT, MIRROR, rels)
+        n2 = 0
+        try:
+            n2 = sync_tree(PROJECT, HOME_BAK, rels)
+        except OSError as exc:
+            log(f"home backup skip: {exc}")
+        if n or n2:
+            log(f"synced live -> mirror={n} home={n2}")
+    elif not mirror_ok:
+        n = restore_from_git(MIRROR, rels)
+        log(f"WIPE live missing; restored {n} files from git -> {MIRROR}")
+    else:
+        log("WIPE live missing; mirror still healthy (jobs should use PANDA_CODE_SRC)")
+        n = restore_from_git(MIRROR, rels)
         if n:
-            log(f"mirror updated {n} files -> {MIRROR}")
-        return
-    missing = [str(p.relative_to(PROJECT)) for p in CANARIES if not p.is_file()]
-    log(f"WIPE detected missing={missing}")
-    ok, fail = restore_live(rels)
-    log(f"restore wrote={ok} still_missing={fail} healthy={live_healthy()}")
-    if live_healthy():
-        n = sync_live_to_mirror(rels)
-        log(f"mirror refreshed {n} files after restore")
+            log(f"filled {n} extra mirror files from git")
+    if not live_ok:
+        ok, err = try_restore_live(rels)
+        log(f"live restore wrote={ok} err={err} live_healthy={is_healthy(PROJECT)}")
+    write_heartbeat()
 
 
 def main() -> None:
