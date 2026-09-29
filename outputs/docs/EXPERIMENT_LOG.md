@@ -2,8 +2,8 @@
 
 - **Why:** Zero-shot R3 on SICAP MPP x2 cancer 0.523 still NC-overcalls (~30%). Small official SICAPv2 (155 slides, patient CV) exists with slide Gleason->ISUP; fine-tune domain-adapt while keeping Opt3 grade head. User asked allow-all patches for slide loss (no live-64) and free H200.
 - **What:** New trainer src/train_uni2_sicap_finetune.py + src/train/sicap_slide_bag.py. Init R3 epoch_006_cancer_0.3488.pth. Val1 patient Train/Test. live=ALL + live-chunk=4 + decoder-ckpt. Restored SICAP eval modules into tracked src/. Watcher scores PANDA+ + SICAP MPP x2 fold-1 per epoch. Protect-NC H200 6050620 cancelled to free GPUs.
-- **Result:** Code landed; train/watch submit next. (Pending job ids.)
-- **Decision:** Keep AB L40S trains; do not overwrite R3/R2 tags. Trace via this log + DAILY_PROGRESS; commit+push before submit.
+- **Result:** Train **6061707** R on 2×H200. Watcher switched to native Val1 Test (job **6061716**); no MPP×2.
+- **Decision:** Keep AB L40S trains; do not overwrite R3/R2 tags. External SICAP for this FT is official 10× fold-1, comparable to first R3 native 0.47 not the MPP×2 0.52.
 
 ---
 
@@ -15,43 +15,6 @@
 - **Decision:** Not a meaningful FP win vs R3 ep6 (cancer **0.523**, NC→cancer **30%**). Better than τ=0.7b ep5 (cancer **0.462**, NC→cancer **46%**). Keep looking at later Protect-NC epochs only if PANDA+ rises; do not treat ep2 as the anti-FP teacher.
 
 ---
-
-## PANDA+ evals unblocked after mirror wipe (2026-08-22 21:01)
-
-| | |
-|--|--|
-| **Why** | Round 2 and the unscored older epochs never got PANDA+. Watcher was sbatching a wiped live script; jobs that did start died on missing `patch_utils.py`. |
-| **What** | Restored `_code_mirror` src+scripts. Watcher always uses the mirror eval script, Round 2 priority, 15 min cooldown. CPU watcher **5571091**. |
-| **Result** | Round 2 ep8/7/6/5 RUNNING on H100/A100 (**5571092–95**). Later named Round 2 epochs auto-queue. Locked/live/λ015 backfill after those. |
-| **Decision** | Keep this tag on the watcher. Do not scancel H200 trains. |
-
-## Round 2 auto PANDA+ / ISUP eval (2026-08-22)
-
-| | |
-|--|--|
-| **Why** | Per-epoch watcher only targeted live / locked / λ015. Round 2 `opt3_omar6_round2_ep14ref` would have trained without PANDA+ Dice or ISUP. |
-| **What** | Added the tag to `scripts/epoch_eval_targets.json`. Eval jobs load `_code_mirror` (live `src/` is gone). Restarted CPU watcher **5565831**; prepended named ep4→ep1. Same three scores: PANDA ISUP + PANDA+ Dice + PANDA+ ISUP. |
-| **Result** | Watcher START lists all four tags. Queue depth 68; next free H100/A100 slot takes Round 2 ep4. Scorecard `outputs/docs/opt3_this_run/epoch_external_scorecard.csv`. |
-| **Decision** | Keep this tag on the watcher for the rest of the run. Do not scancel H200 trains. |
-
-## Locked ep14 referee finished (2026-08-21 19:55)
-
-| | |
-|--|--|
-| **Why** | Need a durable, watchable record of the three-way referee (not a chat dump). |
-| **What** | Job **5513153** completed. Logged HTML + JSON at `outputs/docs/opt3_this_run/ep14_referee_status.*`. |
-| **Result** | CORRECTED **3.24%** of pixels (3.07B). G5 gate PASS. No training. Spec §2–4 still open. |
-| **Decision** | Review the HTML/canvas before any Round N+1 train. |
-
-## Locked r2 ep14 selected as between-round teacher (2026-08-21)
-
-| | |
-|--|--|
-| **Why** | Need a source model for the current three-way ISUP referee. Locked r2 ep14 is the best scored PANDA+ cancer among locked epochs (0.642) and already has a teacher pack. |
-| **What** | Register `opt3_omar6_locked_locked_r2_ep014`. Run referee at τ=0.7 on the cached pack. Compare slide overlap vs original wmfix Rules 1–3 as a sanity check only. |
-| **Result** | Registry updated. Referee job **5513153** running on `esplhpc-cp036`. **No training started.** |
-| **Decision** | Wait for referee G5-bias + wmfix overlap summary before any Round N+1 train. Epoch eval watcher backfills every named ckpt (full PANDA+ ISUP required). |
-
 
 ## Live + λ015 hang-fix resume (2026-08-18)
 
@@ -313,7 +276,6 @@
 | Handoff README | `/common/omarmlab/members/anh/panda_project/README.md` |
 | Checkpoint prune | **off** (`--keep-checkpoints 0`); **every epoch** writes immutable `epoch_XXX_cancer_Y.pth` (never `--save-every 5`) |
 | **Opt3 recipe** | **Omar-6 locked**: tag `opt3_omar6_grouped_soft01`; α=0.1 benign↔G3–G5; min_area=0; n≥5 skip; LoRA+GN; live=64; λ_slide warmup |
-| **Epoch eval watcher** | Tags: live / locked / λ015 / **`opt3_omar6_round2_ep14ref`** (priority). Complete = PANDA ISUP + PANDA+ Dice + PANDA+ ISUP. CPU job **5571091**. |
 
 ---
 

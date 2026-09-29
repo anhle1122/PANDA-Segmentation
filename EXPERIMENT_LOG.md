@@ -2,8 +2,8 @@
 
 - **Why:** Zero-shot R3 on SICAP MPP x2 cancer 0.523 still NC-overcalls (~30%). Small official SICAPv2 (155 slides, patient CV) exists with slide Gleason->ISUP; fine-tune domain-adapt while keeping Opt3 grade head. User asked allow-all patches for slide loss (no live-64) and free H200.
 - **What:** New trainer src/train_uni2_sicap_finetune.py + src/train/sicap_slide_bag.py. Init R3 epoch_006_cancer_0.3488.pth. Val1 patient Train/Test. live=ALL + live-chunk=4 + decoder-ckpt. Restored SICAP eval modules into tracked src/. Watcher scores PANDA+ + SICAP MPP x2 fold-1 per epoch. Protect-NC H200 6050620 cancelled to free GPUs.
-- **Result:** Code landed; train/watch submit next. (Pending job ids.)
-- **Decision:** Keep AB L40S trains; do not overwrite R3/R2 tags. Trace via this log + DAILY_PROGRESS; commit+push before submit.
+- **Result:** Train **6061707** R on 2×H200. Watcher switched to native Val1 Test (job **6061716**); no MPP×2.
+- **Decision:** Keep AB L40S trains; do not overwrite R3/R2 tags. External SICAP for this FT is official 10× fold-1, comparable to first R3 native 0.47 not the MPP×2 0.52.
 
 ---
 

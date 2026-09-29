@@ -12,14 +12,15 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-09-29
 
+- **10:57 PDT** | **SICAP FT watcher: native only, no MPP×2** | User: score official 10× Test.xlsx | scancel CPU watcher **6061708**; new **6061716** R. Train **6061707** untouched. Per-epoch SICAP is `slurm_eval_sicapv2.sh` Val1 Test only (not scale=2). PANDA+ leak-split still scored.
 - **10:52 PDT** | **Wipe-proof commit + SICAP FT stack** | User: keep src on GitHub; auto-trace in daily/experiment logs | Restored missing SICAP eval modules into tracked src/ from _code_mirror. Added train/sicap_slide_bag.py, train_uni2_sicap_finetune.py (live=ALL), slurm_train_sicap_finetune.sh, watch_sicap_ft_evals.py (+ Slurm). Mirrored to _code_mirror + _restore. Core Opt3 trainer still present (89 py under src/).
 - **10:52 PDT** | **Paused Protect-NC H200 for SICAP FT** | Free 2xH200 | scancel 6050620 opt3_ab_protectnc_h200 (user OK). L40S AB trains 6042085 / 6042086 left running. Watchers still R.
-- **10:52 PDT** | **Plan: R3 ep6 to SICAPv2 Val1 FT on H200** | Domain adapt; score PANDA+ + SICAP on the go | Init epoch_006_cancer_0.3488.pth. Tag opt3_sicap_ft_r3ep6_val1_liveall. Slide ISUP uses all patches (no live-64). Watcher submits PANDA+ leak-split + SICAP MPP x2 fold-1 per epoch.
+- **10:52 PDT** | **Plan: R3 ep6 to SICAPv2 Val1 FT on H200** | Domain adapt; score PANDA+ + native SICAP on the go | Init epoch_006_cancer_0.3488.pth. Tag opt3_sicap_ft_r3ep6_val1_liveall. Slide ISUP uses all patches (no live-64). Watcher submits PANDA+ leak-split + official native Val1 Test per epoch.
 
 ### Open tonight / tomorrow
-- [ ] Land SICAP FT train on H200 + watcher; confirm WIRING_OK live=ALL
+- [ ] Leave SICAP FT **6061707** H200 running; watcher native SICAP fold-1 + PANDA+
 - [ ] Leave AB L40S trains 6042085 / 6042086 running
-- [ ] Compare FT epochs vs R3 zero-shot SICAP MPP x2 cancer 0.523 and PANDA+ ~0.721
+- [ ] Compare FT epochs vs R3 zero-shot native SICAP cancer **0.47** (Val1-only was ~0.40) and PANDA+ ~0.721
 - [x] Commit + push src/scripts/progress so a wipe cannot drop SICAP FT code
 
 ---
