@@ -1,9 +1,18 @@
-# Experiment Log — PANDA Gleason Segmentation (Model C)
+## SICAP FT from R3 ep6 — live=ALL (2026-09-29 10:52 PDT)
 
-Living log of runs, changes, and decisions. **Update whenever a training/eval/protocol change lands.**  
-Day-by-day Cursor log: `outputs/DAILY_PROGRESS.md` (resume text never goes here).
+- **Why:** Zero-shot R3 on SICAP MPP x2 cancer 0.523 still NC-overcalls (~30%). Small official SICAPv2 (155 slides, patient CV) exists with slide Gleason->ISUP; fine-tune domain-adapt while keeping Opt3 grade head. User asked allow-all patches for slide loss (no live-64) and free H200.
+- **What:** New trainer src/train_uni2_sicap_finetune.py + src/train/sicap_slide_bag.py. Init R3 epoch_006_cancer_0.3488.pth. Val1 patient Train/Test. live=ALL + live-chunk=4 + decoder-ckpt. Restored SICAP eval modules into tracked src/. Watcher scores PANDA+ + SICAP MPP x2 fold-1 per epoch. Protect-NC H200 6050620 cancelled to free GPUs.
+- **Result:** Code landed; train/watch submit next. (Pending job ids.)
+- **Decision:** Keep AB L40S trains; do not overwrite R3/R2 tags. Trace via this log + DAILY_PROGRESS; commit+push before submit.
 
-Format: **Why → What → Result → Decision**
+---
+
+## Protect-NC ep2 SICAPv2 MPP×2 (2026-09-28)
+
+- **Why:** Protect-NC did not cut PANDA+ benign→cancer (~28%, same as τ=0.7b). SICAP NC-overcall was the original FP diagnosis.
+- **What:** Score PANDA+ peak ckpt `epoch_002_cancer_0.3540.pth` (clean-30 **0.682**) with official 4-fold MPP×2 on L40S. Job **6052782**. Do not touch live trains.
+- **Result:** COMPLETED 12:07 PDT (36m, L40S cp078). Cancer **0.497**, binary **0.664**, mean4 **0.580**, NC Dice **0.83**, NC→cancer **28%** of GT-NC (half of pred-cancer is still NC).
+- **Decision:** Not a meaningful FP win vs R3 ep6 (cancer **0.523**, NC→cancer **30%**). Better than τ=0.7b ep5 (cancer **0.462**, NC→cancer **46%**). Keep looking at later Protect-NC epochs only if PANDA+ rises; do not treat ep2 as the anti-FP teacher.
 
 ---
 
@@ -45,6 +54,24 @@ Format: **Why → What → Result → Decision**
 
 
 ## Live + λ015 hang-fix resume (2026-08-18)
+
+## Daily progress backfill Aug 19–Sep 26 (2026-09-27)
+
+- **Why:** Worktree wipe deleted DAILY_PROGRESS / EXPERIMENT_LOG; only git through 2026-08-18 remained.
+- **What:** Reconstructed day sections from `sacct`, checkpoint/pack mtimes, `epoch_external_scorecard.csv`, and agent transcripts. Synced to root + `outputs/` + `outputs/docs/` mirrors.
+- **Result:** Calendar filled 2026-08-19 → 2026-09-26 (quiet stretches collapsed where no jobs). Headline scorecard bests noted: R3 ep6 ≈0.721, R2redo ep16 ≈0.715, R2-corr ep13 ≈0.708, R4 ep29 ≈0.707.
+- **Decision:** Treat backfill as reconstructed, not contemporaneous; continue appending live from 2026-09-27 onward.
+
+---
+
+## Protect-NC + AB PANDA+ watchers (2026-09-27)
+
+- **Why:** Cut false-positive grade upgrades on confident non-cancer; stop hand-scoring AB epochs; keep H200 for protect-NC train.
+- **What:** Referee pack τ=0.7 + `--protect-noncancer` (NONCANCER={0,1,2}, protect_min_conf=0.6, no include-benign) → `corrections_…_tau07_protectnc`. Train tag `opt3_omar6_ab_tau07_protectnc` job **6050620** 2×H200. AB τ06 / τ07b trains continue on L40S. Generic watcher `watch_ab_panda_plus.py` for both ABs (L40S, exclude cp075/076, EVAL_BS=2). Cancelled R2redo train to free H200; cancelled duplicate manual PANDA+ evals.
+- **Result:** R2redo clean30 best ep16 **0.715**; AB τ06 ep10 **0.712**; AB τ07b ep5 **0.692** (ep8–12 unscored at watcher start). Watchers **6050744/6050745** R; first evals **6050746/6050747** R on L40S.
+- **Decision:** Watchers own AB PANDA+ going forward. Protect-NC stays separate pack/tag. Do not scancel H200 protect-NC unless asked. Daily progress was wiped from worktree — restored from git (gap Aug 19–Sep 26).
+
+---
 
 | | |
 |--|--|

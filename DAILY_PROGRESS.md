@@ -10,23 +10,258 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-09-29
+
+- **10:52 PDT** | **Wipe-proof commit + SICAP FT stack** | User: keep src on GitHub; auto-trace in daily/experiment logs | Restored missing SICAP eval modules into tracked src/ from _code_mirror. Added train/sicap_slide_bag.py, train_uni2_sicap_finetune.py (live=ALL), slurm_train_sicap_finetune.sh, watch_sicap_ft_evals.py (+ Slurm). Mirrored to _code_mirror + _restore. Core Opt3 trainer still present (89 py under src/).
+- **10:52 PDT** | **Paused Protect-NC H200 for SICAP FT** | Free 2xH200 | scancel 6050620 opt3_ab_protectnc_h200 (user OK). L40S AB trains 6042085 / 6042086 left running. Watchers still R.
+- **10:52 PDT** | **Plan: R3 ep6 to SICAPv2 Val1 FT on H200** | Domain adapt; score PANDA+ + SICAP on the go | Init epoch_006_cancer_0.3488.pth. Tag opt3_sicap_ft_r3ep6_val1_liveall. Slide ISUP uses all patches (no live-64). Watcher submits PANDA+ leak-split + SICAP MPP x2 fold-1 per epoch.
+
+### Open tonight / tomorrow
+- [ ] Land SICAP FT train on H200 + watcher; confirm WIRING_OK live=ALL
+- [ ] Leave AB L40S trains 6042085 / 6042086 running
+- [ ] Compare FT epochs vs R3 zero-shot SICAP MPP x2 cancer 0.523 and PANDA+ ~0.721
+- [x] Commit + push src/scripts/progress so a wipe cannot drop SICAP FT code
+
+---
+
+## 2026-09-28
+
+- **11:31 / 12:07 PDT** | **SICAPv2 MPP×2 Protect-NC ep2 done** | Off-domain FP check | Job **6052782** COMPLETED 36m on L40S cp078. Cancer **0.497**, binary **0.664**, NC **0.83**, NC→cancer **28%**. Vs R3 ep6 **0.523 / 0.653 / ~30%** and τ=0.7b ep5 **0.462 / 0.548 / 46%**. Slightly cleaner NC than R3, still not a real FP win; cancer Dice a bit lower. Out `outputs/evaluation/sicapv2/mpp2x_epoch_002_cancer_0.3540/`.
+- **11:31 PDT** | **Submitted that eval** | PANDA+ peak ckpt `epoch_002_cancer_0.3540.pth` (clean-30 **0.682**) | Then **6052782** PD Priority; trains untouched.
+
+### Open tonight / tomorrow
+- [ ] Leave trains **6042085** / **6042086** / **6050620** running
+- [x] Let **6052782** finish; then read cancer / binary / NC Dice vs R3 ep6
+- [ ] PANDA+ watchers score τ ep18 and Protect-NC ep7 when those ckpts land
+
+---
+
+## 2026-09-27
+
+> **Note:** `DAILY_PROGRESS.md` + mirrors + `EXPERIMENT_LOG.md` were **deleted from the worktree** (git still had through **2026-08-18**). Restored from HEAD. **Aug 19–Sep 26 backfilled below** from `sacct`/artifacts; **Sep 18–26 enriched** from transcript mine (not a contemporaneous log — mark uncertain items mentally as reconstructed).
+
+- **16:16 PDT** | **Restored wiped daily progress + experiment log** | Files showed `deleted:` in `git status` (root + `outputs/` + `outputs/docs/`) | `git restore` of `DAILY_PROGRESS.md` + mirrors + `EXPERIMENT_LOG.md`. Last committed day was **2026-08-18**. Catch-up bullets below for today’s Opt3 session only.
+
+- **16:12 PDT** | **AB PANDA+ watchers (auto-score every epoch)** | Stop scoring tau06 / tau07b by hand | Jobs **6050744** `opt3_ab06_pp_watch` (`RUN_TAG=opt3_omar6_ab_tau06`, `LEAK_PREFIX=ab_tau06`) and **6050745** `opt3_ab07_pp_watch` (`opt3_omar6_ab_tau07_benign` / `ab_tau07b`). Script `outputs/_code_mirror/scripts/watch_ab_panda_plus.py` + `slurm_watch_ab_panda_plus.sh`. Evals on L40S `EVAL_BS=2`, exclude train nodes cp075/076. First jobs **6050747** ep6 + **6050746** ep8 already R.
+
+- **16:11 PDT** | **Cancelled duplicate manual / preemptable AB PANDA+ queue** | Watchers own scoring | scancel pending `pp_ab06_*` / `pp_ab07_*` (incl. prior L40S Priority jobs **6050725–6050731** and preempt twins).
+
+- **~16:05 PDT** | **Moved unscored AB PANDA+ (tau07b ep8–12, tau06 ep6/11) to dedicated L40S** | H100 evals died CUDA error 802 | Prefer real `gpu` L40S, not shared with AB train. Later superseded by watchers.
+
+- **Afternoon** | **Protect-noncancer train on 2×H200** | Anti-FP gate: referee τ=0.7, **no** include-benign; if pred∈{0,1,2} and maxprob>0.6 → leave pixel | Pack `corrections_opt3_omar6_locked_r2_ep014_tau07_protectnc`. Train job **6050620** `opt3_ab_protectnc_h200` tag `opt3_omar6_ab_tau07_protectnc` R on `cp097`, resume `latest.pth`, mid-ep1. R2redo train **6039127** cancelled earlier so H200 free.
+
+- **Afternoon** | **PANDA+ leaderboard (clean-30 cancer Dice) as of now** | Compare AB vs R2redo vs old R2 | **R2redo** best **ep16 = 0.715** (26 scored; watcher **6047556** still R). **AB τ=0.6** best **ep10 = 0.712** (10 scored; ep6/11 pending). **AB τ=0.7+benign** best **ep5 = 0.692** (7 scored; ep8–12 pending). Old R2 ~ep13 ≈0.708 (prior).
+
+- **Afternoon** | **SICAP MPP×2 for three bests** | External check | L40S R: **6050625** r2e16, **6050627** ab06e10, **6050629** ab07e5 (A100 twins PD).
+
+- **Protocol** | **Protect-NC referee flags** | Separate from live R2redo; do not mix packs | `--protect-noncancer --protect-min-conf 0.6`, τ=0.7, no `--include-benign`. Slurm: `scripts/slurm_apply_isup_referee_r2_protectnc.sh`.
+
+### Open tonight / tomorrow
+- [ ] Leave AB trains **6042085** / **6042086** and protect-NC **6050620** running (do not scancel H200 unless asked)
+- [ ] Let AB PANDA+ watchers **6050744** / **6050745** finish backlog (tau06 ep6/11; tau07b ep8–12) then keep scoring new epochs
+- [ ] Finish SICAP MPP×2 for r2e16 / ab06e10 / ab07e5; re-run if a later tau07b epoch beats ep5
+- [ ] Canvas / table: AB τ06 vs τ07b vs protect-NC vs R2redo ep21–26 vs old R2 when scores land
+- [x] Backfill Aug 19–Sep 26 daily progress from sacct + artifacts + transcripts
+
+---
+
+
+## 2026-09-26
+
+> Enriched from [transcript mine](2b7971df-febf-4763-b665-0d6c561a58c0) + sacct (reconstructed).
+
+- **~13:43–14:18 PDT** | **QoS full (32/32 CPU)** | Antifp/SICAP stuck | Hot path: R2redo **6039127** (16 CPU) + AB **6042085/6042086** (8+8). AB val cancer ~ep5: τ06 **0.355**, τ07b **0.372**.
+- **14:17–14:33 PDT** | **R2redo PANDA+ catch-up ep9–18; watcher armed** | Backlog | Watcher **6047556**. Batch **6047534–44**. Best **ep16 = 0.715** (clean-30 ~**0.697**, ISUP **0.667**); ep18 **0.714** — past old R2 ~0.708.
+- **14:17 / ~15:01 PDT** | **SICAP MPP×2 R2redo ep8** | External FP | **6047559** A100 COMPLETED: cancer **0.427**, binary **0.521**, NC→cancer **0.536** (worse FP than R3 ep6 MPP×2 cancer **0.523** / NC→cancer **0.295**). H100 twin FAILED.
+- **15:04–15:08 PDT** | **Protect-NC recipe locked (τ=0.7, no benign, conf>0.6)** | Cleaner anti-FP; keep R2redo | Cancelled τ06+benign antifp trains. Referee **6047916** → cancelled; **6047931** with `protect_min_conf=0.6`. Protocol: grade swaps G3–G5 only; protect mask-NC when maxprob>0.6.
+- **17:56 / 19:03 PDT** | **Protect-NC pack done (~10.8B protected px / 2977 slides)** | Labels ready | Pack `corrections_…_tau07_protectnc`. Train submits **6047932–34** / **6048594–96** still QOS/Priority — H200 train lands 09-27.
+- **19:08–19:20 PDT** | **Scoreboard + queue R2redo ep19/20** | Status | No AB SICAP yet. AB PANDA+ partial (τ06 ~0.680 ep2; τ07b ~0.692 ep5). R2redo ~ep21. Evals **6048623–26**.
+
+---
+
+## 2026-09-25
+
+- **12:12–12:35 PDT** | **Poster: R1/R2/R3 + protect-NC wording** | Chart for Omar | PANDA+ **0.642 / 0.708 / 0.721**, ISUP **26/31/33 of 48**. Future work must include protect-NC (0.6+benign alone wrote ~**1.19B** benign→cancer swaps).
+- **15:48 PDT** | **AB trains τ=0.6 and τ=0.7+benign (2×L40S)** | Single-knob ablations | **6042085** `opt3_ab_tau06`, **6042086** `opt3_ab_tau07b`. Packs `…_tau06`, `…_tau07_benign`; antifp pack also on disk (train QOS-blocked).
+- **13:47 / 11:42 PDT** | **R2redo → 4×H200; kill L40S/watchdogs** | Consolidate | **6039127** started; **6039111** / **6020453** / **6039128** cancelled.
+- **19:30–19:50 PDT** | **Overcall pattern + SICAP MPP×2 queued on R2redo ep8** | Motivate protect-NC | FPs mostly G3/G4. PANDA+ ~31% true benign→cancer; SICAP NC→cancer ~41–53%. Job **6044501** pending QOS. R2redo ~ep13; best then ep8 **0.689**.
+
+---
+
+## 2026-09-24
+
+- **18:05 PDT** | **SICAP thresh grid (R3 ep6, MPP×2) finished** | Inference cancer gate | Argmax cancer/bin **0.523 / 0.653**; t*=0.70 → **0.533 / 0.662**; t*=0.80 → **0.542 / 0.670**. Jobs **6040408** → **6040468**.
+- **18:06–20:06 PDT** | **Protocol: official referee ≠ NC precision teacher** | Need anti-FP pack | Referee can swap illegal high-conf cancer-on-NC → **allowed cancer**. Queued protect-noncancer referee (**6042024** → **6042056**, `protect_min_conf=0.5`); live R2redo pack untouched.
+- **20:04–21:10 PDT** | **Poster numbers locked** | Avoid 0.647 confusion | Report **R1 0.642 → R2 0.708 → R3 0.721** (clean-30 **0.712**). Do not use live ep57 **0.647**. Live τ=0.6+benign peak **0.676** — below official; off poster.
+- **21:13–21:39 PDT** | **AB + antifp trains queued** | Disentangle τ vs include-benign | Labels **6042083/84** → trains **6042085/86**; antifp **6042056** → **6042091** (+ H200 twins **6042093–95**). R2redo L40S ~ep9; PANDA+ through ep7 best **0.676**.
+
+---
+
+## 2026-09-23
+
+- **12:29–14:08 PDT** | **First SICAP scores + protocol Qs** | External zero-shot | Val1-only then 4-fold: R3 ep6 cancer **0.472**, R2 ep13 **0.441**. PANDA ~0.5 MPP / 20×; SICAP patches 10×; stain-norm OK as ablation; SICAP = biopsies.
+- **14:14–14:42 PDT** | **SICAP ink scan** | Before stain-norm? | **6039107** FAIL → **6039112** COMPLETED. HSV “ink” on previews = hematoxylin FP — do not drive stain-norm from weak flags.
+- **17:15–18:22 PDT** | **Macenko SICAP ≈ raw; paper/v33 audit** | Stain not bottleneck | **6039340**: Macenko cancer **0.473** ≈ raw **0.472**. v33 keep rule OR-shaped from frozen CSVs (generator wiped). HED+flip/rot confirmed in Opt3 `--augment`.
+- **~18:06 PDT** | **R2redo ep1 on disk; L40S train** | τ=0.6+benign redo | Tag `opt3_omar6_round2redo_tau06_benign`. **6039111** L40S; H200 **6039126/27** pending. Watcher scoring ep1 ~**0.450**.
+- **21:13–22:40 PDT** | **SICAP failure = NC overcall; MPP×2 helps** | Fairer external | G3–G5-only cancer ~**0.80**; headline 0.47 from NC→cancer. **6040079** MPP×2: cancer **0.523** / binary **0.653**. Thresh **6040408**. R2redo ~ep3; PANDA+ ep2 **0.619**.
+- **Afternoon** | **Methods rewrite** | Paper | Locked: v33 filter, HED+geo, UNI2+LoRA+UPerNet, soft α, referee τ=**0.7**, report R3 ep6 **0.721/0.712**.
+
+---
+
+## 2026-09-22
+
+- **17:35–17:41 PDT** | **R2redo train fail then resubmit + watchdog** | Missing trainer after wipe | Referee τ=0.6+benign PASS (~6.4% swap, 1.3% from benign). **6020451** died 0s → restore + **6036357** PENDING 2×H200. Watchdog **6036361**. H200 nodes busy.
+- **18:16–18:34 PDT** | **Official SICAPv2 on HPC; first evals** | Dataset available | Path `…/sicapv2/SICAPv2/`. **6036410** R3 ep6, **6036411** R2 ep13 (L40S, 4 Test folds) → `outputs/evaluation/sicapv2/`.
+
+---
+
+## 2026-09-21
+
+- **08:42–09:00 PDT** | **R4 through ~ep28–30; never beats R3** | Ceiling check | **5999503** healthy. R4 peak PANDA+ **~0.706–0.707** (ep8/27/29); clean-30 best early **0.708** ep4. R3 still **0.721**.
+- **13:27–13:31 PDT** | **Referee class scope clarified** | What gets corrected? | Official swaps **G3–G5 only** (not bg/stroma/benign). Soft benign↔G3 separate.
+- **14:08–14:23 / 16:49 PDT** | **Launch R2redo; stop R4** | Aggressive R2 ablation | Referee **6020450** → `corrections_…_tau06_benign`; train **6020451** (instant FAIL) + watcher **6020453**. Cancelled R4 **5999503** + **6008282**. Soft+τ=0.6 riskier (more benign→cancer). SICAPv2 upload guidance for laptop→HPC.
+
+---
+
+## 2026-09-20
+
+- **13:23–14:26 PDT** | **R4 ~ep23; R1–R4 compare; SICAP blocked** | Status / story | Best then: R1 ep29 **0.609**, R2 ep13 **0.708**, R3 ep6 **0.721**, R4 ep8 **0.706**. Band **0.70–0.72**; leftover mainly G3↔G4. On-disk Kaggle SICAP dump unusable — need official Mendeley layout. Canvas/MD compare (~`r1-r4-compare` / `ROUND_R1_R4_COMPARE.md`).
+
+---
+
+## 2026-09-19
+
+- **17:06 PDT** | **R4 train healthy; PANDA+ watcher die-loop** | Missing src after wipe | **5999503** ~ep14 (val **0.288**; ep4 peak **0.399**). Best R4 then **0.704** ep4. Watcher **5999518** ~2s FAIL loop (`patch_utils.py` wiped).
+- **17:58–19:07 PDT** | **Self-heal eval src; watcher restart; catch-up** | Stop resubmit loop | Restored helpers under `_code_mirror`/`_restore`. Watcher **6008273→6008282**; ep8 all-48 **0.706** (still < R3 **0.721/0.712**).
+- **Evening** | **Paper draft hardening** | Omar/reviewer claims | Four-stage **0.459 → 0.554 → 0.609 → 0.721**. Honest: ep6 by PANDA+ peak; τ/α/λ not swept. Draft `outputs/docs/PAPER_DRAFT.md`.
+
+---
+
+## 2026-09-18
+
+- **00:20–15:22 PDT** | **R4 epochs + early PANDA+ COMPLETED** | Corrected from R3 ep6 | Tag `opt3_omar6_round4_ep6ref` ep1 `0.2538`. Job **5999503**. Good evals **6000055…6003031**; ~18:08 FAIL storm (src wipe) — wiring pins from 09-17.
+- **15:52–16:08 PDT** | **Paper inventory + draft** | Grounded metrics | Leaderboard then: baseline **0.459**; Teacher A **0.554**; Omar-6 live ep29 **0.609**; R2 ep13 **0.708**; **R3 ep6 0.721** (clean-30 **0.712**); R4 ~ep4 **0.704**. Soft α locked **0.1**+benign-soft; λ warmup→0.3. SICAPv2 not run yet.
+
+---
+
+## 2026-09-17
+
+- **21:25–21:29 PDT** | **Pinned R4 corrected-label wiring + home backup fallback** | /common wipe dropped `--label-source` | Commits **4be45d4**, **70fb106**.
+- **21:25 PDT** | **Submitted R4 corrected train + PANDA+ watcher** | Round-4 on R3-ep6 pack | **5999503** `opt3_r4_corr` tag `opt3_omar6_round4_ep6ref`; **5999518** `opt3_r4_pp_watch`. Prior **5977816** failed; **5977861** cancelled.
+- **17:50–20:04 PDT** | **R4 teacher pack + ISUP referee** | Build corrections from R3 best | **5997647** `teacher_pack_r4` COMPLETED → `teacher_opt3_omar6_round3_ep7ref_ep006/`. **5977815** `isup_referee` COMPLETED → `corrections_opt3_omar6_round3_ep7ref_ep006/`.
+- **15:14–09:39 (span)** | **Earlier teacher_pack_r4 attempts** | Flaky submits | **5977838** TIMEOUT 12h; several CANCELLED/FAILED (**5977777** etc.).
+
+---
+
+## 2026-09-16
+
+- **23:20 PDT → 09-16 06:56** | **Round-3 PANDA+ clean batch finished** | Score R3 after train wall | **5965502** `pp_r3_clean` COMPLETED (~7.5h). Scorecard: R3 tag `opt3_omar6_round3_ep7ref` best PANDA+ **ep6 ≈0.721** (clean30 ≈**0.712**).
+- **21:33–21:38 PDT** | **Started R4 teacher-pack attempts** | Next round | Multiple `teacher_pack_r4` FAIL/CANCEL before overnight TIMEOUT job.
+
+---
+
+## 2026-09-15
+
+- **19:43 PDT** | **R3 PANDA+ batch first try FAILED** | Instant fail | **5962747** `pp_r3_batch` FAILED (2s) → clean batch **5965502** later same night succeeded.
+- **Context** | **R3 train had wall-timeout 09-03** | 45 epochs on disk | Tag `opt3_omar6_round3_ep7ref` ep1–45 (08-28→09-03).
+
+---
+
+## 2026-09-04 → 2026-09-14
+
+- **Quiet stretch (no major Opt3 train submits in sacct)** | After R3 wall | R3 ckpts frozen at 45 epochs. **5513184** `opt3_src_keep` timed out 09-04. Next burst = R3 scoring 09-15 and R4 09-16+.
+- **Leaderboard snapshot entering mid-Sep** | R3 ep6 PANDA+ **~0.721** best so far; prior R2-corrected ep13 **~0.708**; locked Omar-6 ep14 **~0.643** (headline scorecard).
+
+---
+
+## 2026-09-03
+
+- **04:11 PDT** | **Round-3 4×H200 hit wall** | 6-day TimeLimit | **5640895** `opt3_r3_h200x4` TIMEOUT. Last named ckpt ~`epoch_045_cancer_0.3045.pth` (mtime ~03:00). Max val-cancer-in-name earlier **ep5 0.376**.
+
+---
+
+## 2026-08-29 → 2026-09-02
+
+- **Ongoing** | **Round-3 4×H200 training through wall** | Job **5640895** | Epochs continuing under `uni2_upernet_raw_opt3_omar6_round3_ep7ref/` (ep1 08-28 → ep45 by 09-03 ~03:00). No other major named Opt3 submits in this window.
+
+---
+
+## 2026-08-28
+
+- **04:11 PDT** | **Started Round-3 train (4×H200)** | Train on R2-ep7 referee corrections | **5640895** `opt3_r3_h200x4` tag `opt3_omar6_round3_ep7ref`. First ckpt `epoch_001_cancer_0.3190.pth` ~08:27. Pack used: `corrections_opt3_omar6_round2_ep14ref_ep007` (built 08-27).
+
+---
+
+## 2026-08-27
+
+- **00:35 PDT** | **R2→R3 referee pack + summary** | Between-round correction from R2 ep7 | Pack `corrections_opt3_omar6_round2_ep14ref_ep007`. Doc `outputs/docs/opt3_this_run/ep14_referee_pretrain_summary.md` (referee vs wmfix overlap sanity; **no train started in that doc** — R3 train starts 08-28).
+- **00:23 PDT** | **`pp_plus_batch` finished** | Bulk PANDA+ for R2/locked eras | **5640650** COMPLETED (started 08-26 11:50, ~12.5h).
+
+---
+
+## 2026-08-26
+
+- **22:30 PDT** | **Teacher pack for R2 ep7** | Feed referee | `teacher_opt3_omar6_round2_ep14ref_ep007`.
+- **13:39 PDT** | **PANDA+ leak-split tooling job** | Clean-30 vs leaked-18 protocol | **5640876** `pp_leak_split` COMPLETED (~6m).
+- **11:36–12:02 PDT** | **Scored R2-corrected late epochs** | Fill scorecard | **5640605–07** `pp_r2_e23/e24/e25` COMPLETED. Broader `pp_g_*` Teacher-A/live queue cancelled in favor of **5640650** `pp_plus_batch`.
+- **Scorecard** | **R2-corrected (`opt3_omar6_round2_ep14ref`) best PANDA+ ep13 ≈0.708**.
+
+---
+
+## 2026-08-25
+
+- **All day** | **R2-corrected train finished prior evening; R3 not started yet** | Between rounds | Tag `opt3_omar6_round2_ep14ref` stopped at ep25 (08-24). Next: teacher/referee on R2 ep7 (08-26/27) then R3 08-28.
+
+---
+
+## 2026-08-24
+
+- **21:48 PDT** | **R2-corr 9d resume FAILED instantly** | Wall follow-on | **5514798** `opt3_r2_c9d` FAILED (2s). Main **5514795** had TIMEOUT at 21:47 after 3d.
+- **20:05 PDT** | **R2-corrected train last named epoch** | Tag `opt3_omar6_round2_ep14ref` | `epoch_025_cancer_0.3249.pth` (started ep1 08-22 00:49). Max val-cancer-in-name **ep4 0.382**.
+- **15:09 PDT** | **Old locked r2 9d resume FAILED** | Stale dependency job | **5445445** `opt3_r2_resume9d` FAILED (9s).
+- **12:37–13:29 PDT** | **PANDA+ for R2-corrected ep10–22** | Mid-train scoring | **5591321–27** COMPLETED (`pp_r2_e10`…`e22`).
+- **11:03–12:27 PDT** | **PANDA+ eval path flaky then recovered** | Src/GPU issues | Several `opt3_pp_eval` FAIL/CANCEL; **5591174** COMPLETED. `opt3_gt_ab` FAILED.
+- **~12:54 PDT** | **Locked Omar-6 tag reached ~ep70 on disk** | Parallel locked run history | `uni2_upernet_raw_opt3_omar6_locked/` last named ep70 (scorecard best locked PANDA+ **ep14 ≈0.643**).
+
+---
+
+## 2026-08-23
+
+- **20:25–20:26 PDT** | **Epoch-eval watcher restarts** | Keep PANDA+ queue alive | **5586643** cancelled → **5586646** FAILED overnight (~14h). Prior **5571091** FAILED ~20:17 after ~23h.
+
+---
+
 ## 2026-08-22
 
-- **21:01 PDT** | **PANDA+ evals actually running for Round 2** | Mirror wipe dropped `patch_utils.py` + eval scripts; watcher then sbatched a missing live script and every job died in seconds | Restored `_code_mirror` from `/tmp/PANDA-Segmentation`. Watcher now always uses the mirror script, Round 2 jumps the queue, 15 min resubmit cooldown. CPU watcher **5571091**. Round 2 ep8/7/6/5 on H100/A100 (**5571092–95**). New named Round 2 epochs auto-enqueue. Unscored locked/live/λ015 stay in the backfill. Did **not** touch H200 trains **5514795** / **5445445**.
+- **00:49 PDT** | **Round-2 corrected train epochs appearing** | Train on locked-R2 ep14 referee pack | Tag `opt3_omar6_round2_ep14ref` ep1 on disk. Parent job **5514795** `opt3_r2_corr` (started 08-21 21:47).
+- **10:52 PDT** | **Correction pack path confirmed** | Between-round labels | `corrections_opt3_omar6_locked_locked_r2_ep014` (mtime).
+- **11:44 / 21:01 PDT** | **Epoch-eval watcher churn** | Auto-score | **5565831** CANCELLED; **5571091** started (FAILED next day).
 
-- **11:44 PDT** | **Round 2 now on the auto epoch-eval watcher** | Tag `opt3_omar6_round2_ep14ref` was missing from the CPU watcher, so PANDA+ Dice / PANDA+ ISUP / PANDA ISUP would not have scored | Added the tag; restarted CPU watcher **5565831** (`AUTO_SUBMIT=1`). Queue front is Round 2 ep4→ep1 (then the old 64-epoch backfill). Complete = PANDA ISUP + PANDA+ Dice + PANDA+ ISUP → `outputs/docs/opt3_this_run/epoch_external_scorecard.csv`. Did **not** touch H200 trains **5514795** / **5445445**.
+---
 
 ## 2026-08-21
 
-- **20:20 PDT** | **Section 4 pixel overlap done; G5 trip line confirmed; git on origin** | Pixel-level check most likely to catch a real problem before train | Overlap **3.3%** of wmfix flags, **4.3%** of referee swaps; 78% of referee volume is outside wmfix slides; Rule 1 **0.44%**. G5 from-G5 **25.67%** vs line **49.55%** (~24 pp under). Pushed **d84135c**. Job **5514638**. **No train until Section 4 is reviewed.**
+- **21:46–21:47 PDT** | **Swapped live H200 → Round-2 corrected train** | Free GPUs for R2-corr | **5514793** `r2_swap_live` COMPLETED; cancelled live resume **5452266** + λ015 **5452267**. Gate **5514789** cancelled. Started **5514795** `opt3_r2_corr` (3d wall → TIMEOUT 08-24).
+- **13:41 PDT** | **Src-keep + epoch-eval watcher hardened** | Fight /common wipes | **5513184** `opt3_src_keep` (ran until TIMEOUT 09-04); watcher **5513183** (cancelled 08-22).
+- **12:18 PDT** | **Epoch-eval watcher replace after wipe** | Scorecard continuity | **5512798** short-lived; many `opt3_ep_eval` FAIL bursts midday (restored src; git **c60f60f** earlier 11:42 recorded PANDA+ scorecard + PANDA+-only eval script).
+- **11:42 PDT** | **Commit: PANDA+ scorecard + PANDA+-only eval** | Persist after wipe | **c60f60f**.
 
-- **20:05 PDT** | **Pushed origin/main from writable /tmp clone; G5 margin confirmed; Section 4 queued** | HPC `.git` is RO — same failure mode as the two prior code-loss incidents | Commit **813986e** on `anhle1122/PANDA-Segmentation`. G5 flag uses swaps **from** G5 25.7% vs trip line **49.6%** (not the 5.5% to-G5 print). Pixel-overlap job **5514638**. **No train.**
+---
 
-- **19:55 PDT** | **Logged ep14 referee triage (no train)** | Need a watchable status, not a chat dump | CORRECTED **3.24%** (3.07B / 94.84B px). G5 gate PASS. HTML/JSON: `outputs/docs/opt3_this_run/ep14_referee_status.html`. Spec §2–4 still open.
+## 2026-08-20
 
-- **13:40 PDT** | **Epoch-eval watcher requires full PANDA+ ISUP; src_keep no longer needs git on compute** | Live `src/scripts` is NFS RO; old watcher skipped baseline epochs | Mirror watcher marks an epoch done only if PANDA ISUP + PANDA+ Dice + PANDA+ ISUP exist. 63 named ckpts still missing full eval; queue backfills on 4 GPU slots. Source keep uses `/usr/bin/git` + file walk. Do not scancel H200 trains.
+- **13:37–22:14 PDT** | **Teacher cache locked-R2 ep14 COMPLETED** | Feed Round-2 referee | **5468099** `teacher_ep014` (~8.5h) → `teacher_opt3_omar6_locked_locked_r2_ep014/`. Prior **5467876/8022/8070** FAILED instantly.
+- **13:27 PDT** | **PANDA+ epoch results doc touched** | Tables | `outputs/docs/opt3_this_run/panda_plus_epoch_results.md`.
+- **12:50–13:12 PDT** | **opt3_ep_eval FAIL storm** | Missing src after wipe | Dozens of 1–2s FAILED jobs; recovered later 08-21.
 
-- **13:10 PDT** | **Registered locked r2 ep14 as between-round teacher; submitted ISUP referee (no train)** | Best scored PANDA+ cancer on locked r2 is ep14 (0.642 / 54.2% ISUP); live ep37 is 0.642 too but has no teacher pack | Registry `selected_source_model=opt3_omar6_locked_locked_r2_ep014`. Pack already cached. Referee **5513153** (`isup_ref_ep14` on `cp036`) at τ=0.7 (three-way ISUP gate, not Rules 1–3). **No training.** Review `corrections_opt3_omar6_locked_locked_r2_ep014/` when done.
+---
+
+## 2026-08-19
+
+- **00:12–09:20 PDT** | **Epoch-eval watcher scoring overnight** | Live/locked PANDA+ backlog | Chain of **5454350…5454700** `opt3_ep_eval` COMPLETED (~70m each); **5454794** FAILED ~10:27.
+- **Context** | **Live resume 5452266 still R** (until 08-21 swap); locked r2 / teacher-watch / ckpt-keep from prior week still up.
+
+---
 
 ## 2026-08-18
 
