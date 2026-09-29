@@ -1,3 +1,12 @@
+## SICAP merged-NC rerun (2026-09-29 11:32 PDT)
+
+- **Why:** 6061707 ignores NC pixels in L_pixel. New run: -log(p0+p1+p2) + Dice FPs; honest in-loop val; official Test headline.
+- **What:** Commit **988379e**. Unit test GATE_OK. Smoke job **6062665** (L40S). R3 official Test **6062666**. Do not scancel **6061707/6061716**. Full train launches only if smoke writes GATE_OK.
+- **Result:** Pending smoke/Dice-agree. Live ablation still R.
+- **Decision:** Treat 6061707 as no-NC-supervision ablation; select its ckpt from watcher CSVs.
+
+---
+
 ## SICAP NC ignore vs eval honesty (2026-09-29 11:19 PDT)
 
 - **Why:** User: confirm whether eval Dice ignores class 0 (would inflate val / zero-shot).

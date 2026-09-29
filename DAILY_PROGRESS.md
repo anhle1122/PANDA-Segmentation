@@ -12,6 +12,7 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-09-29
 
+- **11:32 PDT** | **SICAP nc-merge: unit test pass; smoke+R3 official Test queued** | Honest NC loss + Dice FPs | Commit **988379e**. CPU gate: G4-on-NC loss 5.92 vs stroma/bg/benign 0.32. Smoke **6062665** L40S (1 ep, 4 slides, then Val1 Dice agree). R3 ep6 official `partition/Test/Test.xlsx` **6062666**. **6061707 / 6061716** untouched. Full nc-merge train waits on smoke GATE_OK.
 - **11:19 PDT** | **SICAP eval split: in-loop val ignores NC; zero-shot does not** | Check if 0.47 is inflated | In-loop FT val (`PerClassDiceAccumulator` ignore_index=0) drops GT=0 so cancer-on-NC is not an FP — **inflated**. `evaluate_sicapv2.py` CM includes GT=0 — **0.47 / 0.52 / NC→ca% are honest**. **6061707** stays as no-NC-supervision ablation. Next FT: merged NC loss + Dice FPs, no benign-soft, early-stop Val1, headline on `partition/Test/Test.xlsx`; R3 zero-shot on that holdout too. Not launched.
 - **10:57 PDT** | **SICAP FT watcher: native only, no MPP×2** | User: score official 10× Test.xlsx | scancel CPU watcher **6061708**; new **6061716** R. Train **6061707** untouched. Per-epoch SICAP is `slurm_eval_sicapv2.sh` Val1 Test only (not scale=2). PANDA+ leak-split still scored.
 - **10:52 PDT** | **Wipe-proof commit + SICAP FT stack** | User: keep src on GitHub; auto-trace in daily/experiment logs | Restored missing SICAP eval modules into tracked src/ from _code_mirror. Added train/sicap_slide_bag.py, train_uni2_sicap_finetune.py (live=ALL), slurm_train_sicap_finetune.sh, watch_sicap_ft_evals.py (+ Slurm). Mirrored to _code_mirror + _restore. Core Opt3 trainer still present (89 py under src/).
@@ -19,10 +20,9 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 - **10:52 PDT** | **Plan: R3 ep6 to SICAPv2 Val1 FT on H200** | Domain adapt; score PANDA+ + native SICAP on the go | Init epoch_006_cancer_0.3488.pth. Tag opt3_sicap_ft_r3ep6_val1_liveall. Slide ISUP uses all patches (no live-64). Watcher submits PANDA+ leak-split + official native Val1 Test per epoch.
 
 ### Open tonight / tomorrow
-- [ ] Leave SICAP FT **6061707** as ablation (no NC pixel loss); do not headline its in-loop val Dice
-- [ ] Leave AB L40S trains 6042085 / 6042086 running
-- [ ] Next FT (not launched): merged NC CE+Dice, Val1 early-stop, official Test once; R3 zero-shot on official Test
-- [ ] Compare FT epochs vs R3 zero-shot native SICAP cancer **0.47** (Val1-only was ~0.40) and PANDA+ ~0.721
+- [ ] Smoke **6062665** GATE_OK then launch nc-merge H200 + watcher (tag `opt3_sicap_ft_ncmerge_val1`)
+- [ ] Leave SICAP FT **6061707** as ablation (no NC pixel loss); pick ckpt from watcher Val1 Dice
+- [ ] R3 official Test **6062666**; later 6061707 official Test once
 - [x] Commit + push src/scripts/progress so a wipe cannot drop SICAP FT code
 
 ---
