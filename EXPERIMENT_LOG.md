@@ -1,3 +1,12 @@
+## SICAP NC ignore vs eval honesty (2026-09-29 11:19 PDT)
+
+- **Why:** User: confirm whether eval Dice ignores class 0 (would inflate val / zero-shot).
+- **What:** Compared in-loop FT val (`PerClassDiceAccumulator(ignore_index=0)`) vs `evaluate_sicapv2.dice_from_cm` (full 6×6 CM, remap pred 1,2→0).
+- **Result:** In-loop val **does** ignore GT=0 → cancer-on-NC not an FP → **inflated** (this is what 6061707 logs / selects on). Zero-shot / watcher SICAP (`evaluate_sicapv2.py`) **does not** ignore NC → 0.47 native / 0.52 MPP×2 / NC→cancer rates **stand**. PANDA+ unchanged.
+- **Decision:** Keep **6061707** as no-NC-supervision ablation. Do not launch the merged-NC FT yet. Headline later = official `partition/Test/Test.xlsx` once after Val1 early-stop; score R3 zero-shot on that same holdout. PANDA `ignore_index=0` stays.
+
+---
+
 ## SICAP FT from R3 ep6 — live=ALL (2026-09-29 10:52 PDT)
 
 - **Why:** Zero-shot R3 on SICAP MPP x2 cancer 0.523 still NC-overcalls (~30%). Small official SICAPv2 (155 slides, patient CV) exists with slide Gleason->ISUP; fine-tune domain-adapt while keeping Opt3 grade head. User asked allow-all patches for slide loss (no live-64) and free H200.
