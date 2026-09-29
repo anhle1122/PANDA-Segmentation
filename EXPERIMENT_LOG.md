@@ -3,7 +3,8 @@
 - **Why:** 6061707 ignores NC pixels in L_pixel. New run: -log(p0+p1+p2) + Dice FPs; honest in-loop val; official Test headline.
 - **What:** Commit **988379e**. Unit test GATE_OK. Smoke job **6062665** (L40S). R3 official Test **6062666**. Do not scancel **6061707/6061716**. Full train launches only if smoke writes GATE_OK.
 - **Result:** Pending smoke/Dice-agree. Live ablation still R. 11:36 user chose to launch full H200 **6062694** + watcher **6062695** before the smoke gate; smoke still runs as a check.
-- **Result (11:41):** R3 ep6 zero-shot official Test (6062666): cancer 0.38, mean4 0.45, binary 0.49, NC 0.66, G3 0.36, G4 0.49, G5 0.30, NC→cancer 49.6%.
+- **Result (11:41):** R3 ep6 zero-shot official Test (6062666): cancer 0.38, mean4 0.45, binary 0.49, NC 0.66, G3 0.36, G4 0.49, G5 0.30, NC→cancer 49.6%. Official ≈ Val1 alone (0.40); 0.47 was 4-fold mean.
+- **Result (11:53 smoke):** GATE_FAIL on first-vs-last BAG_LOSS only (slide difficulty). Dice agree Δ=0; WIRING/TRAINABLE OK. Full **6062694** already RUNNING (user override). Do not treat as NaN/wiring failure.
 - **Decision (11:45):** Ablation 6061707 moves to 2×L40S so 6062694 gets H200. Cancel after ep2 save; resume **6062752** from `latest.pth` with `CODE_SRC` = `520454f` snapshot (old inflated in-loop val, no early stop, same as the original run). Caveat: ablation is now resumed + different GPU from ep3; epoch pick stays by watcher honest Val1 Dice. L40S memory risk: peak 30.8 GB so far, largest slide (339 patches) not yet seen.
 - **Decision:** Treat 6061707 as no-NC-supervision ablation; select its ckpt from watcher CSVs.
 
