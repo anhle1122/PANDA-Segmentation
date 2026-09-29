@@ -276,6 +276,61 @@ def dice_ce_loss(
     ).mean()
 
 
+def sicap_merged_nc_ce(
+    logits: Tensor,
+    targets: Tensor,
+    weight_map: Tensor,
+    class_weights: Tensor,
+    *,
+    num_classes: int = 6,
+    adjacent_soft_alpha: float = 0.1,
+) -> Tensor:
+    """CE where SICAP GT=0 is non-cancer: -log(p0+p1+p2). G3/G4/G5 stay adjacent-soft.
+
+    Does not use ignore_index. PANDA training must not call this.
+    """
+    targets = targets.long()
+    nc_mask = targets <= 2
+    log_z = torch.logsumexp(logits, dim=1)
+    log_z_nc = torch.logsumexp(logits[:, :3], dim=1)
+    merged_ce = -(log_z_nc - log_z)
+    soft_t = gleason_adjacent_soft_targets(
+        targets,
+        num_classes,
+        alpha=float(adjacent_soft_alpha),
+        include_benign=False,
+    )
+    log_probs = F.log_softmax(logits, dim=1)
+    cw = class_weights.to(device=logits.device, dtype=logits.dtype).view(1, -1, 1, 1)
+    grade_ce = -(soft_t * log_probs * cw).sum(dim=1)
+    per_pixel = torch.where(nc_mask, merged_ce, grade_ce)
+    return (per_pixel * weight_map).sum() / (weight_map.sum() + 1e-8)
+
+
+def sicap_merged_dice_loss(
+    logits: Tensor,
+    targets: Tensor,
+    *,
+    eps: float = 1e-6,
+) -> Tensor:
+    """Soft Dice: G3/G4/G5 always counted (cancer on NC is FP) + merged NC=p0+p1+p2."""
+    probs = F.softmax(logits, dim=1)
+    targets = targets.long()
+    losses = []
+    for c in (3, 4, 5):
+        t = (targets == c).to(dtype=probs.dtype)
+        p = probs[:, c]
+        inter = (p * t).sum()
+        card = p.sum() + t.sum()
+        losses.append(1.0 - (2.0 * inter + eps) / (card + eps))
+    t_nc = (targets <= 2).to(dtype=probs.dtype)
+    p_nc = probs[:, 0] + probs[:, 1] + probs[:, 2]
+    inter = (p_nc * t_nc).sum()
+    card = p_nc.sum() + t_nc.sum()
+    losses.append(1.0 - (2.0 * inter + eps) / (card + eps))
+    return torch.stack(losses).mean()
+
+
 def segmentation_loss(
     logits: Tensor,
     targets: Tensor,
@@ -291,13 +346,29 @@ def segmentation_loss(
     g45_soft_alpha: float | None = None,
     include_benign_soft: bool = True,
     soft_targets: Tensor | None = None,
+    sicap_nc_merge: bool = False,
 ) -> Tensor:
     """Combined weighted CE (with per-pixel weight map) + custom soft Dice.
 
     If ``soft_targets`` is provided (B, C, H, W), it is used directly for both
     CE and Dice. Otherwise soft targets are derived from the hard ``targets``
     via label smoothing / adjacent soft.
+
+    ``sicap_nc_merge``: SICAP-only. GT≤2 is non-cancer (-log(p0+p1+p2) + Dice
+    FPs on G3/G4/G5). Does not ignore class 0. Leave False for PANDA.
     """
+    if sicap_nc_merge:
+        ce_loss = sicap_merged_nc_ce(
+            logits,
+            targets,
+            weight_map,
+            class_weights,
+            num_classes=num_classes,
+            adjacent_soft_alpha=adjacent_soft_alpha,
+        )
+        dice_loss = sicap_merged_dice_loss(logits, targets)
+        return ce_weight * ce_loss + dice_weight * dice_loss
+
     targets = targets.long()
     valid = targets != ignore_index
     targets_safe = targets.clone()

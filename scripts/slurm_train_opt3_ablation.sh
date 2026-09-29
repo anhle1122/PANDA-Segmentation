@@ -129,6 +129,7 @@ MICRO_BS="${MICRO_BS:-4}"
 LIVE_PATCHES="${LIVE_PATCHES:-64}"
 LIVE_CHUNK="${LIVE_CHUNK:-4}"
 SLIDES_PER_EPOCH="${SLIDES_PER_EPOCH:-256}"
+EARLY_STOP_PATIENCE="${EARLY_STOP_PATIENCE:-10}"
 
 echo "=== $(date) | ablation Opt3 | ${NGPU}x GPU | tag=${RUN_TAG} ==="
 echo "LABEL_SOURCE=corrected CORRECTED_DIR=${CORRECTED_DIR}"
@@ -142,6 +143,7 @@ CMD=(
   --label-source corrected
   --corrected-dir "${CORRECTED_DIR}"
   --epochs "${EPOCHS}"
+  --early-stop-patience "${EARLY_STOP_PATIENCE}"
   --lambda-slide "${LAMBDA_SLIDE}"
   --lambda-grade "${LAMBDA_GRADE}"
   --micro-batch-size "${MICRO_BS}"

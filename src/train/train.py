@@ -23,7 +23,7 @@ from pathlib import Path
 import pandas as pd
 import pytorch_lightning as pl
 import torch
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from torch.utils.data import DataLoader
 
 SRC = Path(__file__).resolve().parent.parent
@@ -101,6 +101,12 @@ def main() -> None:
     parser.add_argument("--patch-index", type=Path, default=PATCH_INDEX_CSV)
     parser.add_argument("--clean-slides", type=Path, default=CLEAN_CSV)
     parser.add_argument("--max-epochs-checkpoint", action="store_true", help="Save best checkpoint by val_dice_mean")
+    parser.add_argument(
+        "--early-stop-patience",
+        type=int,
+        default=10,
+        help="Stop after this many epochs with no val_dice_mean improvement (0=off).",
+    )
     args = parser.parse_args()
 
     train_loader, val_loader, train_df, val_df = build_dataloaders(
@@ -136,6 +142,16 @@ def main() -> None:
                 save_top_k=1,
             )
         )
+    if int(args.early_stop_patience) > 0:
+        callbacks.append(
+            EarlyStopping(
+                monitor="val_dice_mean",
+                mode="max",
+                patience=int(args.early_stop_patience),
+                verbose=True,
+            )
+        )
+        print(f"EARLY_STOP_OK patience={args.early_stop_patience} metric=val_dice_mean")
 
     trainer = pl.Trainer(
         max_epochs=args.epochs,

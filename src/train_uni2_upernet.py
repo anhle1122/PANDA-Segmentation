@@ -41,14 +41,18 @@ from train.pseudo_label_dataset import (  # noqa: E402
 from train.metrics import PerClassDiceAccumulator  # noqa: E402
 from train.uni2_upernet import build_uni2_upernet  # noqa: E402
 from train_baseline import (  # noqa: E402
+    broadcast_flag,
     cleanup_distributed,
     is_main_process,
     load_checkpoint,
     log_epoch_csv,
     make_train_loader,
     prune_checkpoints,
+    resolve_early_stop_patience,
+    restore_best_cancer_state,
     save_checkpoint,
     setup_distributed,
+    should_early_stop,
     subsample_split_csv,
     unwrap_model,
 )
@@ -258,9 +262,16 @@ def train(args: argparse.Namespace) -> None:
         print(f"Checkpoint dir: {ckpt_dir}")
         print(f"Select best by: cancer_dice")
         print(f"Epochs:         {start_epoch}..{args.epochs}")
+        print(
+            f"EARLY_STOP_OK patience={resolve_early_stop_patience(args)} "
+            f"min_epochs={args.min_epochs} metric=val_cancer_dice",
+            flush=True,
+        )
 
-    best_cancer_dice = -1.0
-    patience_counter = 0
+    best_cancer_dice, last_improve_epoch = restore_best_cancer_state(ckpt_dir)
+    if best_cancer_dice < 0:
+        best_cancer_dice = -1.0
+    patience = resolve_early_stop_patience(args)
     write_header = not log_path.exists() or args.resume is None
     persist_workers = args.persistent_workers and args.num_workers > 0
     backbone_unfrozen = not freeze_now
@@ -456,7 +467,7 @@ def train(args: argparse.Namespace) -> None:
 
             if metrics["cancer_dice"] > best_cancer_dice:
                 best_cancer_dice = metrics["cancer_dice"]
-                patience_counter = 0
+                last_improve_epoch = epoch
                 ckpt_path = (
                     ckpt_dir
                     / f"epoch_{epoch:03d}_cancer_{metrics['cancer_dice']:.4f}.pth"
@@ -474,14 +485,18 @@ def train(args: argparse.Namespace) -> None:
                 )
                 shutil.copy2(ckpt_path, ckpt_dir / "best.pth")
                 prune_checkpoints(ckpt_dir, keep=0)
-            else:
-                patience_counter += 1
-                if epoch >= args.min_epochs and patience_counter >= args.patience:
-                    print(
-                        f"Early stopping at epoch {epoch} — "
-                        f"no val cancer_dice improvement for {args.patience} epochs"
-                    )
-                    break
+            stop_now = should_early_stop(
+                epoch=epoch,
+                last_improve_epoch=last_improve_epoch,
+                patience=patience,
+                min_epochs=args.min_epochs,
+            )
+            if stop_now:
+                print(
+                    f"EARLY_STOP epoch={epoch} best_cancer={best_cancer_dice:.4f} "
+                    f"last_improve={last_improve_epoch} patience={patience}",
+                    flush=True,
+                )
 
             save_checkpoint(
                 ckpt_dir / "latest.pth",
@@ -494,6 +509,11 @@ def train(args: argparse.Namespace) -> None:
                 class_weights=class_weights,
                 mode=args.mode,
             )
+        else:
+            stop_now = False
+        stop_now = broadcast_flag(stop_now, device=device, world_size=world_size)
+        if stop_now:
+            break
 
     if is_main_process(rank):
         done_path = ckpt_dir / "TRAINING_COMPLETE.txt"
@@ -502,6 +522,8 @@ def train(args: argparse.Namespace) -> None:
             "mode": args.mode,
             "epochs_run": epoch,
             "best_val_cancer_dice": best_cancer_dice,
+            "last_improve_epoch": last_improve_epoch,
+            "early_stop_patience": patience,
             "checkpoint_dir": str(ckpt_dir),
             "log": str(log_path),
             "world_size": world_size,
@@ -526,8 +548,19 @@ def main() -> None:
     parser.add_argument("--mode", choices=MODES, required=True)
     parser.add_argument("--run-tag", type=str, default=None)
     parser.add_argument("--epochs", type=int, default=50)
-    parser.add_argument("--min-epochs", type=int, default=20)
+    parser.add_argument(
+        "--min-epochs",
+        type=int,
+        default=0,
+        help="Do not early-stop before this epoch (default 0).",
+    )
     parser.add_argument("--patience", type=int, default=10)
+    parser.add_argument(
+        "--early-stop-patience",
+        type=int,
+        default=None,
+        help="Stop after this many epochs with no val cancer_dice gain (overrides --patience).",
+    )
     parser.add_argument("--batch-size", type=int, default=2)
     parser.add_argument("--lr", type=float, default=1e-4)
     parser.add_argument("--backbone-lr-mult", type=float, default=0.1)

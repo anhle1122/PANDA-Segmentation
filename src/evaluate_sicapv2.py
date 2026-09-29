@@ -31,7 +31,6 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from evaluate import (  # noqa: E402
-    EvalAccumulator,
     build_eval_model,
     detect_arch,
     load_model_weights,
@@ -39,17 +38,20 @@ from evaluate import (  # noqa: E402
     _peek_state_dict,
 )
 from patch_utils import OUTPUTS  # noqa: E402
+from train.sicap_metrics import (  # noqa: E402
+    SICAP_CLASSES,
+    SICAP_NAMES,
+    accumulate_sicap_cm,
+    dice_from_sicap_cm,
+    remap_panda_pred,
+)
 
 DEFAULT_ROOT = Path("/common/omarmlab/members/anh/panda_data/sicapv2/SICAPv2")
-SICAP_CLASSES = (0, 3, 4, 5)
-SICAP_NAMES = {0: "NC", 3: "G3", 4: "G4", 5: "G5"}
 
 
-def remap_panda_pred(pred: np.ndarray) -> np.ndarray:
-    """Collapse PANDA {0,1,2} -> SICAP NC=0; keep G3/G4/G5."""
-    out = pred.copy()
-    out[(pred == 1) | (pred == 2)] = 0
-    return out
+def dice_from_cm(cm: np.ndarray, classes: tuple[int, ...] = SICAP_CLASSES) -> dict[str, float]:
+    """Back-compat alias for ``dice_from_sicap_cm``."""
+    return dice_from_sicap_cm(cm, classes=classes)
 
 
 class SicapPatchDataset(Dataset):
@@ -100,26 +102,11 @@ def load_test_names(root: Path, fold: int) -> list[str]:
     return load_split_names(root, fold, "Test")
 
 
-def dice_from_cm(cm: np.ndarray, classes: tuple[int, ...]) -> dict[str, float]:
-    """cm[true, pred] indexed 0..5; score only SICAP classes."""
-    out = {}
-    for c in classes:
-        tp = float(cm[c, c])
-        fp = float(cm[:, c].sum() - tp)
-        fn = float(cm[c, :].sum() - tp)
-        den = 2 * tp + fp + fn
-        out[SICAP_NAMES[c]] = (2 * tp / den) if den > 0 else float("nan")
-    vals = [out[SICAP_NAMES[c]] for c in classes if not np.isnan(out[SICAP_NAMES[c]])]
-    out["mean4"] = float(np.mean(vals)) if vals else float("nan")
-    cancer = [out[SICAP_NAMES[c]] for c in (3, 4, 5) if not np.isnan(out[SICAP_NAMES[c]])]
-    out["cancer"] = float(np.mean(cancer)) if cancer else float("nan")
-    # binary: cancer={3,4,5} vs NC=0
-    tp = float(cm[np.ix_((3, 4, 5), (3, 4, 5))].sum())
-    fp = float(cm[0, (3, 4, 5)].sum())
-    fn = float(cm[(3, 4, 5), 0].sum())
-    den = 2 * tp + fp + fn
-    out["binary_cancer"] = (2 * tp / den) if den > 0 else float("nan")
-    return out
+def load_official_test_names(root: Path) -> list[str]:
+    path = root / "partition" / "Test" / "Test.xlsx"
+    df = pd.read_excel(path)
+    col = "image_name" if "image_name" in df.columns else df.columns[0]
+    return [str(x) for x in df[col].tolist()]
 
 
 @torch.no_grad()
@@ -187,19 +174,19 @@ def predict_batch(
 
 
 @torch.no_grad()
-def eval_fold(
+def eval_named_split(
     model: torch.nn.Module,
     device: torch.device,
     root: Path,
-    fold: int,
+    names: list[str],
+    *,
     batch_size: int,
     num_workers: int,
     amp: bool,
     scale_factor: float = 1.0,
+    fold_label: int | str = 0,
 ) -> dict:
-    names = load_test_names(root, fold)
     ds = SicapPatchDataset(root, names)
-    # MPP align: 4 tiles/image — keep image micro-batch at 1 to avoid OOM on L40S
     bs = 1 if scale_factor > 1.0 else batch_size
     loader = DataLoader(
         ds,
@@ -214,17 +201,12 @@ def eval_fold(
         pred = predict_batch(
             model, images, scale_factor=scale_factor, amp=amp, device=device
         )
-        pred = remap_panda_pred(pred)
         gt = masks.numpy()
-        pred = np.clip(pred, 0, 5).astype(np.int64).ravel()
-        gt = np.clip(gt, 0, 5).astype(np.int64).ravel()
-        idx = gt * 6 + pred
-        bc = np.bincount(idx, minlength=36)
-        cm += bc.reshape(6, 6)
-        n_pix += int(pred.size)
+        accumulate_sicap_cm(cm, pred, gt)
+        n_pix += int(np.asarray(gt).size)
     metrics = dice_from_cm(cm, SICAP_CLASSES)
     return {
-        "fold": fold,
+        "fold": fold_label,
         "n_listed": len(names),
         "n_scored": len(ds),
         "n_skipped": ds.skipped,
@@ -237,6 +219,30 @@ def eval_fold(
             for p in SICAP_CLASSES
         },
     }
+
+
+@torch.no_grad()
+def eval_fold(
+    model: torch.nn.Module,
+    device: torch.device,
+    root: Path,
+    fold: int,
+    batch_size: int,
+    num_workers: int,
+    amp: bool,
+    scale_factor: float = 1.0,
+) -> dict:
+    return eval_named_split(
+        model,
+        device,
+        root,
+        load_test_names(root, fold),
+        batch_size=batch_size,
+        num_workers=num_workers,
+        amp=amp,
+        scale_factor=scale_factor,
+        fold_label=fold,
+    )
 
 
 def main() -> None:
@@ -257,6 +263,12 @@ def main() -> None:
             "SICAPv2 10× ≈2× coarser → use 2.0: upsample, 512-tile, stitch, "
             "downsample pred to native 512 GT."
         ),
+    )
+    p.add_argument(
+        "--partition",
+        choices=["val", "official"],
+        default="val",
+        help="val=Validation/ValN/Test.xlsx (CV). official=partition/Test/Test.xlsx holdout.",
     )
     args = p.parse_args()
 
@@ -282,26 +294,49 @@ def main() -> None:
 
     folds = [int(x) for x in args.folds.split(",") if x.strip()]
     rows = []
-    for fold in folds:
-        print(f"=== Val{fold} Test ===", flush=True)
-        row = eval_fold(
+    if args.partition == "official":
+        print("=== official partition/Test/Test.xlsx ===", flush=True)
+        row = eval_named_split(
             model,
             device,
             root,
-            fold,
-            args.batch_size,
-            args.num_workers,
-            args.amp,
+            load_official_test_names(root),
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            amp=args.amp,
             scale_factor=args.scale_factor,
+            fold_label="official",
         )
         rows.append(row)
         print(
             f"  scored={row['n_scored']}/{row['n_listed']}  "
             f"cancer={row['cancer']:.4f} mean4={row['mean4']:.4f} "
             f"bin={row['binary_cancer']:.4f}  "
-            f"NC={row['NC']:.4f} G3={row['G3']:.4f} G4={row['G4']:.4f} G5={row['G5']:.4f}",
+            f"NC={row['NC']:.4f} G3={row['G3']:.4f} G4={row['G4']:.4f} G5={row['G5']:.4f} "
+            f"nc_to_ca={row.get('nc_to_cancer', float('nan')):.4f}",
             flush=True,
         )
+    else:
+        for fold in folds:
+            print(f"=== Val{fold} Test ===", flush=True)
+            row = eval_fold(
+                model,
+                device,
+                root,
+                fold,
+                args.batch_size,
+                args.num_workers,
+                args.amp,
+                scale_factor=args.scale_factor,
+            )
+            rows.append(row)
+            print(
+                f"  scored={row['n_scored']}/{row['n_listed']}  "
+                f"cancer={row['cancer']:.4f} mean4={row['mean4']:.4f} "
+                f"bin={row['binary_cancer']:.4f}  "
+                f"NC={row['NC']:.4f} G3={row['G3']:.4f} G4={row['G4']:.4f} G5={row['G5']:.4f}",
+                flush=True,
+            )
 
     # mean across folds
     scale = float(args.scale_factor)
@@ -314,7 +349,8 @@ def main() -> None:
     summary = {
         "checkpoint": str(args.checkpoint.resolve()),
         "sicap_root": str(root.resolve()),
-        "folds": folds,
+        "folds": folds if args.partition == "val" else ["official"],
+        "partition": args.partition,
         "scale_factor": scale,
         "per_fold": rows,
         "mean_cancer_dice": float(np.mean([r["cancer"] for r in rows])),
@@ -331,6 +367,8 @@ def main() -> None:
     )
 
     stem = args.checkpoint.stem
+    if args.partition == "official":
+        stem = f"official_{stem}"
     if scale != 1.0:
         stem = f"mpp{scale:g}x_{stem}"
     out_dir = args.out_dir or (OUTPUTS / "evaluation" / "sicapv2" / stem)
@@ -342,6 +380,7 @@ def main() -> None:
             fieldnames=[
                 "fold", "n_scored", "n_listed", "n_skipped",
                 "NC", "G3", "G4", "G5", "mean4", "cancer", "binary_cancer",
+                "nc_to_cancer",
             ],
         )
         w.writeheader()

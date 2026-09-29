@@ -111,27 +111,74 @@ def save_checkpoint(
     os.replace(tmp, path)
 
 
+def restore_best_cancer_state(ckpt_dir: Path) -> tuple[float, int]:
+    """Best val cancer Dice and the epoch it was first reached (log, then snapshots)."""
+    best = -1.0
+    best_ep = 0
+    log_path = Path(ckpt_dir) / "training_log.csv"
+    if log_path.is_file():
+        try:
+            df = pd.read_csv(log_path)
+            if "cancer_dice" in df.columns and len(df):
+                vals = df["cancer_dice"].astype(float)
+                idx = int(vals.idxmax())
+                best = float(vals.loc[idx])
+                if "epoch" in df.columns:
+                    best_ep = int(df.loc[idx, "epoch"])
+        except Exception as exc:
+            print(f"  warn: could not read {log_path}: {exc}", flush=True)
+    for p in Path(ckpt_dir).glob("epoch_*_cancer_*.pth"):
+        try:
+            cancer = float(p.stem.split("cancer_")[-1])
+            ep = int(p.stem.split("_")[1])
+            if cancer > best + 1e-12:
+                best = cancer
+                best_ep = ep
+        except ValueError:
+            continue
+    return best, best_ep
+
+
 def restore_best_cancer_dice(ckpt_dir: Path) -> float:
     """Best val cancer Dice from the log / named snapshots — never from latest.pth alone.
 
     Resume used to reset best to -1, so a worse epoch overwrote ``best.pth``
     (Omar-6 ep7 0.608 → ep16 0.521 on 2026-08-15).
     """
-    best = -1.0
-    log_path = Path(ckpt_dir) / "training_log.csv"
-    if log_path.is_file():
-        try:
-            df = pd.read_csv(log_path)
-            if "cancer_dice" in df.columns and len(df):
-                best = max(best, float(df["cancer_dice"].max()))
-        except Exception as exc:
-            print(f"  warn: could not read {log_path}: {exc}", flush=True)
-    for p in Path(ckpt_dir).glob("epoch_*_cancer_*.pth"):
-        try:
-            best = max(best, float(p.stem.split("cancer_")[-1]))
-        except ValueError:
-            continue
+    best, _ = restore_best_cancer_state(ckpt_dir)
     return best
+
+
+def broadcast_flag(flag: bool, *, device: torch.device, world_size: int) -> bool:
+    """Rank-0 decision → all ranks. Used so early-stop cannot desync DDP."""
+    t = torch.tensor([1 if flag else 0], device=device, dtype=torch.int32)
+    if world_size > 1 and dist.is_available() and dist.is_initialized():
+        dist.broadcast(t, src=0)
+    return bool(int(t.item()))
+
+
+def should_early_stop(
+    *,
+    epoch: int,
+    last_improve_epoch: int,
+    patience: int,
+    min_epochs: int = 0,
+) -> bool:
+    """True when the monitored val metric has not improved for `patience` epochs."""
+    if int(patience) <= 0:
+        return False
+    if int(epoch) < int(min_epochs):
+        return False
+    if int(last_improve_epoch) <= 0:
+        return False
+    return (int(epoch) - int(last_improve_epoch)) >= int(patience)
+
+
+def resolve_early_stop_patience(args: argparse.Namespace) -> int:
+    explicit = getattr(args, "early_stop_patience", None)
+    if explicit is not None:
+        return int(explicit)
+    return int(getattr(args, "patience", 10))
 
 
 def epoch_snapshot_path(ckpt_dir: Path, epoch: int, cancer: float) -> Path:
@@ -312,9 +359,15 @@ def train(args: argparse.Namespace) -> None:
         print(f"Checkpoint dir: {ckpt_dir}")
         print(f"Log path:       {log_path}")
         print(f"Epochs:         {start_epoch}..{args.epochs}")
+        print(
+            f"EARLY_STOP_OK patience={resolve_early_stop_patience(args)} "
+            f"min_epochs={args.min_epochs} metric=val_mean_dice",
+            flush=True,
+        )
 
     best_val_dice = 0.0
-    patience_counter = 0
+    last_improve_epoch = 0
+    patience = resolve_early_stop_patience(args)
     write_header = not log_path.exists() or args.resume is None
 
     for epoch in range(start_epoch, args.epochs + 1):
@@ -406,9 +459,10 @@ def train(args: argparse.Namespace) -> None:
             log_epoch_csv(log_path, row, write_header=write_header)
             write_header = False
 
+            stop_now = False
             if metrics["mean_dice"] > best_val_dice:
                 best_val_dice = metrics["mean_dice"]
-                patience_counter = 0
+                last_improve_epoch = epoch
                 ckpt_path = ckpt_dir / f"epoch_{epoch:03d}_dice_{metrics['mean_dice']:.4f}.pth"
                 save_checkpoint(
                     ckpt_path,
@@ -423,14 +477,23 @@ def train(args: argparse.Namespace) -> None:
                 )
                 shutil.copy2(ckpt_path, ckpt_dir / "best.pth")
                 prune_checkpoints(ckpt_dir, keep=0)
-            else:
-                patience_counter += 1
-                if epoch >= args.min_epochs and patience_counter >= args.patience:
-                    print(
-                        f"Early stopping at epoch {epoch} — "
-                        f"no val mean_dice improvement for {args.patience} epochs"
-                    )
-                    break
+            elif should_early_stop(
+                epoch=epoch,
+                last_improve_epoch=last_improve_epoch,
+                patience=patience,
+                min_epochs=args.min_epochs,
+            ):
+                print(
+                    f"EARLY_STOP epoch={epoch} best_mean_dice={best_val_dice:.4f} "
+                    f"last_improve={last_improve_epoch} patience={patience}",
+                    flush=True,
+                )
+                stop_now = True
+        else:
+            stop_now = False
+        stop_now = broadcast_flag(stop_now, device=device, world_size=world_size)
+        if stop_now:
+            break
 
     if is_main_process(rank):
         done_path = ckpt_dir / "TRAINING_COMPLETE.txt"
@@ -440,6 +503,8 @@ def train(args: argparse.Namespace) -> None:
                     "mode": args.mode,
                     "epochs_run": epoch,
                     "best_val_mean_dice": best_val_dice,
+                    "last_improve_epoch": last_improve_epoch,
+                    "early_stop_patience": patience,
                     "checkpoint_dir": str(ckpt_dir),
                     "log": str(log_path),
                     "world_size": world_size,
@@ -459,8 +524,19 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=MODES, required=True)
     parser.add_argument("--epochs", type=int, default=50)
-    parser.add_argument("--min-epochs", type=int, default=50)
+    parser.add_argument(
+        "--min-epochs",
+        type=int,
+        default=0,
+        help="Do not early-stop before this epoch (default 0).",
+    )
     parser.add_argument("--patience", type=int, default=10)
+    parser.add_argument(
+        "--early-stop-patience",
+        type=int,
+        default=None,
+        help="Stop after this many epochs with no val mean_dice gain (overrides --patience).",
+    )
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--lr", type=float, default=1e-4)
     parser.add_argument("--weight-decay", type=float, default=1e-4)

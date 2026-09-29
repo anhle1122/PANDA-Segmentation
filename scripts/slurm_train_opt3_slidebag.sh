@@ -59,6 +59,7 @@ export TORCH_DISTRIBUTED_BACKEND="${TORCH_DISTRIBUTED_BACKEND:-nccl}"
 export TORCH_CUDNN_ENABLED="${TORCH_CUDNN_ENABLED:-0}"
 
 EPOCHS="${1:-100}"
+EARLY_STOP_PATIENCE="${EARLY_STOP_PATIENCE:-10}"
 RESUME="${2:-}"
 NGPU="${SLURM_GPUS_ON_NODE:-${SLURM_JOB_NUM_GPUS:-2}}"
 RUN_TAG="${RUN_TAG:-opt3_omar6_locked}"
@@ -92,7 +93,7 @@ fi
 
 echo "=== $(date) | Omar-6 Opt3 | ${NGPU}x H200 | tag=${RUN_TAG} ==="
 echo "CONFIG λ_slide=${LAMBDA_SLIDE} λ_grade=${LAMBDA_GRADE} micro_bs=${MICRO_BS} live=${LIVE_PATCHES} live_chunk=${LIVE_CHUNK} grad_checkpoint=${GRAD_CHECKPOINT} decoder_checkpoint=${DECODER_CHECKPOINT} slides/ep=${SLIDES_PER_EPOCH}"
-echo "CONFIG adj_soft=${ADJ_SOFT} benign_soft=${INCLUDE_BENIGN_SOFT} max_patches/slide=${MAX_PATCHES_PER_SLIDE} min_area=0 min_patches=5 lora=1 decode_norm=gn save=EVERY_EPOCH resume=${RESUME:-none}"
+echo "CONFIG adj_soft=${ADJ_SOFT} benign_soft=${INCLUDE_BENIGN_SOFT} max_patches/slide=${MAX_PATCHES_PER_SLIDE} min_area=0 min_patches=5 lora=1 decode_norm=gn save=EVERY_EPOCH early_stop_patience=${EARLY_STOP_PATIENCE} resume=${RESUME:-none}"
 
 CMD=(
   torchrun --standalone --nproc_per_node="${NGPU}"
@@ -100,6 +101,7 @@ CMD=(
   --mode raw
   --run-tag "${RUN_TAG}"
   --epochs "${EPOCHS}"
+  --early-stop-patience "${EARLY_STOP_PATIENCE}"
   --lambda-slide "${LAMBDA_SLIDE}"
   --lambda-grade "${LAMBDA_GRADE}"
   --micro-batch-size "${MICRO_BS}"

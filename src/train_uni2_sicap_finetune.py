@@ -36,8 +36,16 @@ from train.grade_head import (  # noqa: E402
     derived_isup_ce_from_seg_probs,
     grade_head_ce,
 )
-from train.losses import segmentation_loss  # noqa: E402
-from train.metrics import PerClassDiceAccumulator  # noqa: E402
+from train.losses import (  # noqa: E402
+    segmentation_loss,
+    sicap_merged_dice_loss,
+    sicap_merged_nc_ce,
+)
+from train.sicap_metrics import (  # noqa: E402
+    accumulate_sicap_cm,
+    dice_from_sicap_cm,
+    metrics_to_train_log,
+)
 from train.sicap_slide_bag import (  # noqa: E402
     DEFAULT_SICAP_ROOT,
     SicapPatchDataset,
@@ -49,22 +57,43 @@ from train.sicap_slide_bag import (  # noqa: E402
 )
 from train.uni2_upernet import DEFAULT_FPN_CHANNELS, build_uni2_upernet  # noqa: E402
 from train_baseline import (  # noqa: E402
+    broadcast_flag,
     cleanup_distributed,
     epoch_snapshot_path,
     is_main_process,
     load_checkpoint,
-    restore_best_cancer_dice,
+    restore_best_cancer_state,
     save_checkpoint,
     setup_distributed,
+    should_early_stop,
     unwrap_model,
 )
 from train_uni2_opt3_slidebag import SegPlusGrade  # noqa: E402
 
 
-def _remap_pred_for_sicap(pred: torch.Tensor) -> torch.Tensor:
-    out = pred.clone()
-    out[(pred == 1) | (pred == 2)] = 0
-    return out
+def _segmentation_parts(args, logits, masks, weights, class_weights):
+    """Return (total, ce, dice) for logging. SICAP merge does not ignore class 0."""
+    if getattr(args, "sicap_nc_merge", False):
+        ce = sicap_merged_nc_ce(
+            logits,
+            masks,
+            weights,
+            class_weights,
+            adjacent_soft_alpha=args.adjacent_soft_alpha,
+        )
+        dice = sicap_merged_dice_loss(logits, masks)
+        total = 0.5 * ce + 0.5 * dice
+        return total, ce, dice
+    total = segmentation_loss(
+        logits,
+        masks,
+        weights,
+        class_weights,
+        adjacent_soft_alpha=args.adjacent_soft_alpha,
+        include_benign_soft=args.include_benign_soft,
+        sicap_nc_merge=False,
+    )
+    return total, total, total * 0.0
 
 
 def train(args: argparse.Namespace) -> None:
@@ -206,13 +235,25 @@ def train(args: argparse.Namespace) -> None:
         )
         if n_lora_opt <= 0:
             raise RuntimeError("--lora on but 0 LoRA params in optimizer")
+        core = unwrap_model(model)
+        n_dec = sum(p.numel() for p in core.seg.decoder_parameters() if p.requires_grad)
+        n_grade = sum(p.numel() for p in core.grade_head.parameters() if p.requires_grad)
+        n_bb = sum(p.numel() for p in core.seg.backbone_parameters() if p.requires_grad)
+        print(
+            f"TRAINABLE decoder={n_dec} grade_head={n_grade} backbone_incl_lora={n_bb} "
+            f"lora_in_optim={n_lora_opt}",
+            flush=True,
+        )
+        if n_dec <= 0 or n_grade <= 0:
+            raise RuntimeError("decoder or grade head missing from optimizer")
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, T_max=max(1, args.epochs), eta_min=args.lr * 0.01
     )
 
     start_epoch = 1
-    best_cancer = restore_best_cancer_dice(ckpt_dir)
+    best_cancer, last_improve_epoch = restore_best_cancer_state(ckpt_dir)
+    patience = int(getattr(args, "early_stop_patience", 10))
 
     if args.init_checkpoint and Path(args.init_checkpoint).is_file() and not args.resume:
         ckpt = torch.load(args.init_checkpoint, map_location="cpu", weights_only=False)
@@ -245,6 +286,10 @@ def train(args: argparse.Namespace) -> None:
                     "L_pixel",
                     "L_slide",
                     "L_grade",
+                    "L_ce",
+                    "L_dice",
+                    "nc_to_cancer",
+                    "binary_cancer",
                     "lr",
                     "soft_hard_isup_agree",
                 ]
@@ -256,7 +301,14 @@ def train(args: argparse.Namespace) -> None:
     if is_main_process(rank):
         print(
             f"WIRING_OK live=ALL (not micro={micro}) chunk={live_chunk} "
-            f"decoder_ckpt={int(decoder_ckpt)} fold={args.fold}",
+            f"decoder_ckpt={int(decoder_ckpt)} fold={args.fold} "
+            f"sicap_nc_merge={int(bool(args.sicap_nc_merge))} "
+            f"include_benign_soft={int(bool(args.include_benign_soft))}",
+            flush=True,
+        )
+        print(
+            f"EARLY_STOP_OK patience={patience} metric=val_cancer_dice "
+            f"last_improve={last_improve_epoch} best={best_cancer:.4f}",
             flush=True,
         )
 
@@ -287,7 +339,15 @@ def train(args: argparse.Namespace) -> None:
 
         model.train()
         t0 = time.time()
-        running = {"loss": 0.0, "pixel": 0.0, "slide": 0.0, "grade": 0.0, "n": 0}
+        running = {
+            "loss": 0.0,
+            "pixel": 0.0,
+            "slide": 0.0,
+            "grade": 0.0,
+            "ce": 0.0,
+            "dice": 0.0,
+            "n": 0,
+        }
         n_slides = 0
         isup_agree = 0
         isup_cmp_n = 0
@@ -331,6 +391,8 @@ def train(args: argparse.Namespace) -> None:
             logits_chunks: list[torch.Tensor] = []
             feat_chunks: list[torch.Tensor] = []
             pixel_loss_acc = 0.0
+            ce_acc = 0.0
+            dice_acc = 0.0
             l_slide_val = 0.0
             l_grade_val = 0.0
             slide_term_val = 0.0
@@ -354,17 +416,19 @@ def train(args: argparse.Namespace) -> None:
                     with _ddp_no_sync():
                         with torch.cuda.amp.autocast(enabled=use_amp):
                             logits, feats, _grade = model(imgs_b)
-                            p_loss = segmentation_loss(
+                            p_loss, p_ce, p_dice = _segmentation_parts(
+                                args,
                                 logits[:n_real],
                                 masks_b[:n_real],
                                 weights_b[:n_real],
                                 class_weights,
-                                adjacent_soft_alpha=args.adjacent_soft_alpha,
-                                include_benign_soft=args.include_benign_soft,
                             )
                             scaled = p_loss * (n_real / n_patches)
                         scaler.scale(scaled).backward()
                     pixel_loss_acc += float(scaled.detach().item())
+                    scale = n_real / n_patches
+                    ce_acc += float(p_ce.detach().item()) * scale
+                    dice_acc += float(p_dice.detach().item()) * scale
                     if apply_slide_isup:
                         logits_chunks.append(logits[:n_real].detach())
                         feat_chunks.append(feats[:n_real].detach())
@@ -436,8 +500,17 @@ def train(args: argparse.Namespace) -> None:
             running["pixel"] += pixel_loss_acc
             running["slide"] += l_slide_val
             running["grade"] += l_grade_val
+            running["ce"] += ce_acc
+            running["dice"] += dice_acc
             running["n"] += 1
             n_slides += 1
+            if is_main_process(rank):
+                print(
+                    f"BAG_LOSS n={n_slides} total={total:.6f} pix={pixel_loss_acc:.6f} "
+                    f"ce={ce_acc:.6f} dice={dice_acc:.6f} slide={l_slide_val:.6f} "
+                    f"grade={l_grade_val:.6f}",
+                    flush=True,
+                )
             if is_main_process(rank) and n_slides == 1 and device.type == "cuda":
                 print(
                     f"peak_cuda_gb_after_bag1="
@@ -450,7 +523,7 @@ def train(args: argparse.Namespace) -> None:
 
         eval_model = unwrap_model(model)
         eval_model.eval()
-        dice_acc = PerClassDiceAccumulator(num_classes=6)
+        cm = np.zeros((6, 6), dtype=np.int64)
         val_loss_sum = 0.0
         val_n = 0
         with torch.no_grad():
@@ -460,21 +533,20 @@ def train(args: argparse.Namespace) -> None:
                 weights_v = weights_v.to(device, non_blocking=True)
                 with torch.cuda.amp.autocast(enabled=use_amp):
                     logits_v, _, _ = eval_model(images_v)
-                    vloss = segmentation_loss(
-                        logits_v,
-                        masks_v,
-                        weights_v,
-                        class_weights,
-                        adjacent_soft_alpha=args.adjacent_soft_alpha,
-                        include_benign_soft=args.include_benign_soft,
+                    vloss, _, _ = _segmentation_parts(
+                        args, logits_v, masks_v, weights_v, class_weights
                     )
                 val_loss_sum += float(vloss.item())
                 val_n += 1
-                pred = _remap_pred_for_sicap(logits_v.argmax(1))
-                dice_acc.update(pred, masks_v)
+                accumulate_sicap_cm(
+                    cm,
+                    logits_v.argmax(1).detach().cpu().numpy(),
+                    masks_v.detach().cpu().numpy(),
+                )
         val_ds.clear_open_handles()
 
-        metrics = dice_acc.to_baseline_metrics()
+        sicap_m = dice_from_sicap_cm(cm)
+        metrics = metrics_to_train_log(sicap_m)
         cancer = float(metrics.get("cancer_dice", 0.0))
         mean_dice = float(metrics.get("mean_dice", 0.0))
         train_loss = running["loss"] / max(1, running["n"])
@@ -487,10 +559,19 @@ def train(args: argparse.Namespace) -> None:
             print(
                 f"Epoch {epoch:03d}/{args.epochs} | train={train_loss:.4f} "
                 f"(pix={running['pixel']/max(1,running['n']):.4f} "
+                f"ce={running['ce']/max(1,running['n']):.4f} "
+                f"dice={running['dice']/max(1,running['n']):.4f} "
                 f"slide={running['slide']/max(1,running['n']):.4f} "
                 f"grade={running['grade']/max(1,running['n']):.4f}) "
-                f"| val={val_loss:.4f} cancer={cancer:.4f} mean={mean_dice:.4f} "
+                f"| val={val_loss:.4f} cancer={cancer:.4f} mean4={mean_dice:.4f} "
+                f"NC={metrics['dice_0']:.4f} bin={metrics['binary_cancer']:.4f} "
+                f"nc_to_ca={metrics['nc_to_cancer']:.4f} "
                 f"| {time.time()-t0:.0f}s",
+                flush=True,
+            )
+            print(
+                f"SICAP_VAL_OK cancer={cancer:.6f} mean4={mean_dice:.6f} "
+                f"ignore_index=off remap_1_2_to_0=1",
                 flush=True,
             )
             with log_path.open("a", newline="") as f:
@@ -504,6 +585,10 @@ def train(args: argparse.Namespace) -> None:
                         f"{running['pixel']/max(1,running['n']):.6f}",
                         f"{running['slide']/max(1,running['n']):.6f}",
                         f"{running['grade']/max(1,running['n']):.6f}",
+                        f"{running['ce']/max(1,running['n']):.6f}",
+                        f"{running['dice']/max(1,running['n']):.6f}",
+                        f"{metrics['nc_to_cancer']:.6f}",
+                        f"{metrics['binary_cancer']:.6f}",
                         lr,
                         f"{soft_hard_agree:.6f}",
                     ]
@@ -534,6 +619,7 @@ def train(args: argparse.Namespace) -> None:
                 )
             if cancer > best_cancer:
                 best_cancer = cancer
+                last_improve_epoch = epoch
                 save_checkpoint(
                     ckpt_dir / "best.pth",
                     epoch=epoch,
@@ -546,13 +632,32 @@ def train(args: argparse.Namespace) -> None:
                     mode=args.mode,
                 )
             print(f"  saved {snap.name} | best_cancer={best_cancer:.4f}", flush=True)
+            stop_now = should_early_stop(
+                epoch=epoch,
+                last_improve_epoch=last_improve_epoch,
+                patience=patience,
+            )
+            if stop_now:
+                print(
+                    f"EARLY_STOP epoch={epoch} best_cancer={best_cancer:.4f} "
+                    f"last_improve={last_improve_epoch} patience={patience}",
+                    flush=True,
+                )
+        else:
+            stop_now = False
 
         if world_size > 1:
             dist.barrier()
+        stop_now = broadcast_flag(stop_now, device=device, world_size=world_size)
+        if stop_now:
+            break
 
     if is_main_process(rank):
         (ckpt_dir / "TRAINING_COMPLETE.txt").write_text(
-            f"best_cancer={best_cancer}\n", encoding="utf-8"
+            f"best_cancer={best_cancer}\n"
+            f"last_improve_epoch={last_improve_epoch}\n"
+            f"early_stop_patience={patience}\n",
+            encoding="utf-8",
         )
         print(f"DONE — best SICAP-fold val cancer_dice={best_cancer:.4f}", flush=True)
     cleanup_distributed()
@@ -565,6 +670,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--sicap-root", type=str, default=str(DEFAULT_SICAP_ROOT))
     p.add_argument("--fold", type=int, default=1, choices=[1, 2, 3, 4])
     p.add_argument("--epochs", type=int, default=30)
+    p.add_argument(
+        "--early-stop-patience",
+        type=int,
+        default=10,
+        help="Stop after this many epochs with no val cancer_dice improvement (0=off).",
+    )
     p.add_argument("--lr", type=float, default=5e-5)
     p.add_argument("--weight-decay", type=float, default=0.01)
     p.add_argument("--backbone-lr-mult", type=float, default=0.05)
@@ -583,7 +694,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--include-benign-soft",
         action=argparse.BooleanOptionalAction,
-        default=True,
+        default=False,
+        help="PANDA benign↔G3 soft. Off for SICAP (0 is NC, not stroma).",
+    )
+    p.add_argument(
+        "--sicap-nc-merge",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="SICAP-only: GT=0 uses -log(p0+p1+p2); Dice counts cancer-on-NC as FP.",
     )
     p.add_argument("--grad-clip", type=float, default=1.0)
     p.add_argument("--amp", action="store_true")

@@ -57,14 +57,16 @@ from train.slide_bag_dataset import (  # noqa: E402
 )
 from train.uni2_upernet import DEFAULT_FPN_CHANNELS, build_uni2_upernet  # noqa: E402
 from train_baseline import (  # noqa: E402
+    broadcast_flag,
     cleanup_distributed,
     epoch_snapshot_path,
     is_main_process,
     load_checkpoint,
     prune_checkpoints,
-    restore_best_cancer_dice,
+    restore_best_cancer_state,
     save_checkpoint,
     setup_distributed,
+    should_early_stop,
     subsample_split_csv,
     unwrap_model,
 )
@@ -270,7 +272,8 @@ def train(args: argparse.Namespace) -> None:
     )
 
     start_epoch = 1
-    best_cancer = restore_best_cancer_dice(ckpt_dir)
+    best_cancer, last_improve_epoch = restore_best_cancer_state(ckpt_dir)
+    patience = int(getattr(args, "early_stop_patience", 10))
     if args.resume and Path(args.resume).is_file():
         start_epoch = load_checkpoint(
             Path(args.resume), model, optimizer, scheduler, scaler
@@ -314,6 +317,11 @@ def train(args: argparse.Namespace) -> None:
         print(
             f"WIRING_OK live={live_n} (not micro={micro}) chunk={live_chunk} "
             f"decoder_ckpt={int(decoder_ckpt)} perm=live_n",
+            flush=True,
+        )
+        print(
+            f"EARLY_STOP_OK patience={patience} metric=val_cancer_dice "
+            f"last_improve={last_improve_epoch} best={best_cancer:.4f}",
             flush=True,
         )
     if device.type == "cuda":
@@ -668,6 +676,7 @@ def train(args: argparse.Namespace) -> None:
             )
             if cancer > best_cancer:
                 best_cancer = cancer
+                last_improve_epoch = epoch
                 extra = {"best_cancer_dice": float(best_cancer)}
                 save_checkpoint(
                     ckpt_dir / "best.pth",
@@ -697,13 +706,32 @@ def train(args: argparse.Namespace) -> None:
                     )
                 print(f"  new best cancer_dice={best_cancer:.4f} → {snap.name}")
             prune_checkpoints(ckpt_dir, keep=args.keep_checkpoints)
+            stop_now = should_early_stop(
+                epoch=epoch,
+                last_improve_epoch=last_improve_epoch,
+                patience=patience,
+            )
+            if stop_now:
+                print(
+                    f"EARLY_STOP epoch={epoch} best_cancer={best_cancer:.4f} "
+                    f"last_improve={last_improve_epoch} patience={patience}",
+                    flush=True,
+                )
+        else:
+            stop_now = False
 
         if world_size > 1:
             dist.barrier()
+        stop_now = broadcast_flag(stop_now, device=device, world_size=world_size)
+        if stop_now:
+            break
 
     if is_main_process(rank):
         (ckpt_dir / "TRAINING_COMPLETE.txt").write_text(
-            f"best_cancer={best_cancer}\n", encoding="utf-8"
+            f"best_cancer={best_cancer}\n"
+            f"last_improve_epoch={last_improve_epoch}\n"
+            f"early_stop_patience={patience}\n",
+            encoding="utf-8",
         )
         print(f"DONE — best val cancer_dice={best_cancer:.4f}")
     cleanup_distributed()
@@ -714,6 +742,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--mode", default="raw", choices=["raw", "normalized", "normalized_ink_raw"])
     p.add_argument("--run-tag", default="opt3_omar6_locked")
     p.add_argument("--epochs", type=int, default=100)
+    p.add_argument(
+        "--early-stop-patience",
+        type=int,
+        default=10,
+        help="Stop after this many epochs with no val cancer_dice improvement (0=off).",
+    )
     p.add_argument("--lr", type=float, default=1e-4)
     p.add_argument("--weight-decay", type=float, default=0.01)
     p.add_argument("--backbone-lr-mult", type=float, default=0.05)

@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
-# SICAPv2 fine-tune from R3 ep6 on H200. live=ALL slide ISUP. Never overwrites R3 dir.
-# Usage:
-#   sbatch --job-name=sicap_ft_h200 --gres=gpu:h200:2 \
-#     --export=ALL,RUN_TAG=opt3_sicap_ft_r3ep6_val1_liveall,FOLD=1,EPOCHS=30 \
-#     scripts/slurm_train_sicap_finetune.sh
-#SBATCH --job-name=sicap_ft_h200
+# SICAP FT with merged-NC loss. Never the live ablation tag.
+#   sbatch --job-name=sicap_ncmerge_h200 --gres=gpu:h200:2 \
+#     --export=ALL,RUN_TAG=opt3_sicap_ft_ncmerge_val1,EPOCHS=30 \
+#     scripts/slurm_train_sicap_ncmerge.sh
+#SBATCH --job-name=sicap_ncmerge_h200
 #SBATCH --partition=gpu
 #SBATCH --qos=normal
-#SBATCH -o /common/omarmlab/members/anh/panda_project/outputs/logs/train_sicap_ft_%j.out
-#SBATCH -e /common/omarmlab/members/anh/panda_project/outputs/logs/train_sicap_ft_%j.err
+#SBATCH -o /common/omarmlab/members/anh/panda_project/outputs/logs/train_sicap_ncmerge_%j.out
+#SBATCH -e /common/omarmlab/members/anh/panda_project/outputs/logs/train_sicap_ncmerge_%j.err
 #SBATCH --time=2-00:00:00
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=96G
@@ -24,7 +23,6 @@ module load miniconda3/23.11.0-2
 source /apps/miniconda/23.11.0-2/etc/profile.d/conda.sh
 conda activate wsi_seg
 
-# Prefer tracked src/; mirror as fallback after wipe
 if [[ -f "${PANDA_PROJECT}/src/train_uni2_sicap_finetune.py" ]]; then
   export PANDA_CODE_SRC="${PANDA_PROJECT}/src"
 elif [[ -f "${PANDA_PROJECT}/outputs/_code_mirror/src/train_uni2_sicap_finetune.py" ]]; then
@@ -62,19 +60,21 @@ if [[ -f "${VENDOR_NCCL}/libnccl.so.2" ]]; then
   export LD_PRELOAD="${VENDOR_NCCL}/libnccl.so.2${LD_PRELOAD:+:${LD_PRELOAD}}"
 fi
 
-RUN_TAG="${RUN_TAG:-opt3_sicap_ft_r3ep6_val1_liveall}"
+RUN_TAG="${RUN_TAG:-opt3_sicap_ft_ncmerge_val1}"
 FOLD="${FOLD:-1}"
 EPOCHS="${EPOCHS:-30}"
 EARLY_STOP_PATIENCE="${EARLY_STOP_PATIENCE:-10}"
+SLIDES_PER_EPOCH="${SLIDES_PER_EPOCH:-0}"
+MAX_VAL_PATCHES="${MAX_VAL_PATCHES:-0}"
 NGPU="${SLURM_GPUS_ON_NODE:-${SLURM_JOB_NUM_GPUS:-2}}"
 INIT_CKPT="${INIT_CKPT:-${PANDA_PROJECT}/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_round3_ep7ref/epoch_006_cancer_0.3488.pth}"
 SICAP_ROOT="${SICAP_ROOT:-/common/omarmlab/members/anh/panda_data/sicapv2/SICAPv2}"
 UNI2_CKPT="${UNI2_CKPT:-${PANDA_PROJECT}/assets/ckpts/uni2-h/pytorch_model.bin}"
 CKPT_DIR="${PANDA_PROJECT}/outputs/checkpoints/uni2_upernet_raw_${RUN_TAG}"
 
-for banned in opt3_omar6_locked opt3_omar6_grouped_soft01 opt3_omar6_round2_ep14ref opt3_omar6_round3_ep7ref opt3_omar6_round4_ep6ref; do
+for banned in opt3_omar6_locked opt3_omar6_grouped_soft01 opt3_omar6_round2_ep14ref opt3_omar6_round3_ep7ref opt3_omar6_round4_ep6ref opt3_sicap_ft_r3ep6_val1_liveall; do
   if [[ "${RUN_TAG}" == "${banned}" ]]; then
-    echo "ERROR: refuse overwriting live/R-series tag ${banned}"
+    echo "ERROR: refuse overwriting live/ablation tag ${banned}"
     exit 1
   fi
 done
@@ -83,11 +83,12 @@ if [[ ! -f "${INIT_CKPT}" ]]; then
   exit 1
 fi
 mkdir -p "${CKPT_DIR}"
+if [[ -n "${GIT_COMMIT:-}" ]]; then
+  echo "${GIT_COMMIT}" > "${CKPT_DIR}/GIT_COMMIT.txt"
+fi
 
-echo "=== $(date) | SICAP FT H200 | tag=${RUN_TAG} fold=${FOLD} ngpu=${NGPU} ==="
-echo "INIT=${INIT_CKPT}"
-echo "SRC=${PANDA_CODE_SRC}"
-echo "EARLY_STOP_PATIENCE=${EARLY_STOP_PATIENCE}"
+echo "=== $(date) | SICAP NC-merge FT | tag=${RUN_TAG} fold=${FOLD} ngpu=${NGPU} ==="
+echo "INIT=${INIT_CKPT} SRC=${PANDA_CODE_SRC} PATIENCE=${EARLY_STOP_PATIENCE}"
 nvidia-smi -L || true
 
 CMD=(
@@ -108,7 +109,8 @@ CMD=(
   --min-slide-patches 5
   --min-area-pct 0.0
   --adjacent-soft-alpha 0.1
-  --include-benign-soft
+  --no-include-benign-soft
+  --sicap-nc-merge
   --decode-norm gn
   --lora
   --grad-checkpoint
@@ -119,6 +121,12 @@ CMD=(
   --num-workers 4
   --grad-clip 1.0
 )
+if [[ "${SLIDES_PER_EPOCH}" != "0" ]]; then
+  CMD+=(--slides-per-epoch "${SLIDES_PER_EPOCH}")
+fi
+if [[ "${MAX_VAL_PATCHES}" != "0" ]]; then
+  CMD+=(--max-val-patches "${MAX_VAL_PATCHES}")
+fi
 if [[ -n "${UNI2_CKPT}" && -f "${UNI2_CKPT}" ]]; then
   CMD+=(--uni2-checkpoint "${UNI2_CKPT}")
 fi
@@ -127,4 +135,4 @@ if [[ -n "${RESUME:-}" && -f "${RESUME}" ]]; then
 fi
 echo "${CMD[*]}"
 "${CMD[@]}"
-echo "=== $(date) | SICAP FT finished ==="
+echo "=== $(date) | SICAP NC-merge FT finished ==="

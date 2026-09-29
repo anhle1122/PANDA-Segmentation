@@ -23,12 +23,13 @@ module load miniconda3/23.11.0-2
 source /apps/miniconda/23.11.0-2/etc/profile.d/conda.sh
 conda activate wsi_seg
 
-if [[ -f "${PANDA_PROJECT}/outputs/_code_mirror/scripts/hpc_use_code.sh" ]]; then
+if [[ -f "${PANDA_PROJECT}/src/evaluate_sicapv2.py" ]]; then
+  export PANDA_CODE_SRC="${PANDA_PROJECT}/src"
+elif [[ -f "${PANDA_PROJECT}/outputs/_code_mirror/scripts/hpc_use_code.sh" ]]; then
   # shellcheck source=/dev/null
   source "${PANDA_PROJECT}/outputs/_code_mirror/scripts/hpc_use_code.sh"
 else
   export PANDA_CODE_SRC="${PANDA_PROJECT}/outputs/_code_mirror/src"
-  export PYTHONPATH="${PANDA_CODE_SRC}${PYTHONPATH:+:${PYTHONPATH}}"
 fi
 export PYTHONPATH="${PANDA_CODE_SRC}:${PYTHONPATH:-}"
 export OMP_NUM_THREADS=1
@@ -51,13 +52,19 @@ if nvidia-smi -L 2>/dev/null | grep -qi 'H200'; then
   exit 1
 fi
 
-echo "=== $(date) | SICAPv2 eval | ckpt=${CKPT} folds=${FOLDS} ==="
+echo "=== $(date) | SICAPv2 eval | ckpt=${CKPT} folds=${FOLDS} partition=${PARTITION:-val} ==="
 nvidia-smi -L || true
-OUT_DIR="${PANDA_PROJECT}/outputs/evaluation/sicapv2/$(basename "${CKPT}" .pth)"
+PARTITION="${PARTITION:-val}"
+STEM="$(basename "${CKPT}" .pth)"
+if [[ "${PARTITION}" == "official" ]]; then
+  STEM="official_${STEM}"
+fi
+OUT_DIR="${OUT_DIR:-${PANDA_PROJECT}/outputs/evaluation/sicapv2/${STEM}}"
 python -u "${PANDA_CODE_SRC}/evaluate_sicapv2.py" \
   --checkpoint "${CKPT}" \
   --sicap-root "${SICAP_ROOT}" \
   --folds "${FOLDS}" \
+  --partition "${PARTITION}" \
   --batch-size "${EVAL_BS:-8}" \
   --num-workers 4 \
   --amp \

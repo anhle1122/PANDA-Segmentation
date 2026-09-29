@@ -70,7 +70,7 @@ if [[ "${SMOKE}" == "1" ]]; then
 else
   echo "=== $(date) | Phase 1 FULL | 100 epochs / 40k | ${NGPU}× H200 ==="
   RUN_TAG="h200x4_phase1_cls"
-  EXTRA=(--epochs 100 --min-epochs 80 --patience 20 --patches-per-epoch 40000 --max-val-patches 20000 --save-every 5)
+  EXTRA=(--epochs 100 --min-epochs 0 --patience 10 --patches-per-epoch 40000 --max-val-patches 20000 --save-every 5)
 fi
 
 torchrun --standalone --nproc_per_node="${NGPU}" \
