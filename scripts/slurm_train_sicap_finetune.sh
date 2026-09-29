@@ -24,8 +24,11 @@ module load miniconda3/23.11.0-2
 source /apps/miniconda/23.11.0-2/etc/profile.d/conda.sh
 conda activate wsi_seg
 
-# Prefer tracked src/; mirror as fallback after wipe
-if [[ -f "${PANDA_PROJECT}/src/train_uni2_sicap_finetune.py" ]]; then
+# CODE_SRC pins a resumed run to the code snapshot it started on.
+if [[ -n "${CODE_SRC:-}" ]]; then
+  [[ -f "${CODE_SRC}/train_uni2_sicap_finetune.py" ]] || { echo "ERROR: CODE_SRC=${CODE_SRC} missing trainer"; exit 1; }
+  export PANDA_CODE_SRC="${CODE_SRC}"
+elif [[ -f "${PANDA_PROJECT}/src/train_uni2_sicap_finetune.py" ]]; then
   export PANDA_CODE_SRC="${PANDA_PROJECT}/src"
 elif [[ -f "${PANDA_PROJECT}/outputs/_code_mirror/src/train_uni2_sicap_finetune.py" ]]; then
   export PANDA_CODE_SRC="${PANDA_PROJECT}/outputs/_code_mirror/src"
@@ -98,7 +101,6 @@ CMD=(
   --sicap-root "${SICAP_ROOT}"
   --fold "${FOLD}"
   --epochs "${EPOCHS}"
-  --early-stop-patience "${EARLY_STOP_PATIENCE}"
   --init-checkpoint "${INIT_CKPT}"
   --micro-batch-size 4
   --live-chunk 4
@@ -122,7 +124,11 @@ CMD=(
 if [[ -n "${UNI2_CKPT}" && -f "${UNI2_CKPT}" ]]; then
   CMD+=(--uni2-checkpoint "${UNI2_CKPT}")
 fi
-if [[ -n "${RESUME:-}" && -f "${RESUME}" ]]; then
+if grep -q -- "--early-stop-patience" "${PANDA_CODE_SRC}/train_uni2_sicap_finetune.py"; then
+  CMD+=(--early-stop-patience "${EARLY_STOP_PATIENCE}")
+fi
+if [[ -n "${RESUME:-}" ]]; then
+  [[ -f "${RESUME}" ]] || { echo "ERROR: RESUME=${RESUME} not found"; exit 1; }
   CMD+=(--resume "${RESUME}")
 fi
 echo "${CMD[*]}"
