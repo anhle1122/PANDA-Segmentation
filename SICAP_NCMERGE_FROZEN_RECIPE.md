@@ -46,7 +46,9 @@ sbatch --job-name=sicap_ncmerge_h200 --gres=gpu:h200:2 \
 | Slide ISUP GT | `wsi_labels.xlsx` Gleason → ISUP (bag loss + eval) |
 | Masks | On-disk `{0,3,4,5}`; `0` = non-cancer (not PANDA ignore) |
 
-Patient-level separation audited 2026-09-30 (see § Patient audit). **Do not** score nc-merge on `partition/Test/Test.xlsx` until Val2–4 finish and the user confirms freeze + epoch policy.
+Patient-level separation audited 2026-09-30 (see § Patient audit).  
+**Official Test** (`partition/Test/Test.xlsx`) is reserved for Stage C only — never for selection or early stop.  
+**Full Train** (`partition/Test/Train.xlsx`, 9959 patches) is Stage B only — after CV fixes epoch count E.
 
 ---
 
@@ -78,17 +80,46 @@ Same as Val1 / Opt3 SICAP FT defaults in `train_uni2_sicap_finetune.py` (AdamW o
 
 ---
 
-## Epoch selection + early stop (frozen)
+## Epoch selection + early stop (CV folds only)
 
 | Rule | Value |
 |---|---|
 | Max epochs | **30** |
 | Early stop | **patience 20** on **in-loop honest Val{N} Test cancer Dice** (full CM; remap pred {1,2}→0; NC not ignored) |
-| Selected ckpt | Named `epoch_XXX_cancer_Y.pth` with **best** honest Val cancer Dice (not `best.pth` alone; not PANDA+; not inflated ignore-0 Dice) |
+| Selected ckpt (per fold) | Named `epoch_XXX_cancer_Y.pth` with **best** honest Val cancer Dice (not `best.pth` alone; not PANDA+; not inflated ignore-0 Dice) |
 | Secondary log | Watcher PANDA+ clean-30 + ISUP for drift; **does not** override Val selection |
-| Headline (later) | Once: `partition/Test/Test.xlsx` on the **selected** ckpt per fold or agreed ensemble — **hold until user confirms** |
 
 Val1 historical (`opt3_sicap_ft_ncmerge_val1`, patience 10): ep4 cancer 0.6122. **Canonical Val1 for CV:** `opt3_sicap_ft_ncmerge_val1_p20` (patience 20), same as Val2–4.
+
+---
+
+## Final model (after 4-fold CV) — frozen intent
+
+**Why:** Val{N} Train is only ~95 slides / ~7.5k patches; data is the likely bottleneck.  
+`partition/Test/Train.xlsx` = **9,959 patches / 124 slides / 74 patients** = Val{i}Train ∪ Val{i}Test for any fold (~+2.5k patches and more patients vs Val1 Train alone).  
+That pool has **no held-out val left** (official Test is disjoint). So:
+
+| Stage | What | Val / stop | Fair check |
+|---|---|---|---|
+| **A — CV (running)** | Val1_p20 + Val2–4, frozen recipe | Honest Val Test; patience 20 | Per-fold metrics only |
+| **B — full Train** | One FT on **all** `partition/Test/Train.xlsx` | **No val.** Fixed **E** epochs, **no early stop** | None (must not peek Test) |
+| **C — headline** | Score Stage-B ckpt **once** on `partition/Test/Test.xlsx` | — | Official holdout (21 patients) |
+
+### How E is chosen (frozen)
+
+After all four CV folds finish:
+
+1. For each fold, take the **best-epoch index** under the honest Val cancer-Dice rule (same as ckpt selection).
+2. Set **E = median** of those four integers (if .5, round **up**).
+3. Record `(e1,e2,e3,e4) → E` in the run folder + `DAILY_PROGRESS` **before** launching Stage B.
+4. Stage B: same loss/LR/freeze/init as CV; `EPOCHS=E`; early-stop **off**; cosine `T_max=E`; tag e.g. `opt3_sicap_ft_ncmerge_fulltrain_e{E}`. Save every epoch; **report epoch E** (last), not a val-picked middle epoch.
+
+**Do not** launch Stage B/C until CV finishes and the user confirms E.  
+**Do not** use official Test for model selection or early stopping.
+
+### Code note
+
+Trainer currently only loads `Validation/Val{N}/{Train,Test}.xlsx`. Stage B needs a `--sicap-split full_train` (or equivalent) path over `partition/Test/Train.xlsx` before submit — implement when CV is done, not before.
 
 ---
 
