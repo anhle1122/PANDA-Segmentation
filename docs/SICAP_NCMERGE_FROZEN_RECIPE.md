@@ -104,6 +104,9 @@ That pool has **no held-out val left** (official Test is disjoint). So:
 | **A — CV (running)** | Val1_p20 + Val2–4, frozen recipe | Honest Val Test; patience 20 | Per-fold metrics only |
 | **B — full Train** | One FT on **all** `partition/Test/Train.xlsx` | **No val.** Fixed **E** epochs, **no early stop** | None (must not peek Test) |
 | **C — headline** | Score Stage-B ckpt **once** on `partition/Test/Test.xlsx` | — | Official holdout (21 patients) |
+| **C′ — fold holdout (optional, decided a priori)** | Each fold’s **Val-selected** ckpt once on official Test | — | Mean±spread on true holdout; **never** every epoch |
+
+**Selection never uses PANDA+.** Early-stop / best epoch = honest Val{N} Test cancer Dice only (in-loop). PANDA+ every epoch = drift curve only. Official Test is not a selection set.
 
 ### How E is chosen (frozen)
 

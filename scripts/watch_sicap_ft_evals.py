@@ -51,7 +51,14 @@ def log(msg: str) -> None:
 def load_state() -> dict:
     if STATE_PATH.is_file():
         return json.loads(STATE_PATH.read_text(encoding="utf-8"))
-    return {"submitted_pp": [], "submitted_sicap": [], "active_pp": None, "active_sicap": None}
+    return {
+        "submitted_pp": [],
+        "submitted_sicap": [],
+        "submitted_official": False,
+        "active_pp": None,
+        "active_sicap": None,
+        "active_official": None,
+    }
 
 
 def save_state(state: dict) -> None:
@@ -105,6 +112,26 @@ def sicap_done(ckpt: Path) -> bool:
     return out.is_file() and out.stat().st_size > 0
 
 
+def official_done(ckpt: Path) -> bool:
+    """Official holdout scored once under official_<stem>/."""
+    out = SICAP_EVAL_ROOT / f"official_{ckpt.stem}" / "sicapv2_summary.json"
+    return out.is_file() and out.stat().st_size > 0
+
+
+def selected_ckpt_from_complete() -> Path | None:
+    """Best epoch by Val cancer Dice only (TRAINING_COMPLETE.last_improve_epoch). Never PANDA+."""
+    done = CKPT_DIR / "TRAINING_COMPLETE.txt"
+    if not done.is_file():
+        return None
+    text = done.read_text(encoding="utf-8")
+    m = re.search(r"last_improve_epoch=(\d+)", text)
+    if not m:
+        return None
+    ep = int(m.group(1))
+    matches = sorted(CKPT_DIR.glob(f"epoch_{ep:03d}_cancer_*.pth"))
+    return matches[0] if matches else None
+
+
 def sbatch(export: str, script: Path, *extra: str) -> int | None:
     cmd = [
         "sbatch",
@@ -121,8 +148,13 @@ def sbatch(export: str, script: Path, *extra: str) -> int | None:
 
 
 def main() -> None:
-    log(f"START watch SICAP-FT native tag={TAG} fold={FOLD} ckpt_dir={CKPT_DIR}")
+    log(
+        f"START watch SICAP-FT native tag={TAG} fold={FOLD} ckpt_dir={CKPT_DIR} "
+        f"(select=Val{FOLD} cancer only; PANDA+=drift; official=selected once)"
+    )
     state = load_state()
+    state.setdefault("submitted_official", False)
+    state.setdefault("active_official", None)
     while True:
         if job_active(state.get("active_pp")):
             pass
@@ -132,7 +164,12 @@ def main() -> None:
             pass
         else:
             state["active_sicap"] = None
+        if job_active(state.get("active_official")):
+            pass
+        else:
+            state["active_official"] = None
 
+        submitted_any = False
         for ep, ckpt in list_epochs():
             if (
                 state.get("active_pp") is None
@@ -150,8 +187,9 @@ def main() -> None:
                 if jid:
                     state.setdefault("submitted_pp", []).append(ep)
                     state["active_pp"] = jid
-                    log(f"submitted PANDA+ ep{ep:03d} job={jid}")
+                    log(f"submitted PANDA+ ep{ep:03d} job={jid} (drift only; not selection)")
                     save_state(state)
+                    submitted_any = True
                     break
 
             # Native Val{FOLD} Test.xlsx only (selection set). Never official Test; never MPP×2.
@@ -160,14 +198,39 @@ def main() -> None:
                 and ep not in state.get("submitted_sicap", [])
                 and not sicap_done(ckpt)
             ):
-                export = f"ALL,CKPT={ckpt},FOLDS={FOLD},EVAL_BS=8"
+                export = f"ALL,CKPT={ckpt},FOLDS={FOLD},EVAL_BS=8,PARTITION=val"
                 jid = sbatch(export, SICAP_SCRIPT)
                 if jid:
                     state.setdefault("submitted_sicap", []).append(ep)
                     state["active_sicap"] = jid
-                    log(f"submitted SICAP native ep{ep:03d} fold={FOLD} job={jid}")
+                    log(f"submitted SICAP Val{FOLD} ep{ep:03d} job={jid} (selection set)")
                     save_state(state)
+                    submitted_any = True
                     break
+
+        # Official Test: ONE shot on Val-selected ckpt after train ends (decided a priori).
+        if (
+            not submitted_any
+            and state.get("active_official") is None
+            and not state.get("submitted_official")
+        ):
+            sel = selected_ckpt_from_complete()
+            if sel is not None and not official_done(sel):
+                out_dir = SICAP_EVAL_ROOT / f"official_{sel.stem}"
+                export = (
+                    f"ALL,CKPT={sel},PARTITION=official,EVAL_BS=8,"
+                    f"OUT_DIR={out_dir}"
+                )
+                jid = sbatch(export, SICAP_SCRIPT)
+                if jid:
+                    state["submitted_official"] = True
+                    state["active_official"] = jid
+                    state["official_ckpt"] = str(sel)
+                    log(
+                        f"submitted OFFICIAL Test once ckpt={sel.name} job={jid} "
+                        f"(selected by Val{FOLD} cancer Dice only)"
+                    )
+                    save_state(state)
 
         save_state(state)
         time.sleep(INTERVAL)
