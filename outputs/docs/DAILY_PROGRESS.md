@@ -12,6 +12,7 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-09-30
 
+- **11:53 PDT** | **Slide ISUP scores in** (derive_grade vs wsi_labels) | Jobs 6071726–28 done | R3 ep6 Val1 ISUP **38%** (11/29); official **39%** (12/31). Nc-merge ep4 Val1 ISUP **48%** (14/29) with cancer Dice 0.61. Four CV trains still PD Priority.
 - **11:52 PDT** | **Rerun Val1 with patience 20** (parallel with Val2–4) | Match all four folds | Train **6071738** tag `opt3_sicap_ft_ncmerge_val1_p20` + watcher **6071739**. Old Val1 (`opt3_sicap_ft_ncmerge_val1` ep4) kept; **canonical Val1 = p20**. Four H200 pairs queued (6071732/34/36/38). Official Test still held.
 - **11:51 PDT** | **Launch Val2–4 NC-merge FT** (frozen recipe, patience 20) | User: run | Trains **6071732/34/36** (2×H200 each, tags `opt3_sicap_ft_ncmerge_val{2,3,4}`, commit **d3ed381**) PD Priority. Watchers **6071733/35/37** R. Official Test still held. Val1 ep4 unchanged.
 - **11:46 PDT** | **NC-merge early-stop patience → 20** | User: 20 epochs without improve | Frozen recipe + `slurm_train_sicap_ncmerge.sh` default updated. Val1 stays as-run (patience 10 → ep4). Val2–4 will use patience 20 / max 30 (~11 h/fold if peak stays early). Still not launched.
