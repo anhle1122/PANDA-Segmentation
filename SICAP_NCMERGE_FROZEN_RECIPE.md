@@ -123,11 +123,20 @@ Trainer currently only loads `Validation/Val{N}/{Train,Test}.xlsx`. Stage B need
 
 ---
 
-## Eval protocol (reporting)
+## Scoring policy (frozen — do not use holdout for selection)
 
-- Pixel: `evaluate_sicapv2.py` — NC/G3/G4/G5, mean4, cancer, binary, nc_to_cancer.
-- Slide ISUP: same script — `derive_grade(pred pixel counts)` vs `wsi_labels` ISUP; write `sicapv2_slide_isup.csv`.
-- PANDA+: optional watcher; domain check only.
+| What | Which epochs | Role |
+|---|---|---|
+| **Val{N} Test** (fold’s own held-out) | **Every epoch** (in-loop + watcher `evaluate_sicapv2`) | **Only** selection / early-stop metric = honest cancer Dice |
+| **PANDA+** (leak-split) | **Every epoch** (watcher) | Drift curve only — **never** pick epoch from PANDA+ |
+| **Other folds’ Tests** | Never for fold N’s model | Those patches are in fold N’s train set |
+| **Official `Test/Test.xlsx`** | **Selected ckpt only**, once | Holdout. Pre-declared (before looking): after CV, score each fold’s **selected** epoch once for mean±spread; Stage-B full-Train model also scored once. **No** per-epoch official sweeps. |
+
+**Selection was never PANDA+-driven** (Val1 historical + this CV: early-stop / best = Val cancer Dice only).
+
+Per fold report: selected-epoch Val{N} Dice (+ classes, ISUP) and that same epoch’s PANDA+ as drift. Across folds: mean±spread of the four Val selected numbers. Per-epoch Val/PANDA+ curves = supplementary figure only.
+
+Watchers already on each tag (`sicap_ncm_w_v*`) submit Val{N} + PANDA+ per new `epoch_*.pth`. No extra watcher needed. They do **not** submit official Test.
 
 ---
 

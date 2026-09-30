@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Watch SICAP FT ckpt dir; submit PANDA+ leak-split + SICAP MPP×2 per new epoch."""
+"""Watch SICAP FT ckpt dir; submit PANDA+ leak-split + native SICAPv2 (no MPP×2)."""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ SICAP_EVAL_ROOT = PROJECT / "outputs" / "evaluation" / "sicapv2"
 STATE_PATH = PROJECT / "outputs" / "pseudo_label" / f"epoch_eval_watcher_{LEAK_PREFIX}_state.json"
 LOG_PATH = PROJECT / "outputs" / "pseudo_label" / f"epoch_eval_watcher_{LEAK_PREFIX}.log"
 PP_SCRIPT = PROJECT / "scripts" / "slurm_eval_opt3_panda_plus_r2redo.sh"
-SICAP_SCRIPT = PROJECT / "scripts" / "slurm_eval_sicapv2_mpp.sh"
+SICAP_SCRIPT = PROJECT / "scripts" / "slurm_eval_sicapv2.sh"
 EPOCH_RE = re.compile(r"epoch_(\d+)_cancer_")
 INTERVAL = int(os.environ.get("INTERVAL_SEC", "60"))
 EVAL_BS = os.environ.get("EVAL_BS", "2")
@@ -101,7 +101,7 @@ def pp_done(ep: int) -> bool:
 
 
 def sicap_done(ckpt: Path) -> bool:
-    out = SICAP_EVAL_ROOT / f"mpp2x_{ckpt.stem}" / "sicapv2_summary.json"
+    out = SICAP_EVAL_ROOT / ckpt.stem / "sicapv2_summary.json"
     return out.is_file() and out.stat().st_size > 0
 
 
@@ -121,7 +121,7 @@ def sbatch(export: str, script: Path, *extra: str) -> int | None:
 
 
 def main() -> None:
-    log(f"START watch SICAP-FT tag={TAG} fold={FOLD} ckpt_dir={CKPT_DIR}")
+    log(f"START watch SICAP-FT native tag={TAG} fold={FOLD} ckpt_dir={CKPT_DIR}")
     state = load_state()
     while True:
         if job_active(state.get("active_pp")):
@@ -134,7 +134,6 @@ def main() -> None:
             state["active_sicap"] = None
 
         for ep, ckpt in list_epochs():
-            # PANDA+
             if (
                 state.get("active_pp") is None
                 and ep not in state.get("submitted_pp", [])
@@ -155,20 +154,18 @@ def main() -> None:
                     save_state(state)
                     break
 
-            # SICAP holdout fold (fair for Val{fold} FT)
+            # Native Val{FOLD} Test.xlsx only (selection set). Never official Test; never MPP×2.
             if (
                 state.get("active_sicap") is None
                 and ep not in state.get("submitted_sicap", [])
                 and not sicap_done(ckpt)
             ):
-                export = (
-                    f"ALL,CKPT={ckpt},SCALE_FACTOR=2,FOLDS={FOLD},EVAL_BS=8"
-                )
+                export = f"ALL,CKPT={ckpt},FOLDS={FOLD},EVAL_BS=8"
                 jid = sbatch(export, SICAP_SCRIPT)
                 if jid:
                     state.setdefault("submitted_sicap", []).append(ep)
                     state["active_sicap"] = jid
-                    log(f"submitted SICAP MPP×2 ep{ep:03d} fold={FOLD} job={jid}")
+                    log(f"submitted SICAP native ep{ep:03d} fold={FOLD} job={jid}")
                     save_state(state)
                     break
 
