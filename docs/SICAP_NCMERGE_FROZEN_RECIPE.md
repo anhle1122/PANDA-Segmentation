@@ -2,8 +2,10 @@
 
 **Status:** FROZEN for Val2/Val3/Val4 + eventual official Test (do not change without an explicit new freeze).  
 **Frozen date:** 2026-09-30
-**Early-stop amendment (2026-09-30):** patience **20** (was 10). Val1 job 6062694 already finished under patience 10 (selected ep4); Val2–4 use patience 20. Max epochs still 30.  
-**Reference run:** job `6062694`, tag `opt3_sicap_ft_ncmerge_val1`, commit of trainer stack `988379e` (+ later log-only commits).  
+**Early-stop amendment (2026-09-30):** patience **20** (was 10). Val1 job 6062694 already finished under patience 10 (selected ep4); Val2–4 use patience 20. Max epochs still 30.
+
+**Val1 re-run (2026-09-30):** patience-20 fold-1 launched as tag `opt3_sicap_ft_ncmerge_val1_p20` (job **6071738**) so all four CV folds share the same early-stop rule. Historical patience-10 tag `opt3_sicap_ft_ncmerge_val1` (ep4) kept on disk for comparison; **selection for the final CV uses `val1_p20`**, not the old tag.  
+**Reference / recipe provenance:** job `6062694` tag `opt3_sicap_ft_ncmerge_val1` (patience 10). **Canonical Val1:** `opt3_sicap_ft_ncmerge_val1_p20`, commit of trainer stack `988379e` (+ later log-only commits).  
 **Best Val1 ckpt (selection rule below):** `outputs/checkpoints/uni2_upernet_raw_opt3_sicap_ft_ncmerge_val1/epoch_004_cancer_0.6122.pth`
 
 Entry point (unchanged):
@@ -86,7 +88,7 @@ Same as Val1 / Opt3 SICAP FT defaults in `train_uni2_sicap_finetune.py` (AdamW o
 | Secondary log | Watcher PANDA+ clean-30 + ISUP for drift; **does not** override Val selection |
 | Headline (later) | Once: `partition/Test/Test.xlsx` on the **selected** ckpt per fold or agreed ensemble — **hold until user confirms** |
 
-Val1 (historical, patience 10): early-stop at ep14; **selected ep4** (cancer 0.6122). Val2–4: patience 20 under this freeze.
+Val1 historical (`opt3_sicap_ft_ncmerge_val1`, patience 10): ep4 cancer 0.6122. **Canonical Val1 for CV:** `opt3_sicap_ft_ncmerge_val1_p20` (patience 20), same as Val2–4.
 
 ---
 
