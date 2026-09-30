@@ -10,6 +10,10 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-09-30
+
+- **10:58 PDT** | **NC-merge FT done (early-stop)** | Patience 10 after best ep4 | Job **6062694** finished Sep 29 18:14. Best `epoch_004_cancer_0.6122.pth`: Val1 cancer **0.61**, NC **0.93**, NC→cancer **9.1%**, bin **0.78**. PANDA+ clean-30 **0.68**, ISUP 69%/73% clean. Ablation 6062752 finished 30 ep (inflated in-loop peak ~0.78); honest Val1 ~0.39 and NC→ca ~60% — NC-merge wins Val1. Official Test for selected ckpts **not scored yet**.
+
 ## 2026-09-29
 
 - **11:55 PDT** | **Smoke GATE_FAIL (brittle bag check); full nc-merge already on H200** | Gate: first BAG_LOSS vs last | **6062665** FAIL: bags `[0.42, 1.28, 0.41, 1.43]` — last>first because hard slides, not NaN. **Dice agree Δ=0.000** (in-loop 0.417 = evaluate_sicapv2). TRAINABLE OK. Full train **6062694** already R on cp097 (WIRING_OK `sicap_nc_merge=1`). Ablation: ep2 saved `0.6218`, **6061707** cancelled; L40S resume **6062752** PD QOS (behind smoke/other GPUs).

@@ -6,6 +6,9 @@
 - **Result (11:41):** R3 ep6 zero-shot official Test (6062666): cancer 0.38, mean4 0.45, binary 0.49, NC 0.66, G3 0.36, G4 0.49, G5 0.30, NC→cancer 49.6%. Official ≈ Val1 alone (0.40); 0.47 was 4-fold mean.
 - **Result (11:53 smoke):** GATE_FAIL on first-vs-last BAG_LOSS only (slide difficulty). Dice agree Δ=0; WIRING/TRAINABLE OK. Full **6062694** already RUNNING (user override). Do not treat as NaN/wiring failure.
 - **Decision (11:45):** Ablation 6061707 moves to 2×L40S so 6062694 gets H200. Cancel after ep2 save; resume **6062752** from `latest.pth` with `CODE_SRC` = `520454f` snapshot (old inflated in-loop val, no early stop, same as the original run). Caveat: ablation is now resumed + different GPU from ep3; epoch pick stays by watcher honest Val1 Dice. L40S memory risk: peak 30.8 GB so far, largest slide (339 patches) not yet seen.
+- **Result (2026-09-29 18:14):** NC-merge **6062694** COMPLETED. Early-stop ep14; best **ep4** `epoch_004_cancer_0.6122.pth`. Val1 cancer **0.61**, NC **0.93**, NC→cancer **9.1%** (vs R3 zero-shot Val1 0.40 / official 0.38 with ~50% NC→ca). PANDA+ clean-30 **0.68**, ISUP 69% (clean 73%). Later epochs drift (PANDA+ falls; G5 overcall).
+- **Result (2026-09-30):** Ablation resume **6062752** finished 30 ep. Inflated in-loop peak ~0.78; watcher honest Val1 ~0.35–0.39 with NC→ca ~60%. NC-merge wins selection metric.
+- **Decision:** Select nc-merge **ep4** for official `partition/Test/Test.xlsx`. Ablation: pick by watcher honest Val1 (not best.pth). Official Test for both + final table still pending.
 - **Decision:** Treat 6061707 as no-NC-supervision ablation; select its ckpt from watcher CSVs.
 
 ---
