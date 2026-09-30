@@ -12,6 +12,7 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-09-30
 
+- **11:35 PDT** | **Freeze SICAP nc-merge recipe; patient audit OK; ISUP eval wired** | Final CV plan | Recipe: `outputs/docs/SICAP_NCMERGE_FROZEN_RECIPE.md` (+ root/`docs/` copies). Patient_id splits all empty overlaps (script `scripts/verify_sicap_patient_splits.py`). `evaluate_sicapv2` now reports slide ISUP vs `wsi_labels`. **Not launched:** Val2–4 FT, nc-merge official Test. Proposed: 3× H200 trains + watchers (~6–8h each @ early-stop≈14). ISUP re-score jobs for R3 + ncmerge Val1 submitted separately if queued.
 - **10:58 PDT** | **NC-merge FT done (early-stop)** | Patience 10 after best ep4 | Job **6062694** finished Sep 29 18:14. Best `epoch_004_cancer_0.6122.pth`: Val1 cancer **0.61**, NC **0.93**, NC→cancer **9.1%**, bin **0.78**. PANDA+ clean-30 **0.68**, ISUP 69%/73% clean. Ablation 6062752 finished 30 ep (inflated in-loop peak ~0.78); honest Val1 ~0.39 and NC→ca ~60% — NC-merge wins Val1. Official Test for selected ckpts **not scored yet**.
 
 ## 2026-09-29

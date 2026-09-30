@@ -1,4 +1,4 @@
-"""Zero-shot SICAPv2 pixel eval for a PANDA-trained UNI2 Opt3 checkpoint.
+"""Zero-shot SICAPv2 pixel + slide-ISUP eval for a PANDA/SICAP UNI2 Opt3 checkpoint.
 
 Official SICAPv2 (Mendeley) masks use Gleason IDs {0, 3, 4, 5}:
   0 = non-cancerous, 3 = GG3, 4 = GG4, 5 = GG5
@@ -9,7 +9,9 @@ background/stroma/benign -> 0 (non-cancer) so the shared label space is
 {0, 3, 4, 5}.
 
 Reports per-class Dice, mean Dice over those 4, cancer Dice (mean G3/G4/G5),
-and binary cancer Dice. Runs each Val fold Test.xlsx (patient-based CV).
+binary cancer Dice, NC→cancer rate, and slide-level ISUP match
+(``derive_grade`` on predicted pixel counts vs ``wsi_labels.xlsx``).
+Runs each Val fold Test.xlsx (patient-based CV) or official Test holdout.
 """
 
 from __future__ import annotations
@@ -38,6 +40,7 @@ from evaluate import (  # noqa: E402
     _peek_state_dict,
 )
 from patch_utils import OUTPUTS  # noqa: E402
+from isup_diagnostic import derive_grade  # noqa: E402
 from train.sicap_metrics import (  # noqa: E402
     SICAP_CLASSES,
     SICAP_NAMES,
@@ -45,8 +48,54 @@ from train.sicap_metrics import (  # noqa: E402
     dice_from_sicap_cm,
     remap_panda_pred,
 )
+from train.sicap_slide_bag import (  # noqa: E402
+    load_isup_by_slide,
+    slide_id_from_patch,
+)
 
 DEFAULT_ROOT = Path("/common/omarmlab/members/anh/panda_data/sicapv2/SICAPv2")
+
+
+def slide_isup_from_counts(
+    counts_by_slide: dict[str, np.ndarray],
+    isup_gt: dict[str, int],
+    *,
+    min_area_pct: float = 0.0,
+) -> dict:
+    """Hard derived ISUP (same ``derive_grade`` as Opt3 L_slide) vs ``wsi_labels``.
+
+    Pred counts use remapped labels {0,3,4,5}. Returns match rate + per-slide rows.
+    """
+    rows: list[dict] = []
+    n_match = 0
+    for sid in sorted(counts_by_slide):
+        if sid not in isup_gt:
+            continue
+        counts = counts_by_slide[sid]
+        gleason, pred_isup = derive_grade(counts, min_area_pct=min_area_pct)
+        gt = int(isup_gt[sid])
+        ok = int(pred_isup) == gt
+        n_match += int(ok)
+        rows.append(
+            {
+                "slide_id": sid,
+                "gt_isup": gt,
+                "pred_isup": int(pred_isup),
+                "pred_gleason": gleason,
+                "isup_match": bool(ok),
+                "n_pred_nc": int(counts[0]),
+                "n_pred_g3": int(counts[3]),
+                "n_pred_g4": int(counts[4]),
+                "n_pred_g5": int(counts[5]),
+            }
+        )
+    n = len(rows)
+    return {
+        "n_slides_scored": n,
+        "isup_match": (n_match / n) if n else float("nan"),
+        "isup_n_match": n_match,
+        "per_slide": rows,
+    }
 
 
 def dice_from_cm(cm: np.ndarray, classes: tuple[int, ...] = SICAP_CLASSES) -> dict[str, float]:
@@ -185,6 +234,8 @@ def eval_named_split(
     amp: bool,
     scale_factor: float = 1.0,
     fold_label: int | str = 0,
+    isup_gt: dict[str, int] | None = None,
+    min_area_pct: float = 0.0,
 ) -> dict:
     ds = SicapPatchDataset(root, names)
     bs = 1 if scale_factor > 1.0 else batch_size
@@ -197,15 +248,26 @@ def eval_named_split(
     )
     cm = np.zeros((6, 6), dtype=np.int64)
     n_pix = 0
-    for images, masks, _stems in loader:
+    counts_by_slide: dict[str, np.ndarray] = {}
+    for images, masks, stems in loader:
         pred = predict_batch(
             model, images, scale_factor=scale_factor, amp=amp, device=device
         )
         gt = masks.numpy()
         accumulate_sicap_cm(cm, pred, gt)
         n_pix += int(np.asarray(gt).size)
+        remapped = remap_panda_pred(pred)
+        for i, stem in enumerate(stems):
+            sid = slide_id_from_patch(str(stem))
+            flat = np.asarray(remapped[i]).ravel().astype(np.int64)
+            flat = np.clip(flat, 0, 5)
+            hist = np.bincount(flat, minlength=6).astype(np.int64)
+            if sid not in counts_by_slide:
+                counts_by_slide[sid] = hist
+            else:
+                counts_by_slide[sid] = counts_by_slide[sid] + hist
     metrics = dice_from_cm(cm, SICAP_CLASSES)
-    return {
+    out: dict = {
         "fold": fold_label,
         "n_listed": len(names),
         "n_scored": len(ds),
@@ -219,6 +281,15 @@ def eval_named_split(
             for p in SICAP_CLASSES
         },
     }
+    if isup_gt is not None:
+        isup = slide_isup_from_counts(
+            counts_by_slide, isup_gt, min_area_pct=min_area_pct
+        )
+        out["isup_match"] = float(isup["isup_match"])
+        out["isup_n_slides"] = int(isup["n_slides_scored"])
+        out["isup_n_match"] = int(isup["isup_n_match"])
+        out["isup_per_slide"] = isup["per_slide"]
+    return out
 
 
 @torch.no_grad()
@@ -231,6 +302,8 @@ def eval_fold(
     num_workers: int,
     amp: bool,
     scale_factor: float = 1.0,
+    isup_gt: dict[str, int] | None = None,
+    min_area_pct: float = 0.0,
 ) -> dict:
     return eval_named_split(
         model,
@@ -242,6 +315,8 @@ def eval_fold(
         amp=amp,
         scale_factor=scale_factor,
         fold_label=fold,
+        isup_gt=isup_gt,
+        min_area_pct=min_area_pct,
     )
 
 
@@ -270,6 +345,12 @@ def main() -> None:
         default="val",
         help="val=Validation/ValN/Test.xlsx (CV). official=partition/Test/Test.xlsx holdout.",
     )
+    p.add_argument(
+        "--min-area-pct",
+        type=float,
+        default=0.0,
+        help="derive_grade min cancer-grade fraction for slide ISUP (match Opt3/SICAP train).",
+    )
     args = p.parse_args()
 
     root = args.sicap_root
@@ -293,7 +374,9 @@ def main() -> None:
     )
 
     folds = [int(x) for x in args.folds.split(",") if x.strip()]
+    isup_gt = load_isup_by_slide(root)
     rows = []
+    all_isup_slides: list[dict] = []
     if args.partition == "official":
         print("=== official partition/Test/Test.xlsx ===", flush=True)
         row = eval_named_split(
@@ -306,14 +389,21 @@ def main() -> None:
             amp=args.amp,
             scale_factor=args.scale_factor,
             fold_label="official",
+            isup_gt=isup_gt,
+            min_area_pct=args.min_area_pct,
         )
         rows.append(row)
+        all_isup_slides.extend(
+            {**s, "fold": "official"} for s in row.pop("isup_per_slide", [])
+        )
         print(
             f"  scored={row['n_scored']}/{row['n_listed']}  "
             f"cancer={row['cancer']:.4f} mean4={row['mean4']:.4f} "
             f"bin={row['binary_cancer']:.4f}  "
             f"NC={row['NC']:.4f} G3={row['G3']:.4f} G4={row['G4']:.4f} G5={row['G5']:.4f} "
-            f"nc_to_ca={row.get('nc_to_cancer', float('nan')):.4f}",
+            f"nc_to_ca={row.get('nc_to_cancer', float('nan')):.4f} "
+            f"isup={row.get('isup_match', float('nan')):.4f} "
+            f"({row.get('isup_n_match', 0)}/{row.get('isup_n_slides', 0)})",
             flush=True,
         )
     else:
@@ -328,19 +418,29 @@ def main() -> None:
                 args.num_workers,
                 args.amp,
                 scale_factor=args.scale_factor,
+                isup_gt=isup_gt,
+                min_area_pct=args.min_area_pct,
             )
             rows.append(row)
+            all_isup_slides.extend(
+                {**s, "fold": fold} for s in row.pop("isup_per_slide", [])
+            )
             print(
                 f"  scored={row['n_scored']}/{row['n_listed']}  "
                 f"cancer={row['cancer']:.4f} mean4={row['mean4']:.4f} "
                 f"bin={row['binary_cancer']:.4f}  "
-                f"NC={row['NC']:.4f} G3={row['G3']:.4f} G4={row['G4']:.4f} G5={row['G5']:.4f}",
+                f"NC={row['NC']:.4f} G3={row['G3']:.4f} G4={row['G4']:.4f} G5={row['G5']:.4f} "
+                f"isup={row.get('isup_match', float('nan')):.4f} "
+                f"({row.get('isup_n_match', 0)}/{row.get('isup_n_slides', 0)})",
                 flush=True,
             )
 
     # mean across folds
     scale = float(args.scale_factor)
-    protocol = "remap_panda_bg_stroma_benign_to_NC; GT labels {0,3,4,5}"
+    protocol = (
+        "remap_panda_bg_stroma_benign_to_NC; GT labels {0,3,4,5}; "
+        "slide ISUP = derive_grade(pred counts) vs wsi_labels Gleason→ISUP"
+    )
     if scale != 1.0:
         protocol += (
             f"; mpp_align scale_factor={scale} "
@@ -352,16 +452,23 @@ def main() -> None:
         "folds": folds if args.partition == "val" else ["official"],
         "partition": args.partition,
         "scale_factor": scale,
+        "min_area_pct": float(args.min_area_pct),
         "per_fold": rows,
         "mean_cancer_dice": float(np.mean([r["cancer"] for r in rows])),
         "mean_mean4_dice": float(np.mean([r["mean4"] for r in rows])),
         "mean_binary_cancer_dice": float(np.mean([r["binary_cancer"] for r in rows])),
+        "mean_isup_match": float(
+            np.mean([r["isup_match"] for r in rows if "isup_match" in r])
+        )
+        if rows and "isup_match" in rows[0]
+        else float("nan"),
         "protocol": protocol,
     }
     print(
         f"MEAN folds cancer={summary['mean_cancer_dice']:.4f} "
         f"mean4={summary['mean_mean4_dice']:.4f} "
         f"binary={summary['mean_binary_cancer_dice']:.4f} "
+        f"isup={summary['mean_isup_match']:.4f} "
         f"scale={scale}",
         flush=True,
     )
@@ -380,12 +487,30 @@ def main() -> None:
             fieldnames=[
                 "fold", "n_scored", "n_listed", "n_skipped",
                 "NC", "G3", "G4", "G5", "mean4", "cancer", "binary_cancer",
-                "nc_to_cancer",
+                "nc_to_cancer", "isup_match", "isup_n_match", "isup_n_slides",
             ],
         )
         w.writeheader()
         for r in rows:
-            w.writerow({k: r[k] for k in w.fieldnames})
+            w.writerow({k: r.get(k, "") for k in w.fieldnames})
+    if all_isup_slides:
+        with (out_dir / "sicapv2_slide_isup.csv").open("w", newline="") as f:
+            fields = [
+                "fold",
+                "slide_id",
+                "gt_isup",
+                "pred_isup",
+                "pred_gleason",
+                "isup_match",
+                "n_pred_nc",
+                "n_pred_g3",
+                "n_pred_g4",
+                "n_pred_g5",
+            ]
+            w = csv.DictWriter(f, fieldnames=fields)
+            w.writeheader()
+            for s in all_isup_slides:
+                w.writerow({k: s.get(k, "") for k in fields})
     print(f"Wrote {out_dir}", flush=True)
 
 
