@@ -12,6 +12,7 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-09-30
 
+- **12:39 PDT** | **CV → one 2×H200 chain** (cancel 4 parallel PD) | Queue: need 2 GPUs not 8 | scancel 6071732/34/36/38; submit `slurm_train_sicap_ncmerge_cv_chain.sh` Val1_p20→2→3→4. Watchers kept.
 - **12:03 PDT** | **Freeze Stage B/C: full Train → official Test** | More data; no val left on Train pool | After CV: E=median best-epoch across 4 folds; one FT on `partition/Test/Train.xlsx` (9959) for E epochs, no early-stop; score once on `Test/Test.xlsx`. Locked in recipe. **Not launched.** Needs `--sicap-split full_train` before Stage B.
 - **11:53 PDT** | **Slide ISUP scores in** (derive_grade vs wsi_labels) | Jobs 6071726–28 done | R3 ep6 Val1 ISUP **38%** (11/29); official **39%** (12/31). Nc-merge ep4 Val1 ISUP **48%** (14/29) with cancer Dice 0.61. Four CV trains still PD Priority.
 - **11:52 PDT** | **Rerun Val1 with patience 20** (parallel with Val2–4) | Match all four folds | Train **6071738** tag `opt3_sicap_ft_ncmerge_val1_p20` + watcher **6071739**. Old Val1 (`opt3_sicap_ft_ncmerge_val1` ep4) kept; **canonical Val1 = p20**. Four H200 pairs queued (6071732/34/36/38). Official Test still held.
