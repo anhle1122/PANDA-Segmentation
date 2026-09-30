@@ -11,6 +11,7 @@
 - **Decision:** Select nc-merge **ep4** for official `partition/Test/Test.xlsx`. Ablation: pick by watcher honest Val1 (not best.pth). Official Test for both + final table still pending.
 - **Decision (2026-09-30 11:46):** Early-stop patience for nc-merge Val2–4 amended to **20** (max 30). Val1 historical remains patience-10/ep4.
 - **Decision (12:54):** Run CV as 4×2 L40S. Select **only** on Val{N} cancer Dice; PANDA+ every epoch as drift only (never selection). Official Test: selected fold ckpts once each after CV (pre-declared) + Stage-B once. Watchers sufficient. QOSMaxGRESPerUser caps us at ~8 L40S with AB trains → Val3/4 queued behind Val1/2.
+- **Result (2026-09-30 ~13:03):** User: free L40S for Val3/4 — scancel AB **6042085/6042086** (tau06 / tau07_benign; epoch snapshots through ep30 retained). Val3/4 **6072026/27** RUNNING. All four SICAP nc-merge CV folds now on 2×L40S.
 - **Decision (2026-09-30 12:56):** Per-fold: every-epoch Val{N}+PANDA+; select on Val cancer only; official Test once per fold on selected ckpt (a priori) + Stage-B later. Watcher updated. L40S 4×2: v1/v2 R, v3/v4 PD GRES QOS.
 - **Decision (2026-09-30 12:03):** Final model = FT on all `partition/Test/Train.xlsx` (9959) for **E=median** of 4-fold best epochs, no val/early-stop; headline = one official `Test/Test.xlsx` pass. CV folds only choose E. Not launched.
 - **Result (11:51–11:52):** Val2–4 **6071732/34/36** + Val1 p20 rerun **6071738** (`opt3_sicap_ft_ncmerge_val1_p20`) queued in parallel (4×2 H200). Canonical CV Val1 = p20; old Val1 kept. Official Test still held.

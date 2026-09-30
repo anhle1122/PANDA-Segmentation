@@ -12,6 +12,7 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-09-30
 
+- **13:03 PDT** | **scancel AB L40S → Val3/4 running** | Free GRES for SICAP CV | Cancelled **6042085** (`ab_tau06`, last full ep30, mid ep31) + **6042086** (`ab_tau07_benign`, same). Ckpts kept on disk. Val3 **6072026** + Val4 **6072027** now R. All four folds on 2×L40S.
 - **12:58 PDT** | **4×2 L40S CV + scoring rules locked** | User: parallel L40S; Val select; PANDA+ drift; official once | Trains **6072024/25** R (Val1_p20/Val2); **6072026/27** PD QOSMaxGRES (behind AB’s 4 L40S). Watchers restarted **6072032–35** with official-Test-once on Val-selected ckpt. **PANDA+ never used for selection** (early-stop = Val cancer Dice only). H200 chain already cancelled.
 - **12:54 PDT** | **CV on 4×2 L40S** (cancel H200 chain 6071992) | User: all 4 parallel + scoring rules | Trains **6072024/25** R (Val1_p20, Val2); **6072026/27** PD `QOSMaxGRESPerUser` (Val3/4 wait — user already has AB 4×L40S). Existing watchers score **every epoch** Val{N}+PANDA+; selection=Val only (never PANDA+). Official Test: only selected ckpts later (pre-declared). Est. wall ~16–18h then +16–18h for second wave if QOS stays at 8 L40S.
 - **12:39 PDT** | **CV → one 2×H200 chain** (cancel 4 parallel PD) | Queue: need 2 GPUs not 8 | scancel 6071732/34/36/38; submit `slurm_train_sicap_ncmerge_cv_chain.sh` Val1_p20→2→3→4. Watchers kept.
