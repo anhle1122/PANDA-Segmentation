@@ -10,6 +10,7 @@
 - **Result (2026-09-30):** Ablation resume **6062752** finished 30 ep. Inflated in-loop peak ~0.78; watcher honest Val1 ~0.35–0.39 with NC→ca ~60%. NC-merge wins selection metric.
 - **Decision:** Select nc-merge **ep4** for official `partition/Test/Test.xlsx`. Ablation: pick by watcher honest Val1 (not best.pth). Official Test for both + final table still pending.
 - **Decision (2026-09-30 11:46):** Early-stop patience for nc-merge Val2–4 amended to **20** (max 30). Val1 historical remains patience-10/ep4.
+- **Result (11:51–11:52):** Val2–4 **6071732/34/36** + Val1 p20 rerun **6071738** (`opt3_sicap_ft_ncmerge_val1_p20`) queued in parallel (4×2 H200). Canonical CV Val1 = p20; old Val1 kept. Official Test still held.
 - **Decision (2026-09-30):** Freeze recipe in `outputs/docs/SICAP_NCMERGE_FROZEN_RECIPE.md` (commit **fdc95d9**). Patient_id CV separation verified OK. Propose Val2–4 same recipe; **hold** nc-merge official Test until user confirms. Slide ISUP added to `evaluate_sicapv2` (jobs 6071726–28 for R3 + ncmerge Val1).
 - **Decision:** Treat 6061707 as no-NC-supervision ablation; select its ckpt from watcher CSVs.
 
