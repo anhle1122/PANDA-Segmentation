@@ -1,7 +1,8 @@
 # SICAP NC-merge fine-tune — frozen recipe
 
 **Status:** FROZEN for Val2/Val3/Val4 + eventual official Test (do not change without an explicit new freeze).  
-**Frozen date:** 2026-09-30  
+**Frozen date:** 2026-09-30
+**Early-stop amendment (2026-09-30):** patience **20** (was 10). Val1 job 6062694 already finished under patience 10 (selected ep4); Val2–4 use patience 20. Max epochs still 30.  
 **Reference run:** job `6062694`, tag `opt3_sicap_ft_ncmerge_val1`, commit of trainer stack `988379e` (+ later log-only commits).  
 **Best Val1 ckpt (selection rule below):** `outputs/checkpoints/uni2_upernet_raw_opt3_sicap_ft_ncmerge_val1/epoch_004_cancer_0.6122.pth`
 
@@ -9,7 +10,7 @@ Entry point (unchanged):
 
 ```bash
 sbatch --job-name=sicap_ncmerge_h200 --gres=gpu:h200:2 \
-  --export=ALL,RUN_TAG=opt3_sicap_ft_ncmerge_valN,FOLD=N,EPOCHS=30,EARLY_STOP_PATIENCE=10 \
+  --export=ALL,RUN_TAG=opt3_sicap_ft_ncmerge_valN,FOLD=N,EPOCHS=30,EARLY_STOP_PATIENCE=20 \
   scripts/slurm_train_sicap_ncmerge.sh
 ```
 
@@ -80,12 +81,12 @@ Same as Val1 / Opt3 SICAP FT defaults in `train_uni2_sicap_finetune.py` (AdamW o
 | Rule | Value |
 |---|---|
 | Max epochs | **30** |
-| Early stop | **patience 10** on **in-loop honest Val{N} Test cancer Dice** (full CM; remap pred {1,2}→0; NC not ignored) |
+| Early stop | **patience 20** on **in-loop honest Val{N} Test cancer Dice** (full CM; remap pred {1,2}→0; NC not ignored) |
 | Selected ckpt | Named `epoch_XXX_cancer_Y.pth` with **best** honest Val cancer Dice (not `best.pth` alone; not PANDA+; not inflated ignore-0 Dice) |
 | Secondary log | Watcher PANDA+ clean-30 + ISUP for drift; **does not** override Val selection |
 | Headline (later) | Once: `partition/Test/Test.xlsx` on the **selected** ckpt per fold or agreed ensemble — **hold until user confirms** |
 
-Val1 result under this rule: early-stop at ep14; **selected ep4** (cancer 0.6122).
+Val1 (historical, patience 10): early-stop at ep14; **selected ep4** (cancer 0.6122). Val2–4: patience 20 under this freeze.
 
 ---
 
