@@ -64,6 +64,8 @@ RUN_TAG="${RUN_TAG:-opt3_sicap_ft_ncmerge_val1}"
 FOLD="${FOLD:-1}"
 EPOCHS="${EPOCHS:-30}"
 EARLY_STOP_PATIENCE="${EARLY_STOP_PATIENCE:-20}"
+LAMBDA_SLIDE="${LAMBDA_SLIDE:-0.3}"
+LAMBDA_GRADE="${LAMBDA_GRADE:-0.3}"
 SLIDES_PER_EPOCH="${SLIDES_PER_EPOCH:-0}"
 MAX_VAL_PATCHES="${MAX_VAL_PATCHES:-0}"
 NGPU="${SLURM_GPUS_ON_NODE:-${SLURM_JOB_NUM_GPUS:-2}}"
@@ -88,7 +90,7 @@ if [[ -n "${GIT_COMMIT:-}" ]]; then
 fi
 
 echo "=== $(date) | SICAP NC-merge FT | tag=${RUN_TAG} fold=${FOLD} ngpu=${NGPU} ==="
-echo "INIT=${INIT_CKPT} SRC=${PANDA_CODE_SRC} PATIENCE=${EARLY_STOP_PATIENCE}"
+echo "INIT=${INIT_CKPT} SRC=${PANDA_CODE_SRC} PATIENCE=${EARLY_STOP_PATIENCE} λ_slide=${LAMBDA_SLIDE} λ_grade=${LAMBDA_GRADE}"
 nvidia-smi -L || true
 
 CMD=(
@@ -103,9 +105,8 @@ CMD=(
   --init-checkpoint "${INIT_CKPT}"
   --micro-batch-size 4
   --live-chunk 4
-  --lambda-slide 0.3
-  --lambda-grade 0.3
-  --lambda-slide-warmup
+  --lambda-slide "${LAMBDA_SLIDE}"
+  --lambda-grade "${LAMBDA_GRADE}"
   --min-slide-patches 5
   --min-area-pct 0.0
   --adjacent-soft-alpha 0.1
@@ -121,6 +122,12 @@ CMD=(
   --num-workers 4
   --grad-clip 1.0
 )
+# Warmup only when slide loss is on; pixel-only ablation keeps λ=0 every epoch.
+if awk "BEGIN{exit !(${LAMBDA_SLIDE} > 0)}"; then
+  CMD+=(--lambda-slide-warmup)
+else
+  CMD+=(--no-lambda-slide-warmup)
+fi
 if [[ "${SLIDES_PER_EPOCH}" != "0" ]]; then
   CMD+=(--slides-per-epoch "${SLIDES_PER_EPOCH}")
 fi

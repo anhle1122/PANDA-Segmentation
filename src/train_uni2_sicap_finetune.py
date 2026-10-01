@@ -378,7 +378,9 @@ def train(args: argparse.Namespace) -> None:
             patch_idxs = [int(i) for i in bag["patch_indices"].tolist()]
             isup = int(bag["isup"].item())
             n_patches = len(patch_idxs)
-            apply_slide_isup = n_patches >= int(args.min_slide_patches)
+            # Pixel-only ablation (λ_slide=λ_grade=0): skip live ISUP path entirely.
+            want_slide = float(lam_s) > 0.0 or float(args.lambda_grade) > 0.0
+            apply_slide_isup = want_slide and n_patches >= int(args.min_slide_patches)
 
             if args.augment:
                 from train.augmentations import sample_slide_aug_params

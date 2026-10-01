@@ -1,3 +1,12 @@
+## SICAP Val1 pixel-only ablation (λ=0) (2026-09-30 17:02 PDT)
+
+- **Why:** Ask whether L_slide / L_grade are needed when SICAP pixels are reliable. Keep 4-fold CV recipe unchanged; one controlled Val1 ablation.
+- **What:** Tag `opt3_sicap_ft_ncmerge_val1_pixelonly`. Same NC-merge pixel loss, init R3 ep6, fold1, patience 20, max 30. `LAMBDA_SLIDE=0 LAMBDA_GRADE=0`; no slide warmup; skip live ISUP forward when both λ=0. Train **6072948** (2×H200), watcher **6072949** (`sicap_ncm_pixonly`). Selection = honest Val1 Test cancer Dice (same as CV).
+- **Result:** Submitted PD Priority behind current CV L40S jobs. Compare selected epoch vs archived NC-merge Val1 ep4 (`epoch_004_cancer_0.6122.pth`: cancer 0.612, NC→ca 9%, slide ISUP 0.483, PANDA+ 0.678/0.682) and vs canonical `val1_p20` when that fold finishes.
+- **Decision:** Do not change frozen 4-fold recipe. If pixel-only ≥ ep4 on the four metrics, slide terms optional on SICAP; if worse, slide terms help even with good pixels.
+
+---
+
 ## SICAP merged-NC rerun (2026-09-29 11:32 PDT)
 
 - **Why:** 6061707 ignores NC pixels in L_pixel. New run: -log(p0+p1+p2) + Dice FPs; honest in-loop val; official Test headline.

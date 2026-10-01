@@ -4,6 +4,8 @@
 **Frozen date:** 2026-09-30
 **Early-stop amendment (2026-09-30):** patience **20** (was 10). Val1 job 6062694 already finished under patience 10 (selected ep4); Val2–4 use patience 20. Max epochs still 30.
 
+
+**Ablation (not a freeze change), 2026-09-30:** Val1 pixel-only `opt3_sicap_ft_ncmerge_val1_pixelonly` with λ_slide=λ_grade=0, patience 20, job **6072948**. CV folds keep λ=0.3. Compare to ep4 under same selection rule.
 **Val1 re-run (2026-09-30):** patience-20 fold-1 launched as tag `opt3_sicap_ft_ncmerge_val1_p20` (job **6071738**) so all four CV folds share the same early-stop rule. Historical patience-10 tag `opt3_sicap_ft_ncmerge_val1` (ep4) kept on disk for comparison; **selection for the final CV uses `val1_p20`**, not the old tag.  
 **Reference / recipe provenance:** job `6062694` tag `opt3_sicap_ft_ncmerge_val1` (patience 10). **Canonical Val1:** `opt3_sicap_ft_ncmerge_val1_p20`, commit of trainer stack `988379e` (+ later log-only commits).  
 **Best Val1 ckpt (selection rule below):** `outputs/checkpoints/uni2_upernet_raw_opt3_sicap_ft_ncmerge_val1/epoch_004_cancer_0.6122.pth`
