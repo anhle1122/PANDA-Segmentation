@@ -10,6 +10,17 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-10-04
+
+- **12:20 PDT** | **4-fold λ=0.3 vs λ=0 ablation scored** (pixel-only trains **6094342–45** COMPLETED, 30 ep) | First controlled slide/grade-head test | Fold-mean, Val-selected: two heads cancer **0.642** / ISUP **57.9%** / NC→ca **5.4%** / PANDA+30 **0.618**; pixel-only **0.586** / **47.4%** / **2.8%** / **0.500**. 3/4 folds better Dice, 4/4 better ISUP, but FP mass doubles. Pixel-only FT forgets PANDA+. Table in `outputs/EXPERIMENT_LOG.md`. Watchers 6072032–35 / 6072949 / 6094326–28 still R (defq) — can be cancelled; no GPU trains running.
+
+## 2026-10-02
+
+- **16:35 PDT** | **Seg-only final launch: preemptable, max 30** | User: back to preemptable (gpu partition est. start Oct 10), then max 30 to match CV schedule | Cancelled gpu-partition **6094331–34** and the 50-ep preemptable **6094337–40** (seconds in, no epochs; logs cleared). Running: **6094342–45** `opt3_sicap_ft_ncmerge_val{1..4}_pixelonly`, 2×L40S preemptable, λ_slide=λ_grade=0, EPOCHS=30, patience 20, `RESUME=latest.pth` for requeue. Now identical to the λ=0.3 CV except the slide/grade losses. Watchers (SICAP Val + PANDA+ clean-30 every epoch): v1 **6072949**, v2–4 **6094326–28**.
+- **16:28 PDT** | **Seg-only trains moved off preemptable** | User: no preemptable | Cancelled **6094322–25** (~4 min in, no epochs; empty training_log removed). Resubmitted on **gpu** partition 2×L40S: **6094331–34** (same tags, λ=0, EPOCHS=50, patience 20). Uses the full 8-GPU per-user gpu cap, so watcher evals (1 L40S each, gpu partition) will mostly queue until trains finish. Watchers unchanged.
+- **16:25 PDT** | **Seg-only → 4 folds on 2×L40S, max 50 ep** | User: 16 L40S OK, max 50 | H200 **6094320** cancelled. Trains **6094322–25** (`opt3_sicap_ft_ncmerge_val{1..4}_pixelonly`, λ_slide=λ_grade=0, EPOCHS=50, patience 20) on **preemptable** 2×L40S each (gpu-partition per-user cap is 8 GPUs; leaving it for watcher evals). `RESUME=<ckpt>/latest.pth` so a preempt requeue resumes. Watchers: v1 **6072949**, v2–4 **6094326–28**. Caveat: cosine T_max=50 vs CV's 30, so LR schedule differs from the λ=0.3 CV.
+- **16:20 PDT** | **Seg-only SICAP Val1 resubmitted** (λ_slide=λ_grade=0) | User: drop slide + grade heads, seg head only | All 4 CV trains already TRAINING_COMPLETE, so nothing to cancel. Stale **6072948** (PD since 09-30, reason stuck at QOSMaxMemoryPerUser though gpu usage 0/512G) cancelled and resubmitted as **6094320** with explicit `LAMBDA_SLIDE=0 LAMBDA_GRADE=0` (script defaults to 0.3). Same tag `opt3_sicap_ft_ncmerge_val1_pixelonly`, NC-merge pixel loss, R3 ep6 init, patience 20, max 30, 2×H200. All 16 H200 busy (other users) → PD Priority. Watcher **6072949** still R. Compare vs Val1_p20 ep8 (cancer 0.614, mean4 0.693, slide ISUP 55.2%, PANDA+ 0.613).
+
 ## 2026-09-30
 
 - **17:02 PDT** | **Val1 pixel-only ablation launched** (λ_slide=λ_grade=0) | Test whether slide/grade terms help on SICAP | Tag `opt3_sicap_ft_ncmerge_val1_pixelonly`, same NC-merge recipe + patience 20 + Val1. Train **6072948** H200 PD Priority; watcher **6072949**. Trainer skips live ISUP path when both λ=0. Compare selected ckpt vs NC-merge ep4 (cancer/NC→ca%/slide ISUP/PANDA+). Four-fold CV untouched.

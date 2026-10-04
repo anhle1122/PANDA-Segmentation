@@ -1,3 +1,31 @@
+## SICAP seg-only 4-fold CV (λ_slide=λ_grade=0) (2026-10-02 → done 2026-10-03)
+
+- **Why:** Do the slide/grade heads help when SICAP pixel labels are clean? Same CV schedule as λ=0.3 run (2×L40S, max 30, patience 20, cosine T_max=30) so only the losses differ.
+- **What:** Tags `opt3_sicap_ft_ncmerge_val{1..4}_pixelonly`, trains **6094342–45** (preemptable), watchers 6072949 / 6094326–28 (Val per epoch + PANDA+ clean-30 + official Test once on Val-selected ckpt).
+- **Result:** All 30 epochs, no early stop. Selected (Val cancer) ep14/23/22/22.
+  - Val per fold cancer/mean4/G5/ISUP: V1 0.537/0.635/0.325/48.3%; V2 0.685/0.744/0.692/40.7%; V3 0.643/0.715/0.653/53.3%; V4 0.481/0.595/0.304/47.4%. Mean **0.587/0.672**, NC 0.930, G3 0.598, G4 0.667, G5 0.493, ISUP 47.4%, NC→ca 2.8%.
+  - Official Test per fold cancer/mean4/ISUP/NC→ca: V1 0.621/0.698/45.2%/4.6%; V2 0.572/0.660/48.4%/3.6%; V3 0.567/0.656/48.4%/3.1%; V4 0.525/0.624/45.2%/2.8%. Mean **0.571/0.659/46.8%/3.5%**.
+  - PANDA+ clean-30 at selected ep: Dice 0.589/0.529/0.437/0.446 (mean 0.500), ISUP 70/67/73/67%.
+  - vs λ=0.3 CV: Val cancer −0.055, mean4 −0.044, G5 −0.09, ISUP −10.5 pt; official cancer −0.033, mean4 −0.026, ISUP −4 pt; NC→ca lower (3.5% vs 8.2%); PANDA+ Dice −0.12, PANDA+ ISUP higher.
+- **Decision:** Heads help cancer/G5/slide ISUP on SICAP; keep λ_slide=λ_grade=0.3. Seg-only is more conservative (fewer NC→cancer FPs) but misses more cancer. Stage B/C still awaits user.
+
+---
+
+## SICAP 4-fold: λ_slide=λ_grade=0.3 vs 0 — RESULT (2026-10-04 12:20 PDT)
+
+- **Why:** First controlled test of the slide/grade heads with everything else fixed (R3 ep6 init, NC-merge pixel loss, patient-level folds, 30 ep max, patience 20, Val-selected by honest cancer Dice).
+- **What:** λ=0.3 arm = `val1_p20/val2/val3/val4` (6072024–27); λ=0 arm = `val{1..4}_pixelonly` (6094342–45, COMPLETED, 30 ep each). Scored from `outputs/evaluation/sicapv2/<ckpt>/sicapv2_summary.json` + `pseudo_label/epoch_eval/<tag>/epNNN/panda_plus_clean30.json`. Script `/tmp/sicap_ablation_summary.py` (not committed).
+- **Result (fold means, Val-selected epoch):**
+
+| arm | cancer Dice | mean4 | NC→cancer | slide ISUP | PANDA+ clean-30 Dice | PANDA+ clean-30 ISUP |
+|---|---:|---:|---:|---:|---:|---:|
+| λ=0.3 (two heads) | **0.642** | **0.716** | 5.4% | **57.9%** | **0.618** | 55.0% |
+| λ=0 (pixel-only) | 0.586 | 0.672 | **2.8%** | 47.4% | 0.500 | 69.2% |
+
+  Per fold cancer (λ0.3 / λ0): 0.614/0.537, 0.662/0.685, 0.680/0.643, 0.612/0.481 — 3 of 4 folds favour two heads. Slide ISUP better in all 4 folds (55/48, 48/41, 60/53, 68/47; n=27–38 slides/fold). λ=0.3 peaks early (ep4–13), λ=0 late (ep14–23). λ=0 fine-tune loses PANDA+ (0.50 vs 0.62) — slide term protects the source domain.
+- **Read:** Global composition term raises grade-level Dice and slide agreement and preserves transfer, but **roughly doubles NC→cancer mass** (5.4% vs 2.8%). Helps structure, pushes false positives — the two effects are separable and that is the Aim-2 target.
+- **Decision:** Two-head stays default for SICAP Stage B. Report both arms; never quote the Dice gain without the NC→cancer cost. Official Test still only on selected ckpts.
+
 ## SICAP Val1 pixel-only ablation (λ=0) (2026-09-30 17:02 PDT)
 
 - **Why:** Ask whether L_slide / L_grade are needed when SICAP pixels are reliable. Keep 4-fold CV recipe unchanged; one controlled Val1 ablation.
