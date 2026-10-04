@@ -12,7 +12,7 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-10-04
 
-- **12:20 PDT** | **4-fold λ=0.3 vs λ=0 ablation scored** (pixel-only trains **6094342–45** COMPLETED, 30 ep) | First controlled slide/grade-head test | Fold-mean, Val-selected: two heads cancer **0.642** / ISUP **57.9%** / NC→ca **5.4%** / PANDA+30 **0.618**; pixel-only **0.586** / **47.4%** / **2.8%** / **0.500**. 3/4 folds better Dice, 4/4 better ISUP, but FP mass doubles. Pixel-only FT forgets PANDA+. Table in `outputs/EXPERIMENT_LOG.md`. Watchers 6072032–35 / 6072949 / 6094326–28 still R (defq) — can be cancelled; no GPU trains running.
+- **12:05 PDT** | **Seg-only SICAP CV done (λ_slide=λ_grade=0) — heads help** | Ablation vs λ=0.3 CV | Trains **6094342–45** COMPLETED Oct 3 01:17–02:20 (all 30 ep, no early stop). Best by Val cancer: Val1 ep14 0.537, Val2 ep23 0.685, Val3 ep22 0.643, Val4 ep22 0.481. **4-fold mean Val: cancer 0.587 / mean4 0.672 / G5 0.493 / slide ISUP 47.4%** vs heads **0.642 / 0.716 / 0.585 / 57.9%**. **Official Test mean: cancer 0.571 / mean4 0.659 / ISUP 46.8% / NC→ca 3.5%** vs heads **0.604 / 0.685 / 50.8% / 8.2%**. PANDA+ clean-30 at selected ep: Dice 0.500, ISUP 69% (heads 0.618 / 55%). Seg-only peaks later (ep14–23 vs 4–13) and is less stable (Val1/Val4 ep30 ≈0.42). Ckpts `outputs/checkpoints/uni2_upernet_raw_opt3_sicap_ft_ncmerge_val{N}_pixelonly/`. Decision: keep slide+grade heads in the SICAP recipe.
 
 ## 2026-10-02
 
