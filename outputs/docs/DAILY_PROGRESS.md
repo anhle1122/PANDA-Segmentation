@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-10-04
 
+- **12:25 PDT** | **SICAP canvas: zero-shot vs FT seg-only vs FT + heads; all ISUP filled** | User: compare all three incl. per-fold ISUP | Zero-shot R3 ep6 slide ISUP Val2–4 scored (**6115160**): Val1–4 = 37.9 / 55.6 / 53.3 / 42.1%, **mean 47.2%** (≈ seg-only 47.4%; heads 57.9%). Backfilled 19 missing per-epoch SICAP evals (**6115161–79**, `outputs/evaluation/sicapv2/backfill_*`), so every epoch of both FT runs has class Dice + ISUP. Canvas `sicap-ncmerge-cv-results.canvas.tsx` rebuilt (Summary: 3-way Val / official / per-fold ISUP; fold tabs: both runs every epoch).
+
 - **12:05 PDT** | **Seg-only SICAP CV done (λ_slide=λ_grade=0) — heads help** | Ablation vs λ=0.3 CV | Trains **6094342–45** COMPLETED Oct 3 01:17–02:20 (all 30 ep, no early stop). Best by Val cancer: Val1 ep14 0.537, Val2 ep23 0.685, Val3 ep22 0.643, Val4 ep22 0.481. **4-fold mean Val: cancer 0.587 / mean4 0.672 / G5 0.493 / slide ISUP 47.4%** vs heads **0.642 / 0.716 / 0.585 / 57.9%**. **Official Test mean: cancer 0.571 / mean4 0.659 / ISUP 46.8% / NC→ca 3.5%** vs heads **0.604 / 0.685 / 50.8% / 8.2%**. PANDA+ clean-30 at selected ep: Dice 0.500, ISUP 69% (heads 0.618 / 55%). Seg-only peaks later (ep14–23 vs 4–13) and is less stable (Val1/Val4 ep30 ≈0.42). Ckpts `outputs/checkpoints/uni2_upernet_raw_opt3_sicap_ft_ncmerge_val{N}_pixelonly/`. Decision: keep slide+grade heads in the SICAP recipe.
 
 ## 2026-10-02

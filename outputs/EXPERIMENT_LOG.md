@@ -8,6 +8,7 @@
   - PANDA+ clean-30 at selected ep: Dice 0.589/0.529/0.437/0.446 (mean 0.500), ISUP 70/67/73/67%.
   - vs λ=0.3 CV: Val cancer −0.055, mean4 −0.044, G5 −0.09, ISUP −10.5 pt; official cancer −0.033, mean4 −0.026, ISUP −4 pt; NC→ca lower (3.5% vs 8.2%); PANDA+ Dice −0.12, PANDA+ ISUP higher.
 - **Decision:** Heads help cancer/G5/slide ISUP on SICAP; keep λ_slide=λ_grade=0.3. Seg-only is more conservative (fewer NC→cancer FPs) but misses more cancer. Stage B/C still awaits user.
+- **Result (2026-10-04 12:25):** Zero-shot R3 ep6 slide ISUP Val2–4 (job 6115160): Val1–4 37.9/55.6/53.3/42.1%, mean **47.2%**; zero-shot NC→ca mean 42.2%. So slide ISUP: zero-shot 47.2% ≈ seg-only 47.4% < heads 57.9% (official: 38.7% / 46.8% / 50.8%). Fine-tuning the seg head alone fixes Dice and NC→ca but not slide ISUP; the slide/grade losses do. 19 missing per-epoch evals backfilled (6115161–79).
 
 ---
 
