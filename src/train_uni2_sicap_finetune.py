@@ -70,6 +70,9 @@ from train_baseline import (  # noqa: E402
 )
 from train_uni2_opt3_slidebag import SegPlusGrade  # noqa: E402
 
+SPLITS_DIR = OUTPUTS / "splits"
+from train.slide_bag_dataset import load_patch_batch as load_panda_batch  # noqa: E402
+
 
 def _segmentation_parts(args, logits, masks, weights, class_weights):
     """Return (total, ce, dice) for logging. SICAP merge does not ignore class 0."""
@@ -81,7 +84,12 @@ def _segmentation_parts(args, logits, masks, weights, class_weights):
             class_weights,
             adjacent_soft_alpha=args.adjacent_soft_alpha,
         )
-        dice = sicap_merged_dice_loss(logits, masks)
+        dice = sicap_merged_dice_loss(
+            logits,
+            masks,
+            tversky_alpha=float(getattr(args, "cancer_tversky_alpha", 0.5)),
+            tversky_beta=float(getattr(args, "cancer_tversky_beta", 0.5)),
+        )
         total = 0.5 * ce + 0.5 * dice
         return total, ce, dice
     total = segmentation_loss(
@@ -174,6 +182,50 @@ def train(args: argparse.Namespace) -> None:
     )
     if is_main_process(rank):
         print(f"class_weights={class_weights.detach().cpu().tolist()}", flush=True)
+
+    # ---- Joint replay: PANDA patches (PANDA labels + PANDA loss) every step. ----
+    # Patch-level light aug only. No rescale/zoom anywhere (10x SICAP must not be
+    # resampled to PANDA 20x).
+    replay_ds = None
+    replay_class_weights = None
+    replay_rng = None
+    if args.replay_panda:
+        import pandas as pd
+
+        from train.class_weights import get_or_compute_class_weights
+        from train.corrected_label_dataset import (
+            assert_corrected_wiring,
+            wrap_baseline_with_corrections,
+        )
+        from train.slide_bag_dataset import SlideBagPatchDataset
+
+        replay_ds = SlideBagPatchDataset(
+            SPLITS_DIR / "panda_train.csv",
+            mode="raw",
+            allow_missing_h5=True,
+            seed=int(args.seed) + 1000 * int(rank),
+            augment=True,
+            augment_mode="patch",
+        )
+        if args.replay_corrected_dir:
+            corr = Path(args.replay_corrected_dir)
+            if not corr.is_dir():
+                raise SystemExit(f"replay corrected dir missing: {corr}")
+            replay_ds.base = wrap_baseline_with_corrections(replay_ds.base, corr)
+            if is_main_process(rank):
+                assert_corrected_wiring(replay_ds.base, corr)
+        replay_class_weights = get_or_compute_class_weights(
+            pd.read_csv(SPLITS_DIR / "panda_train.csv"), mode="raw"
+        )["class_weights"].to(device)
+        replay_rng = np.random.default_rng(int(args.seed) + 7919 * int(rank))
+        if is_main_process(rank):
+            print(
+                f"REPLAY_OK panda_slides={len(replay_ds.slide_ids)} "
+                f"patches/step={args.replay_patches} lambda_replay={args.lambda_replay} "
+                f"labels={'corrected' if args.replay_corrected_dir else 'original'} "
+                f"aug=patch(no-scale)",
+                flush=True,
+            )
 
     seg = build_uni2_upernet(
         num_classes=6,
@@ -293,6 +345,7 @@ def train(args: argparse.Namespace) -> None:
                     "lr",
                     "soft_hard_isup_agree",
                 ]
+                + (["L_replay"] if replay_ds is not None else [])
             )
 
     micro = max(1, int(args.micro_batch_size))
@@ -346,6 +399,7 @@ def train(args: argparse.Namespace) -> None:
             "grade": 0.0,
             "ce": 0.0,
             "dice": 0.0,
+            "replay": 0.0,
             "n": 0,
         }
         n_slides = 0
@@ -371,6 +425,47 @@ def train(args: argparse.Namespace) -> None:
                     logits_d.float().sum() + feats_d.float().sum() + grade_d.float().sum()
                 ) * 0.0
             scaler.scale(z).backward()
+
+        def _run_replay() -> float:
+            """PANDA replay: replay_patches patches (PANDA labels + PANDA loss).
+
+            Gradients accumulate under no_sync; the caller's synced dummy
+            backward then all-reduces everything. Patches come in groups of
+            `micro` from one random slide each (diverse slides, few H5 opens).
+            """
+            if replay_ds is None:
+                return 0.0
+            total_n = int(args.replay_patches)
+            n_groups = int(math.ceil(total_n / micro))
+            acc = 0.0
+            for g in range(n_groups):
+                n_real = min(micro, total_n - g * micro)
+                sid = replay_ds.slide_ids[int(replay_rng.integers(len(replay_ds.slide_ids)))]
+                pool = replay_ds.indices_by_slide[sid]
+                pick = replay_rng.choice(len(pool), size=min(n_real, len(pool)), replace=False)
+                idxs = [pool[int(i)] for i in pick]
+                n_real = len(idxs)
+                r_img, r_msk, r_w = load_panda_batch(replay_ds.base, idxs)
+                r_img = r_img.to(device, non_blocking=True)
+                r_msk = r_msk.to(device, non_blocking=True)
+                r_w = r_w.to(device, non_blocking=True)
+                r_img_b, _ = _bn_safe(r_img)
+                with _ddp_no_sync():
+                    with torch.cuda.amp.autocast(enabled=use_amp):
+                        r_logits, _rf, _rg = model(r_img_b)
+                        r_loss = segmentation_loss(
+                            r_logits[:n_real],
+                            r_msk,
+                            r_w,
+                            replay_class_weights,
+                            adjacent_soft_alpha=float(args.adjacent_soft_alpha),
+                            include_benign_soft=True,
+                        )
+                        r_scaled = r_loss * (float(args.lambda_replay) * n_real / total_n)
+                    scaler.scale(r_scaled).backward()
+                acc += float(r_scaled.detach().item())
+                del r_img, r_msk, r_w, r_img_b, r_logits
+            return acc
 
         for bag in train_loader:
             if args.slides_per_epoch and n_slides >= args.slides_per_epoch:
@@ -399,7 +494,9 @@ def train(args: argparse.Namespace) -> None:
             l_grade_val = 0.0
             slide_term_val = 0.0
 
+            replay_acc = 0.0
             if n_patches == 0:
+                replay_acc = _run_replay()
                 _dummy_synced_backward()
             else:
                 n_micro = int(math.ceil(n_patches / micro))
@@ -489,6 +586,7 @@ def train(args: argparse.Namespace) -> None:
                     l_grade_val = float(l_grade.detach().item())
                     slide_term_val = float(slide_term.detach().item())
                     del images_g, imgs_g, logits_chunks, feat_chunks
+                replay_acc = _run_replay()
                 _dummy_synced_backward()
 
             if args.grad_clip > 0:
@@ -497,7 +595,8 @@ def train(args: argparse.Namespace) -> None:
             scaler.step(optimizer)
             scaler.update()
 
-            total = pixel_loss_acc + slide_term_val
+            total = pixel_loss_acc + slide_term_val + replay_acc
+            running["replay"] += replay_acc
             running["loss"] += total
             running["pixel"] += pixel_loss_acc
             running["slide"] += l_slide_val
@@ -510,7 +609,8 @@ def train(args: argparse.Namespace) -> None:
                 print(
                     f"BAG_LOSS n={n_slides} total={total:.6f} pix={pixel_loss_acc:.6f} "
                     f"ce={ce_acc:.6f} dice={dice_acc:.6f} slide={l_slide_val:.6f} "
-                    f"grade={l_grade_val:.6f}",
+                    f"grade={l_grade_val:.6f}"
+                    + (f" replay={replay_acc:.6f}" if replay_ds is not None else ""),
                     flush=True,
                 )
             if is_main_process(rank) and n_slides == 1 and device.type == "cuda":
@@ -594,6 +694,11 @@ def train(args: argparse.Namespace) -> None:
                         lr,
                         f"{soft_hard_agree:.6f}",
                     ]
+                    + (
+                        [f"{running['replay']/max(1,running['n']):.6f}"]
+                        if replay_ds is not None
+                        else []
+                    )
                 )
             save_checkpoint(
                 ckpt_dir / "latest.pth",
@@ -689,6 +794,24 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--num-workers", type=int, default=4)
     p.add_argument("--lambda-slide", type=float, default=0.3)
     p.add_argument("--lambda-grade", type=float, default=0.3)
+    p.add_argument(
+        "--cancer-tversky-alpha", type=float, default=0.5,
+        help="FP weight for G3/G4/G5 Tversky (0.5/0.5 == Dice).",
+    )
+    p.add_argument(
+        "--cancer-tversky-beta", type=float, default=0.5,
+        help="FN weight for G3/G4/G5 Tversky (>alpha favours recall).",
+    )
+    p.add_argument(
+        "--replay-panda", action=argparse.BooleanOptionalAction, default=False,
+        help="Joint replay: add a PANDA patch group (PANDA labels + loss) every step.",
+    )
+    p.add_argument("--replay-patches", type=int, default=16)
+    p.add_argument("--lambda-replay", type=float, default=1.0)
+    p.add_argument(
+        "--replay-corrected-dir", type=str, default="",
+        help="R3 corrected-label dir for the PANDA replay bag (empty = original masks).",
+    )
     p.add_argument("--lambda-slide-warmup", action=argparse.BooleanOptionalAction, default=True)
     p.add_argument("--min-slide-patches", type=int, default=5)
     p.add_argument("--min-area-pct", type=float, default=0.0)

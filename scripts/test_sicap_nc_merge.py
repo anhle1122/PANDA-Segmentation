@@ -59,6 +59,27 @@ def main() -> None:
     m = dice_from_sicap_cm(cm)
     if m["nc_to_cancer"] < 0.99:
         raise SystemExit(f"GATE FAIL: NC→cancer should be 1, got {m['nc_to_cancer']}")
+    # Tversky: (0.5, 0.5) must equal the old Dice; beta>alpha must penalise FN more.
+    g = torch.Generator().manual_seed(0)
+    lg = torch.randn(2, 6, 16, 16, generator=g)
+    tg = torch.randint(0, 6, (2, 16, 16), generator=g)
+    d_def = sicap_merged_dice_loss(lg, tg)
+    d_tv5 = sicap_merged_dice_loss(lg, tg, tversky_alpha=0.5, tversky_beta=0.5)
+    if abs(float(d_def) - float(d_tv5)) > 1e-8:
+        raise SystemExit(f"GATE FAIL: Tversky(0.5,0.5) {d_tv5} != Dice {d_def}")
+    d_rec = sicap_merged_dice_loss(lg, tg, tversky_alpha=0.3, tversky_beta=0.7)
+    if not torch.isfinite(d_rec):
+        raise SystemExit("GATE FAIL: Tversky(0.3,0.7) not finite")
+    # Under-prediction (all-NC logits on a cancer GT) must cost more with beta=0.7.
+    under = torch.zeros(1, 6, 8, 8)
+    under[:, 0] = 5.0
+    tgt = torch.full((1, 8, 8), 4, dtype=torch.long)
+    if not (
+        float(sicap_merged_dice_loss(under, tgt, tversky_alpha=0.3, tversky_beta=0.7))
+        >= float(sicap_merged_dice_loss(under, tgt)) - 1e-9
+    ):
+        raise SystemExit("GATE FAIL: Tversky beta>alpha should not reduce FN-heavy loss")
+    print(f"TVERSKY_OK dice={float(d_def):.6f} tv(0.3,0.7)={float(d_rec):.6f}")
     print("GATE_OK unit_test_sicap_nc_merge")
 
 

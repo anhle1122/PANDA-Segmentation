@@ -137,6 +137,17 @@ fi
 if [[ -n "${UNI2_CKPT}" && -f "${UNI2_CKPT}" ]]; then
   CMD+=(--uni2-checkpoint "${UNI2_CKPT}")
 fi
+# Optional: recall-weighted cancer Tversky (default 0.5/0.5 == Dice).
+if [[ -n "${TV_ALPHA:-}" || -n "${TV_BETA:-}" ]]; then
+  CMD+=(--cancer-tversky-alpha "${TV_ALPHA:-0.5}" --cancer-tversky-beta "${TV_BETA:-0.5}")
+fi
+# Optional: joint PANDA replay (PANDA labels + PANDA loss each step). No rescaling.
+if [[ "${REPLAY_PANDA:-0}" == "1" ]]; then
+  CMD+=(--replay-panda --replay-patches "${REPLAY_PATCHES:-16}" --lambda-replay "${LAMBDA_REPLAY:-1.0}")
+  if [[ -n "${REPLAY_CORRECTED_DIR:-}" ]]; then
+    CMD+=(--replay-corrected-dir "${REPLAY_CORRECTED_DIR}")
+  fi
+fi
 if [[ -n "${RESUME:-}" && -f "${RESUME}" ]]; then
   CMD+=(--resume "${RESUME}")
 fi

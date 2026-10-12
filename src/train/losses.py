@@ -312,8 +312,16 @@ def sicap_merged_dice_loss(
     targets: Tensor,
     *,
     eps: float = 1e-6,
+    tversky_alpha: float = 0.5,
+    tversky_beta: float = 0.5,
 ) -> Tensor:
-    """Soft Dice: G3/G4/G5 always counted (cancer on NC is FP) + merged NC=p0+p1+p2."""
+    """Soft Dice: G3/G4/G5 always counted (cancer on NC is FP) + merged NC=p0+p1+p2.
+
+    Cancer classes use Tversky: TP / (TP + alpha*FP + beta*FN). With the default
+    alpha=beta=0.5 this is algebraically identical to Dice (2TP / (2TP+FP+FN)),
+    so existing runs are unchanged. beta>alpha penalises missed cancer (FN) more
+    than over-calls (FP). The merged-NC term always stays plain Dice.
+    """
     probs = F.softmax(logits, dim=1)
     targets = targets.long()
     losses = []
@@ -321,8 +329,15 @@ def sicap_merged_dice_loss(
         t = (targets == c).to(dtype=probs.dtype)
         p = probs[:, c]
         inter = (p * t).sum()
-        card = p.sum() + t.sum()
-        losses.append(1.0 - (2.0 * inter + eps) / (card + eps))
+        if abs(tversky_alpha - 0.5) < 1e-9 and abs(tversky_beta - 0.5) < 1e-9:
+            card = p.sum() + t.sum()
+            losses.append(1.0 - (2.0 * inter + eps) / (card + eps))
+        else:
+            fp = p.sum() - inter
+            fn = t.sum() - inter
+            losses.append(
+                1.0 - (inter + eps) / (inter + tversky_alpha * fp + tversky_beta * fn + eps)
+            )
     t_nc = (targets <= 2).to(dtype=probs.dtype)
     p_nc = probs[:, 0] + probs[:, 1] + probs[:, 2]
     inter = (p_nc * t_nc).sum()
@@ -347,6 +362,8 @@ def segmentation_loss(
     include_benign_soft: bool = True,
     soft_targets: Tensor | None = None,
     sicap_nc_merge: bool = False,
+    tversky_alpha: float = 0.5,
+    tversky_beta: float = 0.5,
 ) -> Tensor:
     """Combined weighted CE (with per-pixel weight map) + custom soft Dice.
 
@@ -366,7 +383,12 @@ def segmentation_loss(
             num_classes=num_classes,
             adjacent_soft_alpha=adjacent_soft_alpha,
         )
-        dice_loss = sicap_merged_dice_loss(logits, targets)
+        dice_loss = sicap_merged_dice_loss(
+            logits,
+            targets,
+            tversky_alpha=tversky_alpha,
+            tversky_beta=tversky_beta,
+        )
         return ce_weight * ce_loss + dice_weight * dice_loss
 
     targets = targets.long()
