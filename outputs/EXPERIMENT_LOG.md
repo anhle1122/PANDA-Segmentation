@@ -1,3 +1,22 @@
+## SICAP Tversky / replay / closing — RESULT (2026-10-12 11:23 PDT)
+
+- **Why:** Test recall-weighted cancer loss, PANDA replay against forgetting, and whether coarse masks (closing) explain the Dice gap.
+- **What:** Tversky α=0.3 β=0.7 Val2 **6148303** / Val1 **6148304**. Replay 16 corrected PANDA patches/step Val2 **6148305**. Closing sweep **6148340**. Early-stop patience 10. Selection = Val cancer; replay also required PANDA+ clean-30 ≥ 0.68.
+- **Result (best Val epoch vs heads on that fold):**
+
+| run | best ep | Val cancer | nc→ca | SICAP ISUP | PANDA+ clean cancer | PANDA+ benign | official cancer |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| heads Val2 | 5 | 0.662 | 5.1% | — | — | — | 0.636 |
+| Tversky Val2 | 5 | 0.667 | 5.0% | 52% (14/27) | 0.632 | 0.10 | pending (6150388) |
+| Replay Val2 | 8 | 0.673 | 12.6% | 56% (15/27) | **0.701** | **0.76** | **0.582** |
+| heads Val1 | 8 | 0.614 | 10.1% | — | — | — | — |
+| Tversky Val1 | 4 | 0.626 | 9.2% | pending (6150386) | pending (6150389) | pending | pending (6150387) |
+
+  Closing: max cancer-Dice gain +0.051 (seg-only Val4, radius 31). Heads stays within +0.03. Base is best or tied on the zero-shot R3 checkpoints.
+- **Decision:** Hole-fill is not a lever. Tversky is not worth a 4-fold run. Replay does the forgetting fix (PANDA+ clean 0.70, benign restored) and fails the official SICAP test (0.582 vs heads 0.636) by calling too much non-cancer as cancer. Do not promote replay to Stage B on this λ_replay=1 setting.
+
+---
+
 ## SICAP Val2/Val1: Tversky + joint PANDA replay + closing diagnostic (2026-10-11 20:20 PDT)
 
 - **Why:** Dominant pixel error is cancer called NC/stroma (extent), and SICAP FT forgets PANDA (PANDA+ benign Dice 0.74→≤0.08, cancer recall 0.72→0.52–0.58). Three separate levers, run in parallel so they can be compared on the same fold.

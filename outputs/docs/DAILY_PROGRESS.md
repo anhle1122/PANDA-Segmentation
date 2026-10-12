@@ -10,7 +10,16 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
-## 2026-10-11
+## 2026-10-12
+
+- **11:23 PDT** | **Tversky + replay Val2/Val1 finished; hole-fill does not move Dice** | Early stop, all COMPLETED | vs heads on the same fold (Val cancer 0.662 / 0.614, Val2 official 0.636).
+  - **Tversky Val2** 6148303 stopped ep15, best **ep5 cancer 0.667** (nc→ca 5.0%, SICAP ISUP 14/27). PANDA+ clean-30 cancer 0.632, benign still 0.10. Official resubmitted **6150388** (first try died on ECC, cp079).
+  - **Tversky Val1** 6148304 stopped ep14, best **ep4 cancer 0.626** (nc→ca 9.2%). Val SICAP, official, and PANDA+ for that epoch died on cp079; resubmitted **6150386 / 6150387 / 6150389**.
+  - **Replay Val2** 6148305 stopped ep18, best **ep8 cancer 0.673** (nc→ca 12.6%, SICAP ISUP 15/27). PANDA+ clean-30 cancer **0.701**, benign **0.76**, recall 0.72, ISUP clean 73% — floor 0.68 met. Official cancer **0.582**, ISUP 15/31, nc→ca 16.6% (worse than heads official 0.636 / 5.5%).
+  - **Closing sweep** 6148340 done. Best gain +0.051 on the weak seg-only Val4 with radius 31; heads gains +0.00 to +0.03. Filling holes is not the fix.
+  - Read: Tversky barely moves SICAP and does not fix PANDA forgetting. Replay restores PANDA+ and costs SICAP false cancer, especially on the official test.
+
+
 
 - **20:20 PDT** | **Three parallel SICAP experiments launched (Val2 first) + closing diagnostic** | User: fix the extent/forgetting bottlenecks; no scale augmentation anywhere | Commits `6852aad`, `dbc8bb2`. All trains 2×L40S, EPOCHS=30, patience 10, R3 ep6 init, heads λ=0.3.
   - **Tversky** cancer loss (α=0.3 FP, β=0.7 FN; merged-NC term stays Dice): Val2 **6148303** `opt3_sicap_ft_ncmerge_tv37_val2`, Val1 **6148304** `..._tv37_val1`. Compare vs heads Val2/Val1 (Val cancer 0.662 / 0.614) and watch NC→cancer + PANDA+.
