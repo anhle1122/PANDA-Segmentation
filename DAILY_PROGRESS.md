@@ -12,6 +12,7 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-10-12
 
+- **11:52 PDT** | **PANDA+ benign reported for every kept epoch; missing scores resubmitted** | User: do not drop epochs | Tversky Val1 14/14 ckpts, Val2 15/15, replay λ=1 Val2 18/18 still on disk. Clean-30 benign: Tversky falls to ≤0.04 after the early epochs; replay stays 0.75–0.79 on every scored epoch. 16 PANDA+ JSONs missing from the cp079 ECC failures, resubmitted **6150458–73** (queued behind the 8 L40S). Replay λ=0.3 four-fold **6150422–25** RUNNING, no epoch yet.
 - **11:38 PDT** | **Replay λ=0.3 on all 4 SICAP folds** | Val2 λ=1 restored PANDA+ but overcalled cancer on SICAP (NC→cancer 5%→13%, official 0.636→0.582) | Trains **6150422–25** `opt3_sicap_ft_ncmerge_replay03_val{1..4}`, 2×L40S, 16 corrected PANDA patches/step, λ_replay=0.3, patience 20, max 30, exclude cp079. Watchers **6150426–29**. Keep an epoch only if that fold's Val cancer ≥ heads (0.614/0.662/0.680/0.612), PANDA+ clean-30 ≥ 0.68, and NC→cancer stays near 5%.
 - **11:23 PDT** | **Tversky + replay Val2/Val1 finished; hole-fill does not move Dice** | Early stop, all COMPLETED | vs heads on the same fold (Val cancer 0.662 / 0.614, Val2 official 0.636).
   - **Tversky Val2** 6148303 stopped ep15, best **ep5 cancer 0.667** (nc→ca 5.0%, SICAP ISUP 14/27). PANDA+ clean-30 cancer 0.632, benign still 0.10. Official resubmitted **6150388** (first try died on ECC, cp079).
