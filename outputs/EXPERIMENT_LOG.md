@@ -1,3 +1,12 @@
+## Replay λ=0.3, 4-fold (2026-10-12 11:38 PDT)
+
+- **Why:** λ=1 replay flipped the error. Heads undercalls (29% of cancer pixels → NC, 5% of NC → cancer). λ=1 replay undercalls only 9% of cancer but marks 13–17% of NC as cancer, and official Dice falls 0.636 → 0.582.
+- **What:** Same replay (16 corrected PANDA patches/step) with λ_replay=0.3 on Val1–4. Jobs 6150422–25, watchers 6150426–29. Patience 20, max 30.
+- **Keep rule:** Val cancer ≥ that fold's heads number, PANDA+ clean-30 ≥ 0.68, NC→cancer near 5%.
+- **Result:** pending.
+
+---
+
 ## SICAP Tversky / replay / closing — RESULT (2026-10-12 11:23 PDT)
 
 - **Why:** Test recall-weighted cancer loss, PANDA replay against forgetting, and whether coarse masks (closing) explain the Dice gap.
