@@ -1,3 +1,15 @@
+## SICAP Val2/Val1: Tversky + joint PANDA replay + closing diagnostic (2026-10-11 20:20 PDT)
+
+- **Why:** Dominant pixel error is cancer called NC/stroma (extent), and SICAP FT forgets PANDA (PANDA+ benign Dice 0.74→≤0.08, cancer recall 0.72→0.52–0.58). Three separate levers, run in parallel so they can be compared on the same fold.
+- **What:**
+  1. Tversky on G3/G4/G5 (α=0.3, β=0.7), `--cancer-tversky-alpha/beta`; defaults 0.5/0.5 reproduce the old Dice exactly (unit-tested). Jobs 6148303 (Val2), 6148304 (Val1).
+  2. Joint replay (`--replay-panda`): 16 PANDA patches/step from random slides (groups of 4), R3 corrected labels (`corrections_opt3_omar6_round2_ep14ref_ep007`), PANDA `segmentation_loss` (α=0.1, include_benign_soft), λ_replay=1, accumulated under DDP no_sync before the synced dummy backward. Patch-level aug only; no scaling. Job 6148305 (Val2, tag `..._replay_val2`).
+  3. `src/postproc_sweep_sicap.py` / job 6148340: close/fill predicted cancer (new pixels take nearest cancer grade; cancer never removed), scored on identical argmax maps.
+- **Result:** pending (jobs started 20:15 PDT; replay prints `REPLAY_OK`, BAG_LOSS shows `replay≈0.50`).
+- **Decision rule:** Tversky/replay judged vs heads on Val cancer, NC→cancer, PANDA+ clean-30; replay epoch picked by Val cancer with PANDA+ clean-30 ≥0.68 floor (explicit exception to the Val-only rule). Sweep ≥+0.05 → coarse-label evidence; flat → true under-segmentation.
+
+---
+
 ## SICAP seg-only 4-fold CV (λ_slide=λ_grade=0) (2026-10-02 → done 2026-10-03)
 
 - **Why:** Do the slide/grade heads help when SICAP pixel labels are clean? Same CV schedule as λ=0.3 run (2×L40S, max 30, patience 20, cosine T_max=30) so only the losses differ.

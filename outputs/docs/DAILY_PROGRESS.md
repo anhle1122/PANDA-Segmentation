@@ -10,6 +10,17 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-10-11
+
+- **20:20 PDT** | **Three parallel SICAP experiments launched (Val2 first) + closing diagnostic** | User: fix the extent/forgetting bottlenecks; no scale augmentation anywhere | Commits `6852aad`, `dbc8bb2`. All trains 2×L40S, EPOCHS=30, patience 10, R3 ep6 init, heads λ=0.3.
+  - **Tversky** cancer loss (α=0.3 FP, β=0.7 FN; merged-NC term stays Dice): Val2 **6148303** `opt3_sicap_ft_ncmerge_tv37_val2`, Val1 **6148304** `..._tv37_val1`. Compare vs heads Val2/Val1 (Val cancer 0.662 / 0.614) and watch NC→cancer + PANDA+.
+  - **Joint PANDA replay** Val2 **6148305** `opt3_sicap_ft_ncmerge_replay_val2`: each step = SICAP bag + 16 PANDA patches (R3 corrected labels, PANDA `segmentation_loss`, λ_replay=1, patch-level aug only; log `REPLAY_OK`, `L_replay` column). Target: PANDA+ clean-30 back toward ~0.70 with SICAP Val ≈0.62-0.64.
+  - **Protocol note:** for the replay run only, PANDA+ clean-30 ≥ 0.68 is used as a post-hoc floor when picking the epoch (Val cancer still the primary metric). This is a deliberate exception to "PANDA+ never used for selection"; label it that way in any report. No rescale/zoom/10×→20× in any run.
+  - **Watchers** 6148307 (tv37_val2), 6148308 (tv37_val1), 6148309 (replay_val2): SICAP Val + PANDA+ leak-split per epoch, official Test once at TRAINING_COMPLETE. Prefixes `sicapft_tv37_val{1,2}`, `sicapft_replay_val2`.
+  - **Closing / hole-fill sweep** **6148340** (1×L40S, `scripts/slurm_postproc_sweep.sh`): base / fill / close r=3,7,15,31 on argmax maps for R3 ep6, heads and seg-only selected ckpts (Val + official). Out: `outputs/evaluation/postproc_sweep/*.json`. Rule: ≥+0.05 Dice → labels are coarse polygons (post-proc legit); flat → real under-segmentation. SICAP only so far; PANDA+ sweep not wired.
+  - Unit test `scripts/test_sicap_nc_merge.py`: Tversky(0.5,0.5) == old Dice (exact) → `TVERSKY_OK`.
+- **Open tomorrow:** read sweep JSONs; per-epoch watcher results for the 3 trains; decide Stage B recipe (heads vs Tversky vs replay). AGGC2022 still needs real TIFFs re-downloaded from the laptop.
+
 ## 2026-10-04
 
 - **12:25 PDT** | **SICAP canvas: zero-shot vs FT seg-only vs FT + heads; all ISUP filled** | User: compare all three incl. per-fold ISUP | Zero-shot R3 ep6 slide ISUP Val2–4 scored (**6115160**): Val1–4 = 37.9 / 55.6 / 53.3 / 42.1%, **mean 47.2%** (≈ seg-only 47.4%; heads 57.9%). Backfilled 19 missing per-epoch SICAP evals (**6115161–79**, `outputs/evaluation/sicapv2/backfill_*`), so every epoch of both FT runs has class Dice + ISUP. Canvas `sicap-ncmerge-cv-results.canvas.tsx` rebuilt (Summary: 3-way Val / official / per-fold ISUP; fold tabs: both runs every epoch).
