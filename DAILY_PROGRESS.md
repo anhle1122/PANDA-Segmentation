@@ -12,6 +12,10 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-10-15
 
+- **22:13 PDT** | **Each SICAP run is one 2×L40S loop. No H200.** | Four parallel replay+Tversky jobs filled the 32-CPU GPU cap and had saved no epoch. User wants every remaining fold, each recipe on 2 L40S. | Cancelled trains **6183620 / 6183626 / 6183628 / 6183630**. Loop script `scripts/slurm_train_sicap_ncmerge_foldloop.sh`.
+  - **6183638** replay λ=0.3 + Tversky α=0.7 β=0.3, folds 1→2→3→4, on `esplhpc-cp077`. Watchers 6183621 / 6183627 / 6183629 / 6183631 stay.
+  - **6183639** replay λ=1, folds 1→3→4 (Val2 already done), on `esplhpc-cp078`. Watchers **6183640 / 6183641 / 6183642**. Patience 10, same as Val2.
+  - **6183643** original Tversky α=0.3 β=0.7, folds 3→4, on `esplhpc-cp078`. Watchers **6183644 / 6183645**. Patience 10, same as Val1–2.
 - **22:03 PDT** | **Same replay+Tversky on Val1, Val3, Val4** | Val2-only is not a clean ablation against 4-fold replay λ=0.3. Earlier Tversky (Val1–2) and replay λ=1 (Val2) were scouts for the same reason. | Trains **6183626** Val1 (running), **6183628** Val3 (pending), **6183630** Val4 (pending). Watchers **6183627 / 6183629 / 6183631**. Same flags as **6183620**: λ_replay=0.3, Tversky α=0.7 β=0.3, 16 corrected PANDA patches, patience 20. Four 2×L40S jobs fill the gpu-partition 32-CPU cap.
 - **22:00 PDT** | **Replay λ=0.3 + FP-weighted Tversky, Val2** | User: try replay 0.3 with Tversky to drop NC→cancer. The old Tversky (α=0.3, β=0.7) punishes missed cancer, so it calls more cancer. Flipped to α=0.7, β=0.3 so extra cancer costs more. G5 wrong calls on replay-0.3 official are 53.6% true NC, 15.7% G4, 30.7% real G5; true G5 is already called G5 87.9% of the time. | Job **6183620**, watcher **6183621**. Tag `opt3_sicap_ft_ncmerge_replay03_tv73_val2`. Compare to replay-0.3 Val2 official cancer 0.641 and NC→cancer 7.7%.
 
