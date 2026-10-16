@@ -10,7 +10,11 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
-## 2026-10-12
+## 2026-10-15
+
+- **22:00 PDT** | **Replay λ=0.3 + FP-weighted Tversky, Val2 only** | User: try replay 0.3 with Tversky to drop NC→cancer. The old Tversky (α=0.3, β=0.7) punishes missed cancer, so it calls more cancer. Flipped to α=0.7, β=0.3 so extra cancer costs more. G5 wrong calls on replay-0.3 official are 53.6% true NC, 15.7% G4, 30.7% real G5; true G5 is already called G5 87.9% of the time. | Tag `opt3_sicap_ft_ncmerge_replay03_tv73_val2`, 16 corrected PANDA patches/step, λ_replay=0.3, patience 20, max 30, exclude cp079. Compare to replay-0.3 Val2 official cancer 0.641 and NC→cancer 7.7%.
+
+
 
 - **12:08 PDT** | **16 PANDA+ rescores folded onto 1 L40S** | Separate jobs 6150458–73 sat at QOSMaxCpuPerUserLimit: gpu-partition CPU cap is 32 and the 4 replay trains already use it | Cancelled those 16 pending jobs. One preemptable job **6150544** runs them in order on 1×L40S and skips any epoch already scored (`scripts/slurm_panda_plus_rescore_serial.sh`). Scheduled start 12:16 PDT; every L40S except the bad node cp079 is full.
 - **11:52 PDT** | **PANDA+ benign reported for every kept epoch; missing scores resubmitted** | User: do not drop epochs | Tversky Val1 14/14 ckpts, Val2 15/15, replay λ=1 Val2 18/18 still on disk. Clean-30 benign: Tversky falls to ≤0.04 after the early epochs; replay stays 0.75–0.79 on every scored epoch. 16 PANDA+ JSONs missing from the cp079 ECC failures, resubmitted **6150458–73** (queued behind the 8 L40S). Replay λ=0.3 four-fold **6150422–25** RUNNING, no epoch yet.
