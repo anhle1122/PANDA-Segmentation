@@ -1,3 +1,12 @@
+## Replay λ=0.3 + Tversky α=0.7 β=0.3, 4-fold (2026-10-15 22:03 PDT)
+
+- **Why:** Replay λ=0.3 official NC→cancer is 10.4% (heads 8.2%). Of G5 calls, 53.6% are true NC; true G5 is already called G5 87.9% of the time. FP-weighted Tversky charges extra cancer more than a miss. Val2-only would not be a clean ablation against 4-fold replay λ=0.3.
+- **What:** Same as replay λ=0.3 (16 corrected PANDA patches/step, λ_replay=0.3, patience 20, max 30) plus `--cancer-tversky-alpha 0.7 --cancer-tversky-beta 0.3`. Jobs **6183626 / 6183620 / 6183628 / 6183630** (Val1–4), watchers **6183627 / 6183621 / 6183629 / 6183631**. Tags `opt3_sicap_ft_ncmerge_replay03_tv73_val{1..4}`.
+- **Compare to:** replay-0.3 held-out cancer 0.661, official 0.612, official NC→cancer 10.4%, PANDA+ clean cancer 0.697 / benign 0.772. Val2 alone: official cancer 0.641, NC→cancer 7.7%.
+- **Result:** pending.
+
+---
+
 ## Replay λ=0.3, 4-fold (2026-10-12 11:38 PDT)
 
 - **Why:** λ=1 replay flipped the error. Heads undercalls (29% of cancer pixels → NC, 5% of NC → cancer). λ=1 replay undercalls only 9% of cancer but marks 13–17% of NC as cancer, and official Dice falls 0.636 → 0.582.
