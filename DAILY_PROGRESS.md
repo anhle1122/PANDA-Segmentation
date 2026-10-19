@@ -10,6 +10,10 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-10-19
+
+- **08:45 PDT** | **Three SICAP fold loops finished. No GPU train left.** | Replay λ=1, original Tversky, and replay 0.3 + FP Tversky each walked the remaining folds on 2×L40S. Official 31-slide and PANDA+ clean-30 scores exist for every selected epoch. | **6183643** Tversky α=0.3 β=0.7 finished 2026-10-17 01:18. 4-fold held-out cancer **0.635**, official **0.602**, official NC→cancer **9.2%**, PANDA+ clean cancer **0.615**. Val3 official is the weak one (0.559). **6183639** replay λ=1 finished 2026-10-17 19:43. Held-out **0.664**, official **0.593**, NC→cancer **13.1%**, PANDA+ clean **0.701**. **6183638** replay λ=0.3 + Tversky α=0.7 β=0.3 finished 2026-10-19 01:26. Held-out **0.653**, official **0.616**, NC→cancer **9.9%**, PANDA+ clean **0.706**. Replay λ=0.3 stays the joint point (held 0.661, official 0.612, NC→cancer 10.4%, PANDA+ 0.697). FP Tversky did not drop NC→cancer. CPU watchers 6183621/27/29/31 and 6183640–45 still RUNNING. No GPU job in the queue.
+
 ## 2026-10-15
 
 - **22:13 PDT** | **Each SICAP run is one 2×L40S loop. No H200.** | Four parallel replay+Tversky jobs filled the 32-CPU GPU cap and had saved no epoch. User wants every remaining fold, each recipe on 2 L40S. | Cancelled trains **6183620 / 6183626 / 6183628 / 6183630**. Loop script `scripts/slurm_train_sicap_ncmerge_foldloop.sh`.

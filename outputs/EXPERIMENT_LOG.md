@@ -5,7 +5,7 @@
   - **6183638** replay λ=0.3 + Tversky α=0.7 β=0.3, folds 1–4 in order. Replaces the four parallel jobs (no epoch had been saved).
   - **6183639** replay λ=1, folds 1, 3, 4. Val2 stays the finished run (job 6148305, best ep8). Patience 10.
   - **6183643** original Tversky α=0.3 β=0.7, folds 3 then 4. Val1–2 stay finished. Patience 10.
-- **Result:** pending. 4-fold means for replay λ=1 and original Tversky wait until these loops finish.
+- **Result (2026-10-19 08:45):** All three loops COMPLETED. Official Test and PANDA+ clean-30 exist for each selected epoch. Tversky α=0.3 β=0.7: held-out cancer 0.635, official 0.602, official NC→cancer 9.2%, PANDA+ clean cancer 0.615 (Val3 official 0.559). Replay λ=1: held-out 0.664, official 0.593, NC→cancer 13.1%, PANDA+ clean 0.701. Replay λ=0.3 + Tversky α=0.7 β=0.3: held-out 0.653, official 0.616, NC→cancer 9.9%, PANDA+ clean 0.706. Replay λ=0.3 remains the joint point (official 0.612, NC→cancer 10.4%, PANDA+ 0.697). FP Tversky did not drop NC→cancer.
 
 ---
 
@@ -14,7 +14,7 @@
 - **Why:** Replay λ=0.3 official NC→cancer is 10.4% (heads 8.2%). Of G5 calls, 53.6% are true NC; true G5 is already called G5 87.9% of the time. FP-weighted Tversky charges extra cancer more than a miss. Val2-only would not be a clean ablation against 4-fold replay λ=0.3.
 - **What:** Same as replay λ=0.3 (16 corrected PANDA patches/step, λ_replay=0.3, patience 20, max 30) plus `--cancer-tversky-alpha 0.7 --cancer-tversky-beta 0.3`. The four parallel jobs were cancelled before any epoch file. Now one loop, job **6183638**. Tags `opt3_sicap_ft_ncmerge_replay03_tv73_val{1..4}`.
 - **Compare to:** replay-0.3 held-out cancer 0.661, official 0.612, official NC→cancer 10.4%, PANDA+ clean cancer 0.697 / benign 0.772. Val2 alone: official cancer 0.641, NC→cancer 7.7%.
-- **Result:** pending. Running as the 22:13 loop.
+- **Result (2026-10-19 01:26):** Job **6183638** COMPLETED, all 4 folds. Best epochs Val1 ep13 / Val2 ep5 / Val3 ep4 / Val4 ep9. Held-out cancer mean 0.653 (0.636 / 0.663 / 0.696 / 0.616). Official cancer mean 0.616 (0.599 / 0.624 / 0.640 / 0.602). Official NC→cancer mean 9.9% (12.1 / 6.6 / 9.3 / 11.7). PANDA+ clean cancer mean 0.706. Versus replay λ=0.3: held-out 0.661→0.653, official 0.612→0.616, NC→cancer 10.4%→9.9%. The extra penalty on false cancer did not drop NC→cancer.
 
 ---
 
