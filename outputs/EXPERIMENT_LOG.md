@@ -1,3 +1,12 @@
+## Zero-shot SICAP pred vs mask (2026-10-21 12:34 PDT)
+
+- **Why:** Macenko recoloring left official-style cancer Dice at 0.472 vs 0.473. Need tiles that show the actual mistakes.
+- **What:** Job **6203019**, `src/render_sicap_pred_vs_mask.py`, zero-shot R3 epoch 6, official 2,122 tiles, native color. Six-class prediction drawn as-is. Error counts collapse background/stroma/benign to non-cancer.
+- **Result:** Interior NC→cancer **48.4%**, cancer→NC **5.6%**. Extreme tiles paint a whole non-cancer field as G4 or G5, or call an entire G3/G4 drawing benign or stroma. Panels: `outputs/evaluation/sicapv2/epoch_006_pred_vs_mask/`.
+- **Decision:** No recipe change. The pictures are the zero-shot model, before SICAP fine-tune.
+
+---
+
 ## Fold loops on 2×L40S (2026-10-15 22:13 PDT)
 
 - **Why:** One job per fold filled the GPU CPU cap. User asked for replay λ=1 on the remaining folds and the original Tversky (α=0.3, β=0.7) on Val3 and Val4, each recipe kept on one 2×L40S. Not H200.

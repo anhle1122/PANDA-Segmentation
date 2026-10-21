@@ -10,6 +10,10 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-10-21
+
+- **12:34 PDT** | **Official-test pictures of zero-shot predictions vs SICAP masks** | The Macenko score did not move, so the misses needed to be visible: non-cancer painted as cancer, and a cancer drawing called benign or stroma | Job **6203019** on 1×L40S, checkpoint `epoch_006_cancer_0.3488.pth`, 2,122 official tiles. Interior NC→cancer **48.4%**, cancer→NC **5.6%**. Panels in `outputs/evaluation/sicapv2/epoch_006_pred_vs_mask/`.
+
 ## 2026-10-19
 
 - **09:04 PDT** | **Replay Val1 held-out eval rerun** | The first Val1 held-out job 6185913 died in 30s from GPU out of memory, so class Dice and slide match were missing | Job **6190521** on 1×L40S, ckpt `epoch_021_cancer_0.6481.pth`, fold Val1. Cancer **0.648**, mean4 **0.719**, ISUP **19/29 (65.5%)**, class NC/G3/G4/G5 **0.931/0.616/0.725/0.603**. Four-fold held class mean is now 0.937/0.647/0.731/0.615, held ISUP 61.4%.
