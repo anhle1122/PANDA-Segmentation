@@ -12,6 +12,7 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-10-21
 
+- **12:57 PDT** | **Four official tiles as separate tissue / mask / prediction panels** | The earlier overlays made the prediction look painted on the mask | Job **6203111**, zero-shot R3 epoch 6. One tile each of sheet NC, G3, G4, G5. `outputs/evaluation/sicapv2/epoch_006_mask_vs_pred_separate/`.
 - **12:34 PDT** | **Official-test pictures of zero-shot predictions vs SICAP masks** | The Macenko score did not move, so the misses needed to be visible: non-cancer painted as cancer, and a cancer drawing called benign or stroma | Job **6203019** on 1×L40S, checkpoint `epoch_006_cancer_0.3488.pth`, 2,122 official tiles. Interior NC→cancer **48.4%**, cancer→NC **5.6%**. Panels in `outputs/evaluation/sicapv2/epoch_006_pred_vs_mask/`.
 
 ## 2026-10-19
