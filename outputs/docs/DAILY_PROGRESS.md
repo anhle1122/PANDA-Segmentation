@@ -12,6 +12,7 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-10-21
 
+- **14:29 PDT** | **SICAP prediction pictures checked against the official score** | User suspected a plotting bug in the zero-shot panels | Job **6203424** on 1×L40S. The picture code rescored the official 2,122 tiles and matched the saved summaries exactly: zero-shot R3 ep6 cancer **0.3816**, NC→cancer **49.6%**; replay 0.3 Val2 ep5 cancer **0.6412**, NC→cancer **7.7%**. Single-tile vs batched predictions agree ≥99.98% per tile. Side-by-side panels for both models: `outputs/evaluation/sicapv2/plot_check_zeroshot_vs_replay03/`.
 - **12:57 PDT** | **Four official tiles as separate tissue / mask / prediction panels** | The earlier overlays made the prediction look painted on the mask | Job **6203111**, zero-shot R3 epoch 6. One tile each of sheet NC, G3, G4, G5. `outputs/evaluation/sicapv2/epoch_006_mask_vs_pred_separate/`.
 - **12:34 PDT** | **Official-test pictures of zero-shot predictions vs SICAP masks** | The Macenko score did not move, so the misses needed to be visible: non-cancer painted as cancer, and a cancer drawing called benign or stroma | Job **6203019** on 1×L40S, checkpoint `epoch_006_cancer_0.3488.pth`, 2,122 official tiles. Interior NC→cancer **48.4%**, cancer→NC **5.6%**. Panels in `outputs/evaluation/sicapv2/epoch_006_pred_vs_mask/`.
 
