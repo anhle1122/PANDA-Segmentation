@@ -225,7 +225,7 @@ def sheet_grade(root: Path, stem: str) -> str:
 
 
 def render_named(model, device, args) -> None:
-    stems = [s.strip() for s in args.stems.split(",") if s.strip()]
+    stems = [s.strip() for s in args.stems.replace("|", ",").split(",") if s.strip()]
     ds = SicapPatchDataset(args.sicap_root, stems)
     args.out_dir.mkdir(parents=True, exist_ok=True)
     saved = []
