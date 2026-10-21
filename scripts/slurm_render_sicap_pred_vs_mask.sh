@@ -29,6 +29,10 @@ export PYTHONUNBUFFERED=1
 
 CKPT="${CKPT:-${PANDA_PROJECT}/outputs/checkpoints/uni2_upernet_raw_opt3_omar6_round3_ep7ref/epoch_006_cancer_0.3488.pth}"
 OUT_DIR="${OUT_DIR:-${PANDA_PROJECT}/outputs/evaluation/sicapv2/epoch_006_pred_vs_mask}"
+STEM_ARG=()
+if [[ -n "${STEMS:-}" ]]; then
+  STEM_ARG=(--stems "${STEMS}")
+fi
 if nvidia-smi -L 2>/dev/null | grep -qi 'H200'; then
   echo "ERROR: landed on H200; this render must use L40S"
   exit 1
@@ -39,5 +43,6 @@ python -u "${PANDA_CODE_SRC}/render_sicap_pred_vs_mask.py" \
   --checkpoint "${CKPT}" \
   --out-dir "${OUT_DIR}" \
   --batch-size 8 \
-  --num-each 3
+  --num-each 3 \
+  "${STEM_ARG[@]}"
 echo "=== OK $(date) | ${OUT_DIR} ==="
