@@ -79,17 +79,22 @@ def sheet_grades(root: Path) -> dict[str, int]:
 def tile_score(pred: np.ndarray, gt: np.ndarray) -> dict:
     """Macro Dice over {NC, G3, G4, G5} classes present in mask or prediction."""
     dices = []
+    per_class: dict[str, float] = {}
     for c in (0, 3, 4, 5):
         g = gt == c
         p = pred == c
         denom = int(g.sum() + p.sum())
-        if denom == 0:
-            continue
-        dices.append(2.0 * float((g & p).sum()) / denom)
+        d = 2.0 * float((g & p).sum()) / denom if denom else float("nan")
+        per_class[f"dice_{c}"] = d
+        if denom:
+            dices.append(d)
     cancer_g = gt >= 3
     cancer_p = pred >= 3
     denom = int(cancer_g.sum() + cancer_p.sum())
+    n_ca = int(cancer_g.sum())
     return {
+        **per_class,
+        **{f"gt_share_{c}": float((gt == c).sum() / n_ca) if n_ca else 0.0 for c in (3, 4, 5)},
         "macro_dice": float(np.mean(dices)) if dices else 0.0,
         "cancer_dice": 2.0 * float((cancer_g & cancer_p).sum()) / denom if denom else 1.0,
         "cancer_frac": float(cancer_g.mean()),
@@ -231,10 +236,12 @@ def main() -> None:
         pool = df[
             (df.sheet == g)
             & (df.cancer_frac >= 0.25)
-            & (df.cancer_frac <= 0.85)
-            & (df.tissue >= 0.6)
-            & df.classes_in_mask.apply(lambda cs, g=g: set(cs) <= {0, g})
-        ].sort_values("macro_dice", ascending=False)
+            & (df.cancer_frac <= 0.90)
+            & (df.tissue >= 0.5)
+            & (df[f"gt_share_{g}"] >= 0.8)
+        ].copy()
+        pool["grade_score"] = 0.5 * (pool["dice_0"] + pool[f"dice_{g}"])
+        pool = pool.sort_values("grade_score", ascending=False)
         picks[g] = pool.drop_duplicates("slide").head(args.per_grade).to_dict("records")
     pool = df[(df.sheet == 0) & (df.tissue >= 0.7)].sort_values(
         ["pred_cancer_frac", "tissue"], ascending=[True, False]
@@ -263,8 +270,19 @@ def main() -> None:
             chosen_meta.append(
                 {
                     k2: rec[k2]
-                    for k2 in ("stem", "slide", "sheet", "macro_dice", "cancer_dice", "cancer_frac", "pred_cancer_frac")
+                    for k2 in (
+                    "stem",
+                    "slide",
+                    "sheet",
+                    "macro_dice",
+                    "cancer_dice",
+                    "dice_0",
+                    f"dice_{g}" if g else "dice_0",
+                    "cancer_frac",
+                    "pred_cancer_frac",
+                )
                 }
+                | {"grade_dice": rec[f"dice_{g}"] if g else rec["dice_0"]}
                 | {"rank": k}
             )
 
@@ -280,8 +298,9 @@ def main() -> None:
         "checkpoint": str(args.checkpoint),
         "partition": "official Test.xlsx (2,122 tiles, 31 slides)",
         "prediction_display": "background/stroma/benign shown as non-cancer, as scored",
-        "selection": "per sheet grade, top per-tile macro Dice over {NC,G3,G4,G5}; one tile per slide; "
-        "cancer 25-85% of tile; single grade in mask; tissue >= 60%. NC: tissue >= 70%, least predicted cancer.",
+        "selection": "per sheet grade, top mean of NC Dice and sheet-grade Dice on the tile; one tile per slide; "
+        "cancer 25-90% of tile; sheet grade >= 80% of mask cancer; tissue >= 50%. "
+        "NC: tissue >= 70%, least predicted cancer.",
         "official_metrics": {k: float(overall[k]) for k in ("cancer", "mean4", "NC", "G3", "G4", "G5")},
         "per_tile_macro_dice_official_median": float(df.macro_dice.median()),
         "main_figure": [r["stem"] for r in main_rows],
@@ -290,8 +309,8 @@ def main() -> None:
     (args.out_dir / "figure_meta.json").write_text(json.dumps(summary, indent=2))
     for m in chosen_meta:
         print(
-            f"{GRADE_NAMES[m['sheet']]:10s} #{m['rank']} macro={m['macro_dice']:.3f} "
-            f"cancer={m['cancer_dice']:.3f} gt_ca={m['cancer_frac']:.2f} {m['stem']}",
+            f"{GRADE_NAMES[m['sheet']]:10s} #{m['rank']} grade={m['grade_dice']:.3f} "
+            f"NC={m['dice_0']:.3f} cancer={m['cancer_dice']:.3f} gt_ca={m['cancer_frac']:.2f} {m['stem']}",
             flush=True,
         )
     print(f"OK {args.out_dir}", flush=True)
