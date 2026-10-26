@@ -10,6 +10,10 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-10-26
+
+- **11:29 PDT** | **Manuscript SICAPv2 example figure** | User wants provided mask vs SICAP prediction, no zero-shot | Job **6296181** on 1×L40S, replay λ=0.3 Val2 epoch 5 (`epoch_005_cancer_0.6914.pth`, official cancer **0.641**, mean4 **0.713**). One official-test tile per row for NC / G3 / G4 / G5, picked by Dice of the tile's own grade, one tile per slide. Per-tile grade Dice 0.97 / 0.98 / 0.97 / 0.96. PNG + PDF, overlay and flat versions, plus 4 candidates per grade: `outputs/figures/sicap_best_examples_replay03_val2_ep005_v2/`.
+
 ## 2026-10-21
 
 - **14:29 PDT** | **SICAP prediction pictures checked against the official score** | User suspected a plotting bug in the zero-shot panels | Job **6203424** on 1×L40S. The picture code rescored the official 2,122 tiles and matched the saved summaries exactly: zero-shot R3 ep6 cancer **0.3816**, NC→cancer **49.6%**; replay 0.3 Val2 ep5 cancer **0.6412**, NC→cancer **7.7%**. Single-tile vs batched predictions agree ≥99.98% per tile. Side-by-side panels for both models: `outputs/evaluation/sicapv2/plot_check_zeroshot_vs_replay03/`.
