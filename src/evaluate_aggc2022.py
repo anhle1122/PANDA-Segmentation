@@ -20,6 +20,13 @@ Pipeline per slide:
      10x (nearest, ceil on non-integer sizes) -> "2x index image" -- this is
      a fixed scoring-resolution step, independent of the inference scale in
      step 2.
+  3b. Descriptive only, not scored: run the same derive_grade() used for
+      PANDA/SICAP on this slide's own predicted pixel counts and log the
+      Gleason/ISUP call per slide + a per-group histogram. AGGC ships no
+      slide-level ISUP/Gleason label, so there is nothing to validate this
+      against -- it is a sanity read of what the segmentation head "thinks"
+      the slide's grade is, not an accuracy number, and never touches the
+      grade_head (which isn't loaded for this eval at all, see evaluate.py).
   4. Accumulate one 6x6 confusion matrix per (subset, split, scale) group
      across all its slides (never pooled across subsets) and compute the
      official weighted F1 with a near-verbatim port of their eval.py. F1 and
@@ -59,6 +66,7 @@ from evaluate import (  # noqa: E402
     _peek_state_dict,
 )
 from patch_utils import OUTPUTS  # noqa: E402
+from isup_diagnostic import derive_grade  # noqa: E402
 
 DEFAULT_ROOT = Path("/common/omarmlab/data/AGGC_2022")
 AKOYA_MPP = 0.500553  # manual annotation scanner; Subset1/2 images are Akoya-scanned.
@@ -247,6 +255,7 @@ def run_group(
         names = names[:max_slides]
     cm = np.zeros((6, 6), dtype=np.int64)
     rows = []
+    isup_hist = np.zeros(6, dtype=np.int64)
     t0 = time.time()
     for i, sid in enumerate(names):
         img_path = find_image_path(img_dir, sid)
@@ -269,10 +278,25 @@ def run_group(
             row_pred = pred2[mask_gt]
             counts = np.bincount(row_pred, minlength=6)
             cm[c_gt, :] += counts
-        rows.append({"slide_id": sid, "w": w0, "h": h0})
+        # Descriptive only -- AGGC ships no slide-level ISUP/Gleason label, so
+        # there is nothing to score this against. Same derive_grade() as
+        # SICAP/PANDA, applied to this slide's own predicted pixel counts.
+        pred_counts = np.bincount(pred2.ravel(), minlength=6)
+        gleason, pred_isup = derive_grade(pred_counts, min_area_pct=0.0)
+        isup_hist[pred_isup] += 1
+        rows.append(
+            {
+                "slide_id": sid,
+                "w": w0,
+                "h": h0,
+                "pred_gleason": gleason,
+                "pred_isup": int(pred_isup),
+            }
+        )
         elapsed = time.time() - t0
         print(
-            f"  [{i + 1}/{len(names)}] {sid} {w0}x{h0} elapsed={elapsed:.0f}s",
+            f"  [{i + 1}/{len(names)}] {sid} {w0}x{h0} elapsed={elapsed:.0f}s "
+            f"pred_gleason={gleason} pred_isup={pred_isup}",
             flush=True,
         )
     metrics = weighted_f1_from_cm(cm)
@@ -284,12 +308,18 @@ def run_group(
         "n_listed": len(names),
         **metrics,
         "confusion_matrix": cm.tolist(),
+        # Descriptive only (AGGC has no slide-level ISUP/Gleason label to
+        # validate against) -- distribution of derive_grade() over this
+        # group's own predicted pixel counts, one slide = one vote.
+        "pred_isup_histogram": {str(i): int(n) for i, n in enumerate(isup_hist)},
     }
     tag_dir = out_dir / f"{subset}_{split}"
     tag_dir.mkdir(parents=True, exist_ok=True)
     (tag_dir / "summary.json").write_text(json.dumps(out, indent=2))
     with (tag_dir / "slides.csv").open("w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=["slide_id", "w", "h"])
+        w = csv.DictWriter(
+            f, fieldnames=["slide_id", "w", "h", "pred_gleason", "pred_isup"]
+        )
         w.writeheader()
         w.writerows(rows)
     print(
