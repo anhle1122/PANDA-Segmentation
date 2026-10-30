@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import time
 import zipfile
 from pathlib import Path
 
@@ -56,30 +57,54 @@ def install_file(src: Path, dest: Path, report: dict) -> None:
     print(f"INSTALL {how} {dest.name} ({dest.stat().st_size / 1e9:.2f}G)", flush=True)
 
 
+def extract_member(zpath: Path, info: zipfile.ZipInfo, dest: Path) -> None:
+    """Write to a side file, then rename. Retry NFS stale-handle errors."""
+    partial = dest.with_name(dest.name + ".partial")
+    last_err: OSError | None = None
+    for attempt in range(6):
+        try:
+            if partial.exists():
+                partial.unlink()
+            with zipfile.ZipFile(zpath) as zf, zf.open(info) as src, partial.open("wb") as out:
+                shutil.copyfileobj(src, out, length=8 * 1024 * 1024)
+                out.flush()
+                os.fsync(out.fileno())
+            os.replace(partial, dest)
+            return
+        except OSError as exc:
+            last_err = exc
+            if getattr(exc, "errno", None) != 116 or attempt == 5:
+                raise
+            print(f"RETRY {dest.name} stale file handle ({attempt + 1})", flush=True)
+            time.sleep(3 * (attempt + 1))
+    if last_err is not None:
+        raise last_err
+
+
 def install_zip(zpath: Path, report: dict) -> None:
     with zipfile.ZipFile(zpath) as zf:
-        for info in zf.infolist():
-            if info.is_dir() or not info.filename.lower().endswith((".tif", ".tiff")):
-                continue
-            name = Path(info.filename).name
-            if slide_id(name) is None:
-                report["skipped_name"].append(info.filename)
-                continue
-            dest = DEST / name
-            if info.file_size < MIN_BYTES:
-                report["skipped_small"].append({"name": name, "bytes": info.file_size, "zip": zpath.name})
-                print(f"SKIP small {name} inside {zpath.name}", flush=True)
-                continue
-            if dest.exists() and dest.stat().st_size >= info.file_size:
-                report["already_present"].append(name)
-                print(f"KEEP existing {name}", flush=True)
-                continue
-            if dest.exists():
-                dest.unlink()
-            with zf.open(info) as src, dest.open("wb") as out:
-                shutil.copyfileobj(src, out, length=8 * 1024 * 1024)
-            report["installed"].append({"name": name, "bytes": dest.stat().st_size, "how": f"unzip:{zpath.name}"})
-            print(f"INSTALL unzip {name} ({dest.stat().st_size / 1e9:.2f}G)", flush=True)
+        members = list(zf.infolist())
+    for info in members:
+        if info.is_dir() or not info.filename.lower().endswith((".tif", ".tiff")):
+            continue
+        name = Path(info.filename).name
+        if slide_id(name) is None:
+            report["skipped_name"].append(info.filename)
+            continue
+        dest = DEST / name
+        if info.file_size < MIN_BYTES:
+            report["skipped_small"].append({"name": name, "bytes": info.file_size, "zip": zpath.name})
+            print(f"SKIP small {name} inside {zpath.name}", flush=True)
+            continue
+        if dest.exists() and dest.stat().st_size >= info.file_size:
+            report["already_present"].append(name)
+            print(f"KEEP existing {name}", flush=True)
+            continue
+        if dest.exists():
+            dest.unlink()
+        extract_member(zpath, info, dest)
+        report["installed"].append({"name": name, "bytes": dest.stat().st_size, "how": f"unzip:{zpath.name}"})
+        print(f"INSTALL unzip {name} ({dest.stat().st_size / 1e9:.2f}G)", flush=True)
 
 
 def main() -> None:
