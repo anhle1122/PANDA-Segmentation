@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Install Subset1 Train TIFFs from _incoming/batch4 into the scorer folder,
-# then move the download pile to _archive/incoming. CPU only.
+# then move the download pile to _archive/incoming. CPU only. Not the login node.
 #SBATCH --job-name=aggc_organize
 #SBATCH --partition=defq
 #SBATCH --qos=normal
