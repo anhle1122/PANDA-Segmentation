@@ -10,6 +10,10 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-10-30
+
+- **09:48 PDT** | **Stage B both finished; AGGC slide-level Macenko mixed** | Overnight jobs completed | **SICAP official Test (31 slides, last epoch only):** replay-0.3 E=6 (`6354192`, finished 01:56) cancer **0.628** / mean4 **0.702** / binary **0.730** / NC→cancer **9.4%** / ISUP **15/31** (`official_epoch_006_cancer_0.6893`). Replay-0.3+Tversky E=7 (`6355727` on 2×H200, finished 01:57) cancer **0.626** / mean4 **0.701** / binary **0.732** / NC→cancer **9.0%** / ISUP **15/31** (`official_epoch_007_cancer_0.6792`). Essentially tied; Tversky's early train-sample lead did not hold on the official test. Both beat zero-shot official **0.382** and the CV official means (replay 0.612, replay+Tversky 0.616). The `cancer_0.6893` / `0.6792` filenames are the train-pool monitor, not a held-out val. **PANDA+ clean-30:** replay peaked ep2 **0.710** then last-ep **0.701**; Tversky peaked ep2 **0.711** then last-ep **0.694** (zero-shot R3 ep6 was **0.712**). ISUP clean-30 fell from ~0.70 at ep2 to 0.53 / 0.60 at the last epoch (zero-shot was 0.77). **AGGC slide-level Macenko vs raw, same R3 ep6:** Subset2 got worse (Train wF1 0.555→**0.508**, G5 0.117→**0.070**; Test 0.533→**0.476**, G5 0.083→**0.066**). Subset1 Test to10x got better (wF1 0.586→**0.624**, G5 0.308→**0.347**). Jobs **6355685 / 6355418 / 6355694** all COMPLETED. Watchers **6354199 / 6354434** still up; official evals already done.
+
 ## 2026-10-26
 
 - **11:29 PDT** | **Manuscript SICAPv2 example figure** | User wants provided mask vs SICAP prediction, no zero-shot | Job **6296181** on 1×L40S, replay λ=0.3 Val2 epoch 5 (`epoch_005_cancer_0.6914.pth`, official cancer **0.641**, mean4 **0.713**). One official-test tile per row for NC / G3 / G4 / G5, picked by Dice of the tile's own grade, one tile per slide. Per-tile grade Dice 0.97 / 0.98 / 0.97 / 0.96. PNG + PDF, overlay and flat versions, plus 4 candidates per grade: `outputs/figures/sicap_best_examples_replay03_val2_ep005_v2/`.
