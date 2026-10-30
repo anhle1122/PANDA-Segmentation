@@ -67,6 +67,8 @@ from evaluate import (  # noqa: E402
 )
 from patch_utils import OUTPUTS  # noqa: E402
 from isup_diagnostic import derive_grade  # noqa: E402
+from stain_normalize import get_normalizer, load_reference_patch  # noqa: E402
+from stain_norm_sicap import PANDA_REFERENCE  # noqa: E402
 
 DEFAULT_ROOT = Path("/common/omarmlab/data/AGGC_2022")
 AKOYA_MPP = 0.500553  # manual annotation scanner; Subset1/2 images are Akoya-scanned.
@@ -132,12 +134,19 @@ def infer_index_map(
     scale_factor: float,
     tile: int = 512,
     batch_tiles: int = 8,
+    stain_normalizer: object | None = None,
 ) -> np.ndarray:
     """Full-slide tiled inference -> argmax index map at the image's NATIVE resolution.
 
     scale_factor applies to the INPUT before tiling (e.g. 0.5 to go from
     ~20x/0.5um toward SICAP's ~10x/1.0um). The output is resized back up to
     img's native (W, H) with nearest-neighbor so it aligns with the GT map.
+
+    stain_normalizer (optional): a staintools normalizer already .fit() to a
+    PANDA reference patch. Applied per-tile (post-tissue-skip) to color-match
+    AGGC's Akoya scans to PANDA's training distribution before the forward
+    pass. staintools can raise on near-blank/low-tissue tiles; on failure we
+    silently keep the raw tile rather than drop it.
     """
     w0, h0 = img.size
     if abs(scale_factor - 1.0) > 1e-6:
@@ -171,9 +180,14 @@ def infer_index_map(
 
     for i in range(0, len(coords), batch_tiles):
         batch_coords = coords[i : i + batch_tiles]
-        batch = np.stack(
-            [arr[y : y + tile, x : x + tile] for y, x in batch_coords], axis=0
-        )
+        tiles = [arr[y : y + tile, x : x + tile].copy() for y, x in batch_coords]
+        if stain_normalizer is not None:
+            for ti, t in enumerate(tiles):
+                try:
+                    tiles[ti] = stain_normalizer.transform(t)
+                except Exception:
+                    pass  # low-tissue tile or staintools fit failure -> keep raw
+        batch = np.stack(tiles, axis=0)
         x = torch.from_numpy(batch).permute(0, 3, 1, 2).float().to(device) / 255.0
         with torch.autocast(device_type=device.type, enabled=amp and device.type == "cuda"):
             logits = model(x)
@@ -247,6 +261,7 @@ def run_group(
     batch_tiles: int,
     max_slides: int,
     out_dir: Path,
+    stain_normalizer: object | None = None,
 ) -> dict:
     img_dir = root / subset / split / "images"
     ann_dir = root / subset / split / "annotations"
@@ -266,7 +281,7 @@ def run_group(
         w0, h0 = img.size
         pred = infer_index_map(
             model, img, device=device, amp=amp, scale_factor=scale_factor,
-            tile=tile, batch_tiles=batch_tiles,
+            tile=tile, batch_tiles=batch_tiles, stain_normalizer=stain_normalizer,
         )
         gt = build_gt_index_map(ann_dir, sid, (h0, w0))
         gt2 = downsize_10x(gt)
@@ -353,6 +368,15 @@ def main() -> None:
     p.add_argument("--amp", action="store_true")
     p.add_argument("--max-slides", type=int, default=0, help="0 = all; >0 for a smoke test.")
     p.add_argument("--out-dir", type=Path, default=None)
+    p.add_argument(
+        "--stain-norm",
+        action="store_true",
+        help=(
+            "Macenko/Vahadane-normalize each tile to a single PANDA reference patch "
+            "before the forward pass (color-match Akoya scans to PANDA's training domain)."
+        ),
+    )
+    p.add_argument("--stain-method", choices=("macenko", "vahadane"), default="macenko")
     args = p.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -367,14 +391,26 @@ def main() -> None:
     model.to(device).eval()
 
     scale_factor = args.native_mpp / args.target_mpp if args.scale_mode == "to10x" else 1.0
+    stain_normalizer = None
+    out_suffix = args.scale_mode
+    if args.stain_norm:
+        ref_img = load_reference_patch(PANDA_REFERENCE)
+        stain_normalizer, backend = get_normalizer(args.stain_method)
+        stain_normalizer.fit(ref_img)
+        out_suffix = f"{args.scale_mode}_{args.stain_method}norm"
+        print(
+            f"stain_norm={args.stain_method} backend={backend} ref={PANDA_REFERENCE}",
+            flush=True,
+        )
     print(
         f"ckpt={args.checkpoint} arch={resolved} decode_norm={decode_norm} lora={use_lora} "
-        f"scale_mode={args.scale_mode} scale_factor={scale_factor:.4f} groups={args.groups}",
+        f"scale_mode={args.scale_mode} scale_factor={scale_factor:.4f} groups={args.groups} "
+        f"stain_norm={bool(stain_normalizer)}",
         flush=True,
     )
 
     out_dir = args.out_dir or (
-        OUTPUTS / "evaluation" / "aggc2022" / f"{args.checkpoint.stem}_{args.scale_mode}"
+        OUTPUTS / "evaluation" / "aggc2022" / f"{args.checkpoint.stem}_{out_suffix}"
     )
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -387,6 +423,7 @@ def main() -> None:
                 model, device, args.aggc_root, subset, split,
                 scale_factor=scale_factor, amp=args.amp, tile=args.tile_size,
                 batch_tiles=args.batch_tiles, max_slides=args.max_slides, out_dir=out_dir,
+                stain_normalizer=stain_normalizer,
             )
         )
     (out_dir / "all_groups.json").write_text(json.dumps(results, indent=2))

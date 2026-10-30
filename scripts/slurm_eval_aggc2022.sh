@@ -33,6 +33,12 @@ AGGC_GROUPS="${AGGC_GROUPS:-Subset1/Test,Subset2/Train,Subset2/Test}"
 SCALE_MODE="${SCALE_MODE:-native}"
 MAX_SLIDES="${MAX_SLIDES:-0}"
 BATCH_TILES="${BATCH_TILES:-8}"
+STAIN_NORM="${STAIN_NORM:-0}"
+STAIN_METHOD="${STAIN_METHOD:-macenko}"
+STAIN_ARGS=()
+if [[ "${STAIN_NORM}" == "1" ]]; then
+  STAIN_ARGS=(--stain-norm --stain-method "${STAIN_METHOD}")
+fi
 if [[ -z "${CKPT}" || ! -f "${CKPT}" ]]; then
   echo "ERROR: set CKPT= to a .pth (or pass as arg1)"
   exit 1
@@ -45,7 +51,11 @@ fi
 echo "=== $(date) | AGGC2022 eval | ckpt=${CKPT} groups=${AGGC_GROUPS} scale_mode=${SCALE_MODE} max_slides=${MAX_SLIDES} ==="
 nvidia-smi -L || true
 STEM="$(basename "${CKPT}" .pth)"
-OUT_DIR="${OUT_DIR:-${PANDA_PROJECT}/outputs/evaluation/aggc2022/${STEM}_${SCALE_MODE}}"
+OUT_SUFFIX="${SCALE_MODE}"
+if [[ "${STAIN_NORM}" == "1" ]]; then
+  OUT_SUFFIX="${SCALE_MODE}_${STAIN_METHOD}norm"
+fi
+OUT_DIR="${OUT_DIR:-${PANDA_PROJECT}/outputs/evaluation/aggc2022/${STEM}_${OUT_SUFFIX}}"
 python -u "${PANDA_CODE_SRC}/evaluate_aggc2022.py" \
   --checkpoint "${CKPT}" \
   --aggc-root "${AGGC_ROOT}" \
@@ -54,5 +64,6 @@ python -u "${PANDA_CODE_SRC}/evaluate_aggc2022.py" \
   --batch-tiles "${BATCH_TILES}" \
   --max-slides "${MAX_SLIDES}" \
   --amp \
+  "${STAIN_ARGS[@]}" \
   --out-dir "${OUT_DIR}"
 echo "=== OK $(date) | ${OUT_DIR} ==="
