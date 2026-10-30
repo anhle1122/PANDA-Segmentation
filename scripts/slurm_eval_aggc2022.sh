@@ -35,9 +35,10 @@ MAX_SLIDES="${MAX_SLIDES:-0}"
 BATCH_TILES="${BATCH_TILES:-8}"
 STAIN_NORM="${STAIN_NORM:-0}"
 STAIN_METHOD="${STAIN_METHOD:-macenko}"
+STAIN_LEVEL="${STAIN_LEVEL:-slide}"
 STAIN_ARGS=()
 if [[ "${STAIN_NORM}" == "1" ]]; then
-  STAIN_ARGS=(--stain-norm --stain-method "${STAIN_METHOD}")
+  STAIN_ARGS=(--stain-norm --stain-method "${STAIN_METHOD}" --stain-norm-level "${STAIN_LEVEL}")
 fi
 if [[ -z "${CKPT}" || ! -f "${CKPT}" ]]; then
   echo "ERROR: set CKPT= to a .pth (or pass as arg1)"
@@ -53,7 +54,7 @@ nvidia-smi -L || true
 STEM="$(basename "${CKPT}" .pth)"
 OUT_SUFFIX="${SCALE_MODE}"
 if [[ "${STAIN_NORM}" == "1" ]]; then
-  OUT_SUFFIX="${SCALE_MODE}_${STAIN_METHOD}norm"
+  OUT_SUFFIX="${SCALE_MODE}_${STAIN_METHOD}norm_${STAIN_LEVEL}"
 fi
 OUT_DIR="${OUT_DIR:-${PANDA_PROJECT}/outputs/evaluation/aggc2022/${STEM}_${OUT_SUFFIX}}"
 python -u "${PANDA_CODE_SRC}/evaluate_aggc2022.py" \

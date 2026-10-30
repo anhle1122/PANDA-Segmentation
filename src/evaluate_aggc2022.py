@@ -67,11 +67,90 @@ from evaluate import (  # noqa: E402
 )
 from patch_utils import OUTPUTS  # noqa: E402
 from isup_diagnostic import derive_grade  # noqa: E402
-from stain_normalize import get_normalizer, load_reference_patch  # noqa: E402
+from stain_normalize import (  # noqa: E402
+    LUMINOSITY_THRESHOLD,
+    get_concentrations,
+    get_normalizer,
+    load_reference_patch,
+    tissue_content_fraction,
+)
 from stain_norm_sicap import PANDA_REFERENCE  # noqa: E402
 
 DEFAULT_ROOT = Path("/common/omarmlab/data/AGGC_2022")
 AKOYA_MPP = 0.500553  # manual annotation scanner; Subset1/2 images are Akoya-scanned.
+# Per-tile Macenko re-estimates a SOURCE stain matrix from just that one tile.
+# A near-blank tile with only a speck of debris can pass the crude mean/std
+# bg-skip check but still have far too little real tissue for a stable
+# estimate -> blows up into a solid dark block (confirmed visually, see
+# viz_aggc_stain_stitch.py). Gate stain-norm specifically on this stricter,
+# proper LAB-luminosity tissue fraction; the model forward pass still runs
+# on the raw (un-normalized) tile either way.
+MIN_TISSUE_FRAC_FOR_STAIN_NORM = 0.20
+MIN_SLIDE_TISSUE_PIXELS = 5000
+
+
+def _lab_tissue_mask(arr: np.ndarray) -> np.ndarray:
+    """True where pixel is real tissue (LAB luminosity < threshold), same rule
+    as stain_normalize.tissue_content_fraction, just returning the mask."""
+    import cv2
+
+    lab = cv2.cvtColor(arr.astype(np.uint8), cv2.COLOR_RGB2LAB)
+    l_channel = lab[:, :, 0] / 255.0
+    return l_channel < LUMINOSITY_THRESHOLD
+
+
+def estimate_slide_stain_matrix(
+    normalizer, img: Image.Image, *, max_side: int = 4096
+) -> tuple[np.ndarray, np.ndarray] | None:
+    """One SOURCE stain matrix + max concentration for the WHOLE slide.
+
+    Same math as stain_normalize.estimate_stain_stats (slide-level source
+    stain), reimplemented with a simple LAB-luminosity tissue mask instead of
+    that function's artifact/glass mask -- the ink/glass module it imports
+    (patch_filter_rules) does not exist in this checkout. Estimated once from
+    a downsampled thumbnail (color statistics, not spatial detail, so this is
+    cheap and stable) and then applied identically to every tile of this
+    slide -- no per-tile re-estimation, so no tile-to-tile seams.
+    """
+    w0, h0 = img.size
+    scale = min(1.0, max_side / max(w0, h0))
+    sample = img
+    if scale < 1.0:
+        sample = img.resize(
+            (max(1, round(w0 * scale)), max(1, round(h0 * scale))), Image.BILINEAR
+        )
+    arr = np.asarray(sample.convert("RGB"), dtype=np.uint8)
+    tissue_mask = _lab_tissue_mask(arr)
+    if int(tissue_mask.sum()) < MIN_SLIDE_TISSUE_PIXELS:
+        return None
+    tissue_pixels = arr[tissue_mask]
+    fake_img = tissue_pixels.reshape(1, -1, 3)
+    stain_matrix = normalizer.extractor.get_stain_matrix(fake_img)
+    concentrations = get_concentrations(fake_img, stain_matrix)
+    max_c = np.percentile(concentrations, 99, axis=0).reshape((1, 2))
+    return stain_matrix, max_c
+
+
+def transform_tile_with_slide_stats(
+    normalizer,
+    tile: np.ndarray,
+    stain_matrix_source: np.ndarray,
+    max_c_source: np.ndarray,
+) -> np.ndarray:
+    """Normalize only this tile's tissue pixels using the SLIDE-level stain
+    matrix (not re-estimated per tile). Non-tissue pixels stay raw."""
+    tissue_mask = _lab_tissue_mask(tile)
+    out = tile.copy()
+    if not tissue_mask.any():
+        return out
+    tissue_pixels = tile[tissue_mask]
+    fake_img = tissue_pixels.reshape(1, -1, 3).astype(np.uint8)
+    concentrations = get_concentrations(fake_img, stain_matrix_source)
+    concentrations = concentrations * (normalizer.maxC_target / max_c_source)
+    tmp = 255 * np.exp(-1 * np.dot(concentrations, normalizer.stain_matrix_target))
+    normalized_pixels = tmp.reshape(-1, 3).astype(np.uint8)
+    out[tissue_mask] = normalized_pixels
+    return out
 
 # Paint order = ascending malignancy; last write wins -> most malignant wins.
 MASK_PRIORITY = [
@@ -135,6 +214,7 @@ def infer_index_map(
     tile: int = 512,
     batch_tiles: int = 8,
     stain_normalizer: object | None = None,
+    slide_stain_stats: tuple[np.ndarray, np.ndarray] | None = None,
 ) -> np.ndarray:
     """Full-slide tiled inference -> argmax index map at the image's NATIVE resolution.
 
@@ -143,10 +223,14 @@ def infer_index_map(
     img's native (W, H) with nearest-neighbor so it aligns with the GT map.
 
     stain_normalizer (optional): a staintools normalizer already .fit() to a
-    PANDA reference patch. Applied per-tile (post-tissue-skip) to color-match
-    AGGC's Akoya scans to PANDA's training distribution before the forward
-    pass. staintools can raise on near-blank/low-tissue tiles; on failure we
-    silently keep the raw tile rather than drop it.
+    PANDA reference patch.
+      - slide_stain_stats given: whole-slide-consistent normalization -- one
+        (stain_matrix, max_c) estimated for this whole slide, applied
+        identically to every tile (transform_tile_with_slide_stats). No
+        per-tile re-estimation, so no tile-to-tile color seams.
+      - slide_stain_stats=None: legacy per-tile normalization (each tile
+        re-estimates its own source stain matrix); gated on
+        tissue_content_fraction to avoid the near-blank-tile blowup bug.
     """
     w0, h0 = img.size
     if abs(scale_factor - 1.0) > 1e-6:
@@ -181,12 +265,23 @@ def infer_index_map(
     for i in range(0, len(coords), batch_tiles):
         batch_coords = coords[i : i + batch_tiles]
         tiles = [arr[y : y + tile, x : x + tile].copy() for y, x in batch_coords]
-        if stain_normalizer is not None:
+        if stain_normalizer is not None and slide_stain_stats is not None:
+            stain_matrix_source, max_c_source = slide_stain_stats
             for ti, t in enumerate(tiles):
+                try:
+                    tiles[ti] = transform_tile_with_slide_stats(
+                        stain_normalizer, t, stain_matrix_source, max_c_source
+                    )
+                except Exception:
+                    pass  # keep raw tile on failure (e.g. degenerate concentrations)
+        elif stain_normalizer is not None:
+            for ti, t in enumerate(tiles):
+                if tissue_content_fraction(t) < MIN_TISSUE_FRAC_FOR_STAIN_NORM:
+                    continue  # too little real tissue for a stable per-tile stain fit
                 try:
                     tiles[ti] = stain_normalizer.transform(t)
                 except Exception:
-                    pass  # low-tissue tile or staintools fit failure -> keep raw
+                    pass  # staintools fit failure -> keep raw tile
         batch = np.stack(tiles, axis=0)
         x = torch.from_numpy(batch).permute(0, 3, 1, 2).float().to(device) / 255.0
         with torch.autocast(device_type=device.type, enabled=amp and device.type == "cuda"):
@@ -262,6 +357,7 @@ def run_group(
     max_slides: int,
     out_dir: Path,
     stain_normalizer: object | None = None,
+    stain_norm_level: str = "slide",
 ) -> dict:
     img_dir = root / subset / split / "images"
     ann_dir = root / subset / split / "annotations"
@@ -279,9 +375,15 @@ def run_group(
             continue
         img = Image.open(img_path)
         w0, h0 = img.size
+        slide_stats = None
+        if stain_normalizer is not None and stain_norm_level == "slide":
+            slide_stats = estimate_slide_stain_matrix(stain_normalizer, img)
+            if slide_stats is None:
+                print(f"  WARN {sid}: too little tissue to estimate slide stain, raw", flush=True)
         pred = infer_index_map(
             model, img, device=device, amp=amp, scale_factor=scale_factor,
             tile=tile, batch_tiles=batch_tiles, stain_normalizer=stain_normalizer,
+            slide_stain_stats=slide_stats,
         )
         gt = build_gt_index_map(ann_dir, sid, (h0, w0))
         gt2 = downsize_10x(gt)
@@ -377,6 +479,15 @@ def main() -> None:
         ),
     )
     p.add_argument("--stain-method", choices=("macenko", "vahadane"), default="macenko")
+    p.add_argument(
+        "--stain-norm-level",
+        choices=("slide", "tile"),
+        default="slide",
+        help=(
+            "slide: one stain matrix estimated per whole slide, applied to every "
+            "tile (no seams, recommended). tile: legacy per-tile re-estimation."
+        ),
+    )
     args = p.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -397,9 +508,10 @@ def main() -> None:
         ref_img = load_reference_patch(PANDA_REFERENCE)
         stain_normalizer, backend = get_normalizer(args.stain_method)
         stain_normalizer.fit(ref_img)
-        out_suffix = f"{args.scale_mode}_{args.stain_method}norm"
+        out_suffix = f"{args.scale_mode}_{args.stain_method}norm_{args.stain_norm_level}"
         print(
-            f"stain_norm={args.stain_method} backend={backend} ref={PANDA_REFERENCE}",
+            f"stain_norm={args.stain_method} level={args.stain_norm_level} "
+            f"backend={backend} ref={PANDA_REFERENCE}",
             flush=True,
         )
     print(
@@ -423,7 +535,7 @@ def main() -> None:
                 model, device, args.aggc_root, subset, split,
                 scale_factor=scale_factor, amp=args.amp, tile=args.tile_size,
                 batch_tiles=args.batch_tiles, max_slides=args.max_slides, out_dir=out_dir,
-                stain_normalizer=stain_normalizer,
+                stain_normalizer=stain_normalizer, stain_norm_level=args.stain_norm_level,
             )
         )
     (out_dir / "all_groups.json").write_text(json.dumps(results, indent=2))
