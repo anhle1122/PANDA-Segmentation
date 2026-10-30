@@ -57,6 +57,10 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
   - Unit test `scripts/test_sicap_nc_merge.py`: Tversky(0.5,0.5) == old Dice (exact) → `TVERSKY_OK`.
 - **Open tomorrow:** read sweep JSONs; per-epoch watcher results for the 3 trains; decide Stage B recipe (heads vs Tversky vs replay). AGGC2022 still needs real TIFFs re-downloaded from the laptop.
 
+## 2026-10-29
+
+- **19:39 PDT** | **Stage B launched: SICAP full-train, replay λ=0.3, E=6** | User confirmed replay λ=0.3 is the standing-best recipe; CV done, E is known | Added `--sicap-split full_train` (`src/train_uni2_sicap_finetune.py`, `src/train/sicap_slide_bag.py`: loads `partition/Test/Train.xlsx`, 9959 patches, 124 slides; requires `--early-stop-patience 0`). E recomputed for the **replay λ=0.3** CV (not the plain-heads CV): best epochs Val1=7/Val2=5/Val3=4/Val4=9 → median **6**. Train **6354192** (2×L40S), tag `opt3_sicap_ft_ncmerge_fulltrain_replay03_e6`: heads λ_slide=λ_grade=0.3, replay λ=0.3 (16 corrected-PANDA patches/step, `corrections_opt3_omar6_round2_ep14ref_ep007`), same init/LoRA/freeze as CV, 6 epochs fixed, no early stop. New watcher `scripts/watch_sicap_stageB.py` + `slurm_watch_sicap_stageB.sh` (job **6354199**): PANDA+ clean-30 every epoch (drift only, never selection — no SICAP Val fold exists here), official SICAPv2 Test scored **once** on the **last** epoch (E=6) when training finishes. Confirmed wiring: `sicap_nc_merge=1`, `REPLAY_OK`, `lora_params_in_optimizer=1179648`.
+
 ## 2026-10-04
 
 - **12:25 PDT** | **SICAP canvas: zero-shot vs FT seg-only vs FT + heads; all ISUP filled** | User: compare all three incl. per-fold ISUP | Zero-shot R3 ep6 slide ISUP Val2–4 scored (**6115160**): Val1–4 = 37.9 / 55.6 / 53.3 / 42.1%, **mean 47.2%** (≈ seg-only 47.4%; heads 57.9%). Backfilled 19 missing per-epoch SICAP evals (**6115161–79**, `outputs/evaluation/sicapv2/backfill_*`), so every epoch of both FT runs has class Dice + ISUP. Canvas `sicap-ncmerge-cv-results.canvas.tsx` rebuilt (Summary: 3-way Val / official / per-fold ISUP; fold tabs: both runs every epoch).

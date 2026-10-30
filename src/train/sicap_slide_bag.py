@@ -45,7 +45,15 @@ def slide_id_from_patch(name: str) -> str:
 
 
 def load_split_names(root: Path, fold: int, split: str) -> list[str]:
-    path = root / "partition" / "Validation" / f"Val{fold}" / f"{split}.xlsx"
+    if split == "full_train":
+        # Stage B: all of partition/Test/Train.xlsx (9959 patches). No held-out
+        # Val slice — fold is ignored. partition/Test/Test.xlsx is the official
+        # holdout, scored once (Stage C), never loaded here.
+        path = root / "partition" / "Test" / "Train.xlsx"
+    elif split == "official_test":
+        path = root / "partition" / "Test" / "Test.xlsx"
+    else:
+        path = root / "partition" / "Validation" / f"Val{fold}" / f"{split}.xlsx"
     df = pd.read_excel(path)
     col = "image_name" if "image_name" in df.columns else df.columns[0]
     return [str(x) for x in df[col].tolist()]

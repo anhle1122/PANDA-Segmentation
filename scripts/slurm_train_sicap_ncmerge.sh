@@ -64,6 +64,7 @@ RUN_TAG="${RUN_TAG:-opt3_sicap_ft_ncmerge_val1}"
 FOLD="${FOLD:-1}"
 EPOCHS="${EPOCHS:-30}"
 EARLY_STOP_PATIENCE="${EARLY_STOP_PATIENCE:-20}"
+SICAP_SPLIT="${SICAP_SPLIT:-cv}"
 LAMBDA_SLIDE="${LAMBDA_SLIDE:-0.3}"
 LAMBDA_GRADE="${LAMBDA_GRADE:-0.3}"
 SLIDES_PER_EPOCH="${SLIDES_PER_EPOCH:-0}"
@@ -121,6 +122,7 @@ CMD=(
   --augment
   --num-workers 4
   --grad-clip 1.0
+  --sicap-split "${SICAP_SPLIT}"
 )
 # Warmup only when slide loss is on; pixel-only ablation keeps λ=0 every epoch.
 if awk "BEGIN{exit !(${LAMBDA_SLIDE} > 0)}"; then

@@ -120,12 +120,33 @@ def train(args: argparse.Namespace) -> None:
     log_path = ckpt_dir / "training_log.csv"
     root = Path(args.sicap_root)
 
-    train_ds = SicapSlideBagDataset(
-        root, fold=args.fold, split="Train", augment=bool(args.augment), seed=args.seed
-    )
-    val_store = SicapSlideBagDataset(
-        root, fold=args.fold, split="Test", augment=False, seed=args.seed
-    ).base
+    full_train = args.sicap_split == "full_train"
+    if full_train:
+        # Stage B: train on ALL of partition/Test/Train.xlsx. No patient-held-out
+        # Val slice exists here — partition/Test/Test.xlsx is the official
+        # holdout and is never loaded during training (scored once, Stage C).
+        # val_store below is a fixed, unaugmented SAMPLE OF THE TRAIN POOL ITSELF,
+        # logged only as a training-set sanity signal. It is not held-out data,
+        # must never be used for early-stop/selection, and early-stop must be
+        # off (--early-stop-patience 0) whenever --sicap-split full_train.
+        if args.early_stop_patience:
+            raise SystemExit(
+                "--sicap-split full_train requires --early-stop-patience 0 "
+                "(Stage B trains a fixed epoch count E, no val-based stopping)."
+            )
+        train_ds = SicapSlideBagDataset(
+            root, fold=0, split="full_train", augment=bool(args.augment), seed=args.seed
+        )
+        val_store = SicapSlideBagDataset(
+            root, fold=0, split="full_train", augment=False, seed=args.seed
+        ).base
+    else:
+        train_ds = SicapSlideBagDataset(
+            root, fold=args.fold, split="Train", augment=bool(args.augment), seed=args.seed
+        )
+        val_store = SicapSlideBagDataset(
+            root, fold=args.fold, split="Test", augment=False, seed=args.seed
+        ).base
     if args.max_val_patches and len(val_store) > args.max_val_patches:
         rng = np.random.default_rng(args.seed)
         keep = sorted(
@@ -136,8 +157,9 @@ def train(args: argparse.Namespace) -> None:
     val_ds = SicapPatchDataset(val_store)
 
     if is_main_process(rank):
+        split_desc = "full_train (Stage B — NO held-out val; monitor = train sample)" if full_train else f"fold={args.fold}"
         print(
-            f"SICAP FT | fold={args.fold} root={root} | train {summarize_bags(train_ds)}",
+            f"SICAP FT | {split_desc} root={root} | train {summarize_bags(train_ds)}",
             flush=True,
         )
         print(
@@ -776,6 +798,16 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--run-tag", default="opt3_sicap_ft_r3ep6_val1_liveall")
     p.add_argument("--sicap-root", type=str, default=str(DEFAULT_SICAP_ROOT))
     p.add_argument("--fold", type=int, default=1, choices=[1, 2, 3, 4])
+    p.add_argument(
+        "--sicap-split",
+        choices=["cv", "full_train"],
+        default="cv",
+        help=(
+            "cv = Validation/Val{fold}/{Train,Test}.xlsx (default). "
+            "full_train = Stage B: train on ALL of partition/Test/Train.xlsx, "
+            "no held-out val; requires --early-stop-patience 0."
+        ),
+    )
     p.add_argument("--epochs", type=int, default=30)
     p.add_argument(
         "--early-stop-patience",
