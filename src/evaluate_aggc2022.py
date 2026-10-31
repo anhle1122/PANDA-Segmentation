@@ -414,6 +414,7 @@ def run_group(
             if pred_g5.any()
             else np.zeros(6, dtype=np.int64)
         )
+        gt_counts = np.bincount(gt2.ravel(), minlength=6)
         rows.append(
             {
                 "slide_id": sid,
@@ -421,6 +422,10 @@ def run_group(
                 "h": h0,
                 "pred_gleason": gleason,
                 "pred_isup": int(pred_isup),
+                "gt_g5": int(gt_counts[5]),
+                "pred_g5": int(g5_gt.sum()),
+                "gt_has_g5": int(gt_counts[5] > 0),
+                "pred_has_g5": int(g5_gt.sum() > 0),
                 "pred_g5_on_bg": int(g5_gt[0]),
                 "pred_g5_on_stroma": int(g5_gt[1]),
                 "pred_g5_on_normal": int(g5_gt[2]),
@@ -433,6 +438,7 @@ def run_group(
         print(
             f"  [{i + 1}/{len(names)}] {sid} {w0}x{h0} elapsed={elapsed:.0f}s "
             f"pred_gleason={gleason} pred_isup={pred_isup} "
+            f"gt_has_g5={int(gt_counts[5] > 0)} pred_has_g5={int(g5_gt.sum() > 0)} "
             f"predG5_on g3={int(g5_gt[3])} g4={int(g5_gt[4])} g5={int(g5_gt[5])} "
             f"stroma={int(g5_gt[1])} normal={int(g5_gt[2])} bg={int(g5_gt[0])}",
             flush=True,
@@ -463,6 +469,10 @@ def run_group(
                 "h",
                 "pred_gleason",
                 "pred_isup",
+                "gt_g5",
+                "pred_g5",
+                "gt_has_g5",
+                "pred_has_g5",
                 "pred_g5_on_bg",
                 "pred_g5_on_stroma",
                 "pred_g5_on_normal",
@@ -507,7 +517,7 @@ def main() -> None:
         "--slides",
         type=str,
         default="",
-        help="Optional comma list of slide_ids to score (e.g. Subset2_Test_3,Subset2_Test_14).",
+        help="Optional slide_ids (+ or comma). Use + in Slurm --export (commas split env vars).",
     )
     p.add_argument("--out-dir", type=Path, default=None)
     p.add_argument(
@@ -541,7 +551,11 @@ def main() -> None:
     load_model_weights(args.checkpoint, model)
     model.to(device).eval()
 
-    slide_ids = [s.strip() for s in args.slides.split(",") if s.strip()]
+    slide_ids = [
+        s.strip()
+        for s in args.slides.replace("+", ",").split(",")
+        if s.strip()
+    ]
     scale_factor = args.native_mpp / args.target_mpp if args.scale_mode == "to10x" else 1.0
     stain_normalizer = None
     out_suffix = args.scale_mode
