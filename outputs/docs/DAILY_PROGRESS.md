@@ -10,6 +10,10 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-10-31
+
+- **12:06 PDT** | **Redo Subset1 Test native Macenko; test-only scorecard** | Yesterday's **6358582** OOM'd at 64G after 3h16 | **6365288** RUNNING on 1×L40S `cp077`, 192G, batch-tiles 4, same SICAP-adapted ckpt `epoch_006_cancer_0.6893.pth`, groups=`Subset1/Test`, scale=native, slide Macenko. Out: `outputs/evaluation/aggc2022/sicap_ft_replay03_e6_ep006_native_subset1_macenkonorm_slide`. Test-only Subset1/2 page: canvas `aggc2022-test-subset12`. Headline remains S1 Test native raw **0.621**.
+
 ## 2026-10-30
 
 - **10:44 PDT** | **Subset1 Train images are in the scorer folder; downloads are archived** | The install has to finish before any Subset1 Train eval | Job **6358827** completed. `Subset1/Train/images` now has **94** TIFFs (was 41). Annotations still cover 105 slides. No image for ids 1, 10, 11, 62, 100–105, and 76 was left out because the file is a 4.5 MB stub. `_incoming` is now `_archive/incoming` (batch2, batch3, batch4, and the older Subset 1/2 zips). Live folders are only `Subset1`, `Subset2`, `Subset3`, plus `_archive`. Test sets and Subset2 Train were not rewritten. Subset1 Train scoring was not started.
