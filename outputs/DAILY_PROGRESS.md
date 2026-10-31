@@ -12,6 +12,8 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-10-31
 
+- **14:40 PDT** | **Any-G5 pixel rescore on all Test slides** | User wants slide G5 if any predicted G5 pixel exists, not only primary/secondary Gleason; also whether G4→G5 is only those 2 cores | **6365442** finished Test_3 only (sbatch comma ate Test_14): pred-G5 on that core is **11,165 G4 / 1,218 Normal / 0 G3**. Full any-G5 flag jobs: **6365466** Subset2 Test 16, **6365467** Subset1 Test 45, native raw, own dirs `..._native_subset2_anyg5` and `..._native_subset1_anyg5`. Pooled pixels already say pred-G5 is **59% G4 on S1** and **83% G4 on S2**.
+- **14:34 PDT** | **Rescore the two Subset2 Test cores called 4+5 with no G5 mask** | User asked whether predicted G5 on Test_3 / Test_14 sits on G4 or G3; the finished S2 run only saved a pooled CM | Evaluator now writes per-slide `pred_g5_on_*` and accepts `--slides`. **6365442** 1×L40S, same `epoch_006_cancer_0.6893.pth`, native raw, only `Subset2_Test_3,Subset2_Test_14`. Out: `outputs/evaluation/aggc2022/sicap_ft_replay03_e6_ep006_native_subset2_g5fp_slides`. Does not touch the 16-slide Test summary. **6365288** S1 native Macenko still RUNNING.
 - **12:06 PDT** | **Redo Subset1 Test native Macenko; test-only scorecard** | Yesterday's **6358582** OOM'd at 64G after 3h16 | **6365288** RUNNING on 1×L40S `cp077`, 192G, batch-tiles 4, same SICAP-adapted ckpt `epoch_006_cancer_0.6893.pth`, groups=`Subset1/Test`, scale=native, slide Macenko. Out: `outputs/evaluation/aggc2022/sicap_ft_replay03_e6_ep006_native_subset1_macenkonorm_slide`. Test-only Subset1/2 page: canvas `aggc2022-test-subset12`. Headline remains S1 Test native raw **0.621**.
 
 ## 2026-10-30

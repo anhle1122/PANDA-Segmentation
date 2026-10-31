@@ -1,5 +1,7 @@
 ## AGGC2022 zero-shot evaluator (2026-10-29 20:40 PDT)
 
+**Update (2026-10-31 14:40 PDT):** Any-G5 (any predicted G5 pixel) + per-slide pred-G5 vs mask. **6365442** only scored Test_3 (`--export` comma split). On Test_3 annotated pred-G5: G4 11165, Normal 1218, G3 0, G5 0. **6365466** all 16 S2 Test; **6365467** all 45 S1 Test. Commit `079535f`.
+
 **Update (2026-10-31 14:34 PDT):** Per-slide pred-G5 vs mask class (`--slides` + `pred_g5_on_*` columns). **6365442** scores only Subset2_Test_3 and _14 (the two no-G5 cores called 4+5) at native raw, own OUT_DIR `.../sicap_ft_replay03_e6_ep006_native_subset2_g5fp_slides`. Why: those slides have no GT G5; need to know if pred-G5 lands on G4 or G3. Commit `5fb517f`. **6365288** unchanged.
 
 **Update (2026-10-31 12:06 PDT):** Redo Subset1 Test native + slide Macenko. **6358582** was OOM-killed (64G, 3h16, exit 125). **6365288** RUNNING on 1×L40S `cp077` at **192G**, `BATCH_TILES=4`, same ckpt `epoch_006_cancer_0.6893.pth`, `OUT_DIR=.../sicap_ft_replay03_e6_ep006_native_subset1_macenkonorm_slide`. All other Test cells for Subset1/2 are already on disk; Subset1 Train still not scored.
