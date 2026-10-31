@@ -358,10 +358,17 @@ def run_group(
     out_dir: Path,
     stain_normalizer: object | None = None,
     stain_norm_level: str = "slide",
+    slide_ids: list[str] | None = None,
 ) -> dict:
     img_dir = root / subset / split / "images"
     ann_dir = root / subset / split / "annotations"
     names = list_slides(root, subset, split)
+    if slide_ids:
+        want = set(slide_ids)
+        names = [n for n in names if n in want]
+        missing = want - set(names)
+        if missing:
+            print(f"  WARN slides not in {subset}/{split}: {sorted(missing)}", flush=True)
     if max_slides:
         names = names[:max_slides]
     cm = np.zeros((6, 6), dtype=np.int64)
@@ -401,6 +408,12 @@ def run_group(
         pred_counts = np.bincount(pred2.ravel(), minlength=6)
         gleason, pred_isup = derive_grade(pred_counts, min_area_pct=0.0)
         isup_hist[pred_isup] += 1
+        pred_g5 = pred2 == 5
+        g5_gt = (
+            np.bincount(gt2[pred_g5], minlength=6)
+            if pred_g5.any()
+            else np.zeros(6, dtype=np.int64)
+        )
         rows.append(
             {
                 "slide_id": sid,
@@ -408,12 +421,20 @@ def run_group(
                 "h": h0,
                 "pred_gleason": gleason,
                 "pred_isup": int(pred_isup),
+                "pred_g5_on_bg": int(g5_gt[0]),
+                "pred_g5_on_stroma": int(g5_gt[1]),
+                "pred_g5_on_normal": int(g5_gt[2]),
+                "pred_g5_on_g3": int(g5_gt[3]),
+                "pred_g5_on_g4": int(g5_gt[4]),
+                "pred_g5_on_g5": int(g5_gt[5]),
             }
         )
         elapsed = time.time() - t0
         print(
             f"  [{i + 1}/{len(names)}] {sid} {w0}x{h0} elapsed={elapsed:.0f}s "
-            f"pred_gleason={gleason} pred_isup={pred_isup}",
+            f"pred_gleason={gleason} pred_isup={pred_isup} "
+            f"predG5_on g3={int(g5_gt[3])} g4={int(g5_gt[4])} g5={int(g5_gt[5])} "
+            f"stroma={int(g5_gt[1])} normal={int(g5_gt[2])} bg={int(g5_gt[0])}",
             flush=True,
         )
     metrics = weighted_f1_from_cm(cm)
@@ -435,7 +456,20 @@ def run_group(
     (tag_dir / "summary.json").write_text(json.dumps(out, indent=2))
     with (tag_dir / "slides.csv").open("w", newline="") as f:
         w = csv.DictWriter(
-            f, fieldnames=["slide_id", "w", "h", "pred_gleason", "pred_isup"]
+            f,
+            fieldnames=[
+                "slide_id",
+                "w",
+                "h",
+                "pred_gleason",
+                "pred_isup",
+                "pred_g5_on_bg",
+                "pred_g5_on_stroma",
+                "pred_g5_on_normal",
+                "pred_g5_on_g3",
+                "pred_g5_on_g4",
+                "pred_g5_on_g5",
+            ],
         )
         w.writeheader()
         w.writerows(rows)
@@ -469,6 +503,12 @@ def main() -> None:
     p.add_argument("--batch-tiles", type=int, default=8)
     p.add_argument("--amp", action="store_true")
     p.add_argument("--max-slides", type=int, default=0, help="0 = all; >0 for a smoke test.")
+    p.add_argument(
+        "--slides",
+        type=str,
+        default="",
+        help="Optional comma list of slide_ids to score (e.g. Subset2_Test_3,Subset2_Test_14).",
+    )
     p.add_argument("--out-dir", type=Path, default=None)
     p.add_argument(
         "--stain-norm",
@@ -501,6 +541,7 @@ def main() -> None:
     load_model_weights(args.checkpoint, model)
     model.to(device).eval()
 
+    slide_ids = [s.strip() for s in args.slides.split(",") if s.strip()]
     scale_factor = args.native_mpp / args.target_mpp if args.scale_mode == "to10x" else 1.0
     stain_normalizer = None
     out_suffix = args.scale_mode
@@ -536,6 +577,7 @@ def main() -> None:
                 scale_factor=scale_factor, amp=args.amp, tile=args.tile_size,
                 batch_tiles=args.batch_tiles, max_slides=args.max_slides, out_dir=out_dir,
                 stain_normalizer=stain_normalizer, stain_norm_level=args.stain_norm_level,
+                slide_ids=slide_ids or None,
             )
         )
     (out_dir / "all_groups.json").write_text(json.dumps(results, indent=2))

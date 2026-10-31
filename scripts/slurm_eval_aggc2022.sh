@@ -32,6 +32,7 @@ CKPT="${CKPT:-${1:-}}"
 AGGC_GROUPS="${AGGC_GROUPS:-Subset1/Test,Subset2/Train,Subset2/Test}"
 SCALE_MODE="${SCALE_MODE:-native}"
 MAX_SLIDES="${MAX_SLIDES:-0}"
+SLIDES="${SLIDES:-}"
 BATCH_TILES="${BATCH_TILES:-8}"
 STAIN_NORM="${STAIN_NORM:-0}"
 STAIN_METHOD="${STAIN_METHOD:-macenko}"
@@ -64,6 +65,7 @@ python -u "${PANDA_CODE_SRC}/evaluate_aggc2022.py" \
   --scale-mode "${SCALE_MODE}" \
   --batch-tiles "${BATCH_TILES}" \
   --max-slides "${MAX_SLIDES}" \
+  ${SLIDES:+--slides "${SLIDES}"} \
   --amp \
   "${STAIN_ARGS[@]}" \
   --out-dir "${OUT_DIR}"
