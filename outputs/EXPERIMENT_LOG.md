@@ -1,5 +1,7 @@
 ## AGGC2022 zero-shot evaluator (2026-10-29 20:40 PDT)
 
+**Update (2026-11-02 21:31 PST):** S2 raw perslide **6384213** done. Empty-tile skip hits annotated pixels on **16/16** S2 Test cores (median ~0.40% of annotated, max 1.36%). Not zero. S2 per-slide wF1 median **0.646** (IQR 0.519–0.755) vs pooled **0.479**. QC **6384212** failed because the wrapper assigned bash `GROUPS` (logged `groups=23247`); fixed to `AGGC_GROUPS` + `+` separators. Stain-vs-tissue **6384258** (`--no-skip-check`); S1 skip **6384259**; S1 perslide **6384260**. S2 Macenko **6384214** and S3 **6384215** still running. Macenko S2 log has no “too little tissue” abort on the cores scored so far.
+
 **Update (2026-11-02 21:15 PST):** Skip-vs-annotation + Macenko thumbnail stain dump + per-slide Dice. Subset3 Test listed (67 WSIs). Jobs **6384212** CPU QC; **6384213/14** S2 raw vs Macenko perslide; **6384215** S3 Test. Paired bootstrap lives in `scripts/aggc_slide_stats.py`. Prior pooled S2 Macenko wF1 0.423 vs raw 0.479.
 
 **Update (2026-11-02 20:39 PST):** S1 any-G5 **6365467** finished. Split by GT G5 presence. Pixel recall on G5 slides: S1 0.356, S2 0.582. Pathologist-style “any G5 on annotated tissue”: 12/12 and 3/3, but Gleason-has-5 only 7/12 and 2/3. No-G5 FP area almost all G4 (S1 99.4%, S2 75.9%). Gleason does not invent S1 G5 slides (0/33); any-pixel does (23/33 on tissue).

@@ -17,10 +17,15 @@ source /apps/miniconda/23.11.0-2/etc/profile.d/conda.sh
 conda activate wsi_seg
 export PYTHONPATH="${PANDA_PROJECT}/src:${PYTHONPATH:-}"
 export PYTHONUNBUFFERED=1
-GROUPS="${AGGC_GROUPS:-Subset1/Test,Subset2/Test,Subset3/Test}"
+# Never name this GROUPS: bash's GROUPS builtin is the numeric gid list
+# (job 6384212 logged groups=23247 and died).
+AGGC_GROUPS="${AGGC_GROUPS:-Subset1/Test+Subset2/Test+Subset3/Test}"
 OUT="${OUT_DIR:-${PANDA_PROJECT}/outputs/evaluation/aggc2022/qc_skip_stain}"
-echo "=== $(date) | skip+stain QC groups=${GROUPS} ==="
+QC_EXTRA="${QC_EXTRA:-}"
+echo "=== $(date) | skip+stain QC groups=${AGGC_GROUPS} extra=${QC_EXTRA} ==="
+# shellcheck disable=SC2086
 python -u "${PANDA_PROJECT}/scripts/aggc_skip_stain_qc.py" \
-  --groups "${GROUPS}" \
-  --out-dir "${OUT}"
+  --groups "${AGGC_GROUPS}" \
+  --out-dir "${OUT}" \
+  ${QC_EXTRA}
 echo "=== OK $(date) | ${OUT} ==="

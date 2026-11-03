@@ -79,45 +79,87 @@ def skip_vs_annotation(
     }
 
 
+def parse_groups(raw: str) -> list[tuple[str, str]]:
+    """Accept comma or + so sbatch --export does not eat list items."""
+    out: list[tuple[str, str]] = []
+    for tok in raw.replace("+", ",").split(","):
+        tok = tok.strip()
+        if not tok:
+            continue
+        parts = tok.split("/")
+        if len(parts) != 2:
+            raise SystemExit(
+                f"bad group {tok!r} (want SubsetN/Split; got groups={raw!r})"
+            )
+        out.append((parts[0], parts[1]))
+    if not out:
+        raise SystemExit(f"no groups in {raw!r}")
+    return out
+
+
 def plot_stain(rows: list[dict], png: Path) -> None:
     import matplotlib
 
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4.8))
     colors = {"Subset1": "#1f77b4", "Subset2": "#ff7f0e", "Subset3": "#2ca02c"}
+    ax0, ax1 = axes
     for subset, color in colors.items():
-        xs, ys, fail_x, fail_y = [], [], [], []
+        xs, h_norm, e_norm, fail_x, fail_y = [], [], [], [], []
         for r in rows:
             if r["subset"] != subset:
                 continue
-            tf = float(r["tissue_frac"])
             tp = float(r["thumb_tissue_px"])
             if int(r["stain_ok"]):
                 xs.append(tp)
-                ys.append(tf)
+                h_norm.append(float(r["stain_h_norm"]))
+                e_norm.append(float(r["stain_e_norm"]))
             else:
                 fail_x.append(tp)
-                fail_y.append(tf)
+                fail_y.append(0.0)
         if xs:
-            ax.scatter(xs, ys, c=color, label=f"{subset} fit OK", s=28, alpha=0.85)
+            ax0.scatter(xs, h_norm, c=color, label=f"{subset} H", s=28, alpha=0.85)
+            ax0.scatter(
+                xs, e_norm, c=color, marker="s", s=22, alpha=0.5, label=f"{subset} E"
+            )
+            ax1.scatter(
+                xs,
+                [float(r["tissue_frac"]) for r in rows if r["subset"] == subset and int(r["stain_ok"])],
+                c=color,
+                label=f"{subset} fit OK",
+                s=28,
+                alpha=0.85,
+            )
         if fail_x:
-            ax.scatter(
+            ax0.scatter(
                 fail_x,
                 fail_y,
                 c=color,
                 marker="x",
-                s=40,
+                s=44,
+                label=f"{subset} fit failed",
+            )
+            ax1.scatter(
+                fail_x,
+                [float(r["tissue_frac"]) for r in rows if r["subset"] == subset and not int(r["stain_ok"])],
+                c=color,
+                marker="x",
+                s=44,
                 label=f"{subset} below {MIN_SLIDE_TISSUE_PIXELS} px",
             )
-    ax.axvline(MIN_SLIDE_TISSUE_PIXELS, color="gray", ls="--", lw=1)
-    ax.set_xscale("log")
-    ax.set_xlabel("Thumbnail tissue pixels (LAB mask)")
-    ax.set_ylabel("Tissue fraction of thumbnail")
-    ax.set_title("Macenko slide-stain thumbnail vs tissue area")
-    ax.legend(fontsize=8)
-    ax.grid(True, alpha=0.3)
+    for ax in axes:
+        ax.axvline(MIN_SLIDE_TISSUE_PIXELS, color="gray", ls="--", lw=1)
+        ax.set_xscale("log")
+        ax.set_xlabel("Thumbnail tissue pixels (LAB mask)")
+        ax.grid(True, alpha=0.3)
+    ax0.set_ylabel("Macenko stain-vector L2 norm")
+    ax0.set_title("Per-slide stain estimate vs tissue area")
+    ax0.legend(fontsize=7)
+    ax1.set_ylabel("Tissue fraction of thumbnail")
+    ax1.set_title("Thumbnail tissue fraction vs area")
+    ax1.legend(fontsize=7)
     fig.tight_layout()
     png.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(png, dpi=140)
@@ -148,8 +190,7 @@ def main() -> None:
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     rows: list[dict] = []
-    for group in args.groups.split(","):
-        subset, split = group.strip().split("/")
+    for subset, split in parse_groups(args.groups):
         names = list_slides(args.aggc_root, subset, split)
         img_dir = args.aggc_root / subset / split / "images"
         ann_dir = args.aggc_root / subset / split / "annotations"
@@ -174,11 +215,25 @@ def main() -> None:
                 "tissue_frac": stain["tissue_frac"],
                 "stain_h_norm": stain["stain_h_norm"],
                 "stain_e_norm": stain["stain_e_norm"],
+                "stain_h_r": "",
+                "stain_h_g": "",
+                "stain_h_b": "",
+                "stain_e_r": "",
+                "stain_e_g": "",
+                "stain_e_b": "",
                 "tiles_total": "",
                 "tiles_skipped": "",
                 "skip_ann_px_10x": "",
                 "ann_px_10x": "",
             }
+            sm = stain.get("stain_matrix")
+            if sm is not None:
+                rec["stain_h_r"] = float(sm[0, 0])
+                rec["stain_h_g"] = float(sm[0, 1])
+                rec["stain_h_b"] = float(sm[0, 2])
+                rec["stain_e_r"] = float(sm[1, 0])
+                rec["stain_e_g"] = float(sm[1, 1])
+                rec["stain_e_b"] = float(sm[1, 2])
             if do_skip:
                 gt10 = build_gt_10x(ann_dir, sid, w0, h0)
                 skip = skip_vs_annotation(img, gt10, tile=args.tile)
