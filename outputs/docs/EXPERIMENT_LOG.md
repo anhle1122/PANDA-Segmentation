@@ -1,5 +1,7 @@
 ## AGGC2022 zero-shot evaluator (2026-10-29 20:40 PDT)
 
+**Update (2026-11-02 20:39 PST):** S1 any-G5 **6365467** finished. Split by GT G5 presence. Pixel recall on G5 slides: S1 0.356, S2 0.582. Pathologist-style “any G5 on annotated tissue”: 12/12 and 3/3, but Gleason-has-5 only 7/12 and 2/3. No-G5 FP area almost all G4 (S1 99.4%, S2 75.9%). Gleason does not invent S1 G5 slides (0/33); any-pixel does (23/33 on tissue).
+
 **Update (2026-10-31 15:50 PDT):** Subset2 Test any-G5 done (**6365466**). Slide-level if any pred G5 pixel: recall **3/3**, FP **9/13** (7/13 if ignore pred-G5 only on unannotated bg). Gleason primary/secondary had hidden Test_10 (called `4+3` but 43,377 pred-G5-on-G4 + 2,524 on true G5). Annotated pred-G5 still 83% true G4. S1 job **6365467** still running.
 
 **Update (2026-10-31 14:40 PDT):** Any-G5 (any predicted G5 pixel) + per-slide pred-G5 vs mask. **6365442** only scored Test_3 (`--export` comma split). On Test_3 annotated pred-G5: G4 11165, Normal 1218, G3 0, G5 0. **6365466** all 16 S2 Test; **6365467** all 45 S1 Test. Commit `079535f`.
