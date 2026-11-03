@@ -34,8 +34,8 @@ Pipeline per slide:
      already a per-class Dice report, just combined into one weighted score.
 
 Subset 1/2 images are Akoya-scanned (manual annotation is Akoya-only); we use
-one fixed native µm/pixel for both. Subset 3 (multi-scanner, registered
-masks) is out of scope for this script.
+one fixed native µm/pixel for both. Subset 3 is scanner-nested
+(images/<Scanner>/, annotations/<Scanner>/) and is listed recursively.
 """
 
 from __future__ import annotations
@@ -87,6 +87,8 @@ AKOYA_MPP = 0.500553  # manual annotation scanner; Subset1/2 images are Akoya-sc
 # on the raw (un-normalized) tile either way.
 MIN_TISSUE_FRAC_FOR_STAIN_NORM = 0.20
 MIN_SLIDE_TISSUE_PIXELS = 5000
+TILE_SKIP_MEAN = 220.0
+TILE_SKIP_STD = 12.0
 
 
 def _lab_tissue_mask(arr: np.ndarray) -> np.ndarray:
@@ -101,16 +103,13 @@ def _lab_tissue_mask(arr: np.ndarray) -> np.ndarray:
 
 def estimate_slide_stain_matrix(
     normalizer, img: Image.Image, *, max_side: int = 4096
-) -> tuple[np.ndarray, np.ndarray] | None:
+) -> dict:
     """One SOURCE stain matrix + max concentration for the WHOLE slide.
 
-    Same math as stain_normalize.estimate_stain_stats (slide-level source
-    stain), reimplemented with a simple LAB-luminosity tissue mask instead of
-    that function's artifact/glass mask -- the ink/glass module it imports
-    (patch_filter_rules) does not exist in this checkout. Estimated once from
-    a downsampled thumbnail (color statistics, not spatial detail, so this is
-    cheap and stable) and then applied identically to every tile of this
-    slide -- no per-tile re-estimation, so no tile-to-tile seams.
+    Fit on a downsampled thumbnail (max side 4096). Returns a dict so the
+    thumbnail tissue count can be plotted against stain quality. ``ok`` is
+    False when thumbnail tissue pixels < MIN_SLIDE_TISSUE_PIXELS (cores
+    with a small tissue fraction often fail this).
     """
     w0, h0 = img.size
     scale = min(1.0, max_side / max(w0, h0))
@@ -121,14 +120,30 @@ def estimate_slide_stain_matrix(
         )
     arr = np.asarray(sample.convert("RGB"), dtype=np.uint8)
     tissue_mask = _lab_tissue_mask(arr)
-    if int(tissue_mask.sum()) < MIN_SLIDE_TISSUE_PIXELS:
-        return None
+    tissue_px = int(tissue_mask.sum())
+    thumb_px = int(arr.shape[0] * arr.shape[1])
+    out = {
+        "ok": tissue_px >= MIN_SLIDE_TISSUE_PIXELS,
+        "thumb_tissue_px": tissue_px,
+        "thumb_px": thumb_px,
+        "tissue_frac": float(tissue_px / thumb_px) if thumb_px else 0.0,
+        "stain_matrix": None,
+        "max_c": None,
+        "stain_h_norm": float("nan"),
+        "stain_e_norm": float("nan"),
+    }
+    if not out["ok"]:
+        return out
     tissue_pixels = arr[tissue_mask]
     fake_img = tissue_pixels.reshape(1, -1, 3)
     stain_matrix = normalizer.extractor.get_stain_matrix(fake_img)
     concentrations = get_concentrations(fake_img, stain_matrix)
     max_c = np.percentile(concentrations, 99, axis=0).reshape((1, 2))
-    return stain_matrix, max_c
+    out["stain_matrix"] = stain_matrix
+    out["max_c"] = max_c
+    out["stain_h_norm"] = float(np.linalg.norm(stain_matrix[0]))
+    out["stain_e_norm"] = float(np.linalg.norm(stain_matrix[1]))
+    return out
 
 
 def transform_tile_with_slide_stats(
@@ -170,10 +185,17 @@ def list_slides(root: Path, subset: str, split: str) -> list[str]:
     ann_dir = root / subset / split / "annotations"
     if not img_dir.is_dir() or not ann_dir.is_dir():
         return []
-    have_img = {p.stem for p in img_dir.glob("*.tiff")} | {p.stem for p in img_dir.glob("*.tif")}
-    have_ann = {p.name for p in ann_dir.iterdir() if p.is_dir()}
-    names = sorted(have_img & have_ann)
-    return names
+    have_img = {
+        p.stem
+        for p in img_dir.rglob("*")
+        if p.is_file() and p.suffix.lower() in {".tif", ".tiff"}
+    }
+    have_ann = {
+        p.name
+        for p in ann_dir.rglob("*")
+        if p.is_dir() and any((p / fn).is_file() for fn, _ in MASK_PRIORITY)
+    }
+    return sorted(have_img & have_ann)
 
 
 def find_image_path(img_dir: Path, slide_id: str) -> Path | None:
@@ -181,13 +203,26 @@ def find_image_path(img_dir: Path, slide_id: str) -> Path | None:
         p = img_dir / f"{slide_id}{ext}"
         if p.is_file():
             return p
+        hits = sorted(img_dir.glob(f"*/{slide_id}{ext}"))
+        if hits:
+            return hits[0]
     return None
+
+
+def find_ann_dir(ann_dir: Path, slide_id: str) -> Path | None:
+    direct = ann_dir / slide_id
+    if direct.is_dir():
+        return direct
+    hits = sorted(ann_dir.glob(f"*/{slide_id}"))
+    return hits[0] if hits else None
 
 
 def build_gt_index_map(ann_dir: Path, slide_id: str, shape: tuple[int, int]) -> np.ndarray:
     """Resolve raw per-class binary masks into one 0..5 index map (most-malignant-wins)."""
     gt = np.zeros(shape, dtype=np.uint8)
-    slide_dir = ann_dir / slide_id
+    slide_dir = find_ann_dir(ann_dir, slide_id)
+    if slide_dir is None:
+        return gt
     for fname, class_idx in MASK_PRIORITY:
         mpath = slide_dir / fname
         if not mpath.is_file():
@@ -215,7 +250,8 @@ def infer_index_map(
     batch_tiles: int = 8,
     stain_normalizer: object | None = None,
     slide_stain_stats: tuple[np.ndarray, np.ndarray] | None = None,
-) -> np.ndarray:
+    gt_native: np.ndarray | None = None,
+) -> tuple[np.ndarray, dict]:
     """Full-slide tiled inference -> argmax index map at the image's NATIVE resolution.
 
     scale_factor applies to the INPUT before tiling (e.g. 0.5 to go from
@@ -255,10 +291,15 @@ def infer_index_map(
     # a normal model output), so this only saves compute, it never forces a label.
     coords = []
     n_skipped = 0
+    skip_ann_px = 0
     for y, x in all_coords:
         t = arr[y : y + tile, x : x + tile]
-        if t.mean() > 220.0 and t.std() < 12.0:
+        if t.mean() > TILE_SKIP_MEAN and t.std() < TILE_SKIP_STD:
             n_skipped += 1
+            if gt_native is not None and abs(scale_factor - 1.0) <= 1e-6:
+                yy = min(y + tile, gt_native.shape[0])
+                xx = min(x + tile, gt_native.shape[1])
+                skip_ann_px += int((gt_native[y:yy, x:xx] > 0).sum())
             continue
         coords.append((y, x))
 
@@ -291,7 +332,7 @@ def infer_index_map(
             pred[y : y + tile, x0 : x0 + tile] = am
     print(
         f"    tiles total={len(all_coords)} skipped_bg={n_skipped} "
-        f"ran={len(coords)}",
+        f"ran={len(coords)} skip_ann_px={skip_ann_px}",
         flush=True,
     )
 
@@ -300,7 +341,12 @@ def infer_index_map(
         pred = np.array(
             Image.fromarray(pred).resize((w0, h0), resample=Image.NEAREST)
         )
-    return pred
+    return pred, {
+        "tiles_total": len(all_coords),
+        "tiles_skipped": n_skipped,
+        "tiles_ran": len(coords),
+        "skip_ann_px": skip_ann_px,
+    }
 
 
 def downsize_10x(index_map: np.ndarray) -> np.ndarray:
@@ -382,26 +428,44 @@ def run_group(
             continue
         img = Image.open(img_path)
         w0, h0 = img.size
+        gt = build_gt_index_map(ann_dir, sid, (h0, w0))
+        stain_info = {
+            "ok": False,
+            "thumb_tissue_px": 0,
+            "thumb_px": 0,
+            "tissue_frac": float("nan"),
+            "stain_h_norm": float("nan"),
+            "stain_e_norm": float("nan"),
+        }
         slide_stats = None
         if stain_normalizer is not None and stain_norm_level == "slide":
-            slide_stats = estimate_slide_stain_matrix(stain_normalizer, img)
-            if slide_stats is None:
-                print(f"  WARN {sid}: too little tissue to estimate slide stain, raw", flush=True)
-        pred = infer_index_map(
+            stain_info = estimate_slide_stain_matrix(stain_normalizer, img)
+            if stain_info["ok"]:
+                slide_stats = (stain_info["stain_matrix"], stain_info["max_c"])
+            else:
+                print(
+                    f"  WARN {sid}: too little tissue to estimate slide stain "
+                    f"(thumb_tissue={stain_info['thumb_tissue_px']}), raw",
+                    flush=True,
+                )
+        pred, skip_info = infer_index_map(
             model, img, device=device, amp=amp, scale_factor=scale_factor,
             tile=tile, batch_tiles=batch_tiles, stain_normalizer=stain_normalizer,
             slide_stain_stats=slide_stats,
+            gt_native=gt if abs(scale_factor - 1.0) <= 1e-6 else None,
         )
-        gt = build_gt_index_map(ann_dir, sid, (h0, w0))
         gt2 = downsize_10x(gt)
         pred2 = downsize_10x(pred)
+        slide_cm = np.zeros((6, 6), dtype=np.int64)
         for c_gt in range(6):
             mask_gt = gt2 == c_gt
             if not mask_gt.any():
                 continue
             row_pred = pred2[mask_gt]
             counts = np.bincount(row_pred, minlength=6)
+            slide_cm[c_gt, :] += counts
             cm[c_gt, :] += counts
+        slide_m = weighted_f1_from_cm(slide_cm)
         # Descriptive only -- AGGC ships no slide-level ISUP/Gleason label, so
         # there is nothing to score this against. Same derive_grade() as
         # SICAP/PANDA, applied to this slide's own predicted pixel counts.
@@ -422,6 +486,13 @@ def run_group(
                 "h": h0,
                 "pred_gleason": gleason,
                 "pred_isup": int(pred_isup),
+                "weighted_f1": slide_m["weighted_f1"],
+                "dice_Stroma": slide_m["dice_Stroma"],
+                "dice_Normal": slide_m["dice_Normal"],
+                "dice_G3": slide_m["dice_G3"],
+                "dice_G4": slide_m["dice_G4"],
+                "dice_G5": slide_m["dice_G5"],
+                "ann_px": int(gt_counts[1:].sum()),
                 "gt_g5": int(gt_counts[5]),
                 "pred_g5": int(g5_gt.sum()),
                 "gt_has_g5": int(gt_counts[5] > 0),
@@ -432,6 +503,15 @@ def run_group(
                 "pred_g5_on_g3": int(g5_gt[3]),
                 "pred_g5_on_g4": int(g5_gt[4]),
                 "pred_g5_on_g5": int(g5_gt[5]),
+                "tiles_skipped": skip_info["tiles_skipped"],
+                "tiles_ran": skip_info["tiles_ran"],
+                "skip_ann_px": skip_info["skip_ann_px"],
+                "stain_ok": int(stain_info["ok"]),
+                "thumb_tissue_px": stain_info["thumb_tissue_px"],
+                "thumb_px": stain_info["thumb_px"],
+                "tissue_frac": stain_info["tissue_frac"],
+                "stain_h_norm": stain_info["stain_h_norm"],
+                "stain_e_norm": stain_info["stain_e_norm"],
             }
         )
         elapsed = time.time() - t0
@@ -469,6 +549,13 @@ def run_group(
                 "h",
                 "pred_gleason",
                 "pred_isup",
+                "weighted_f1",
+                "dice_Stroma",
+                "dice_Normal",
+                "dice_G3",
+                "dice_G4",
+                "dice_G5",
+                "ann_px",
                 "gt_g5",
                 "pred_g5",
                 "gt_has_g5",
@@ -479,6 +566,15 @@ def run_group(
                 "pred_g5_on_g3",
                 "pred_g5_on_g4",
                 "pred_g5_on_g5",
+                "tiles_skipped",
+                "tiles_ran",
+                "skip_ann_px",
+                "stain_ok",
+                "thumb_tissue_px",
+                "thumb_px",
+                "tissue_frac",
+                "stain_h_norm",
+                "stain_e_norm",
             ],
         )
         w.writeheader()
@@ -499,7 +595,7 @@ def main() -> None:
         "--groups",
         type=str,
         default="Subset1/Test,Subset2/Train,Subset2/Test",
-        help="Comma list of Subset{1,2}/{Train,Test}. Never pooled across groups.",
+        help="Comma list of Subset{1,2,3}/{Train,Test}. Never pooled across groups.",
     )
     p.add_argument(
         "--scale-mode",
