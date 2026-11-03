@@ -10,6 +10,11 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-11-02
+
+- **21:15 PST** | **Skip-vs-mask QC, Macenko tissue-area stain, per-slide IQR, Subset3** | User: confirm empty-tile skip never covers annotated pixels; save Macenko stain vs tissue (cores may lack thumbnail tissue); per-slide median/IQR + paired bootstrap; include S3 if on HPC | S3 Test is on disk (**67** images, 6 scanners). Evaluator now writes per-slide Dice/stain/skip_ann and lists scanner-nested S3. CPU **6384212** (`qc_skip_stain`). GPU: **6384213** S2 raw perslide, **6384214** S2 Macenko perslide (paired bootstrap vs raw), **6384215** S3 Test raw. Existing pooled S2 Macenko already dropped wF1 **0.479 → 0.423**. Commit `1689de4`.
+- **20:39 PST** | **G5-present vs no-G5 split, any-pixel and Gleason** | User wants recall on slides with mask G5, FP area on slides without, and whether the model flags “any pattern 5” | S1 any-G5 **6365467** done. **Has G5:** pixel recall S1 **0.356** (12 slides) / S2 **0.582** (3). Slide “any G5 on tissue” **12/12** and **3/3**; Gleason includes 5 only **7/12** and **2/3**. **No G5:** annotated FP area is **99% G4** on S1 (1.02M px) and **76% G4** on S2 (51k px). Gleason FPR **0/33** S1 and **2/13** S2; any-tissue-G5 FPR **23/33** and **7/13**. CSVs: `..._native_subset1_anyg5` / `..._native_subset2_anyg5`.
+
 ## 2026-10-31
 
 - **15:50 PDT** | **Subset2 any-G5 pixel scorecard done** | User wants slide G5 if any predicted G5 pixel exists | **6365466** COMPLETED. 3/3 GT-G5 cores have some pred G5 (Test_10 was `4+3` but still painted G5). 9/13 no-G5 cores also have some pred G5 (7/13 on annotated tissue). Annotated pred-G5 is still **83% G4**. **6365467** S1 any-G5 still RUNNING (~8/45). CSV: `outputs/evaluation/aggc2022/sicap_ft_replay03_e6_ep006_native_subset2_anyg5/Subset2_Test/slides.csv`.
