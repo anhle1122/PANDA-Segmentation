@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# AGGC2022 zero-shot eval on L40S (never H200). Subset1/2 only (Akoya scans).
+# AGGC2022 eval on L40S (never H200). Subset1/2/3 Test, native raw unless exported.
 #   sbatch --export=ALL,CKPT=/path/to/epoch.pth,SCALE_MODE=native \
 #     scripts/slurm_eval_aggc2022.sh
 #SBATCH --job-name=aggc2022_eval

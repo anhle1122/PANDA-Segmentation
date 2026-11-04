@@ -678,8 +678,11 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     results = []
-    for group in args.groups.split(","):
-        subset, split = group.strip().split("/")
+    for tok in args.groups.replace("+", ",").split(","):
+        tok = tok.strip()
+        if not tok:
+            continue
+        subset, split = tok.split("/")
         print(f"=== {subset}/{split} ===", flush=True)
         results.append(
             run_group(
