@@ -12,6 +12,7 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ## 2026-11-07
 
+- **10:19 PST** | **Per-slide tables for remaining Train sets** | User: Omar wants per-core/per-slide not pooled-only | S2 Train already ran but CSV is Gleason-only. Rescore native raw perslide: **6442736** ZS / **6442737** SICAP (37 cores). S1 Train never scored: **6442738** ZS / **6442739** SICAP (94 mounts, incomplete ids). S3 Train already perslide (**6442465/66** RUNNING). Test S1/S2/S3 already have per-slide. Do not pool Train with Test.
 - **09:50 PST** | **Subset3 Train native raw, both models** | User: Test is only 67 images; full S3 is on Omar lab | Test 67 = **12 specimens × scanners**. Full S3 is Test 67 + Train **144** (26 cases). Train is still unseen (never fit on AGGC). Not official Test; extra scanner-robustness check. Submitted **6442465** ZS and **6442466** SICAP-FT, native raw, own dirs `zs_r3ep6_s3_train_perslide_raw` / `sicap_ft_e6_s3_train_perslide_raw`. Do not pool with Test.
 
 ## 2026-11-03

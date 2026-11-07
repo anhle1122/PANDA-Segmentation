@@ -1,5 +1,7 @@
 ## AGGC2022 zero-shot evaluator (2026-10-29 20:40 PDT)
 
+**Update (2026-11-07 10:19 PST):** Per-slide rescores so Omar can have median/IQR + paired bootstrap on Train too. S2 Train old CSVs had only Gleason (**6442736/37**). S1 Train first-time perslide (**6442738/39**, 94 TIFFs). S3 Train already writing per-slide.
+
 **Update (2026-11-07 09:50 PST):** Subset3 Train native-raw eval for both models. Why: Test n=67 is 12 specimens, not 67 independent slides; full S3 (211 images) is already on disk. Train 144 is unseen for this stack. Jobs **6442465** ZS, **6442466** SICAP-FT. Report separately from Test; never pool.
 
 **Update (2026-11-03 21:13 PST):** Omar wants PANDA R3 ep6 zero-shot and SICAP-FT on all three Test subsets, native raw only. SICAP S1/S2/S3 perslide are done (S3 wF1 0.551). ZS S1 on disk was n=2 smoke; submitted **6392135/36/37**. G5 annotated-area fraction separates G5 vs no-G5 slides (SICAP AUC 0.93/1.00/0.83). Paired bootstrap waits on ZS perslide CSVs. S3 scanner figure: `outputs/evaluation/aggc2022/g5_slide_detect/s3_scanner_wf1.png`. Official GC leaderboard is weighted F1 only; Huo et al. Comm Med GP5 F1 0.44 is their model, not a published Test-set class table.
