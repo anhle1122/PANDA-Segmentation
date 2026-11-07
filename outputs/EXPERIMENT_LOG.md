@@ -1,5 +1,7 @@
 ## AGGC2022 zero-shot evaluator (2026-10-29 20:40 PDT)
 
+**Update (2026-11-07 09:50 PST):** Subset3 Train native-raw eval for both models. Why: Test n=67 is 12 specimens, not 67 independent slides; full S3 (211 images) is already on disk. Train 144 is unseen for this stack. Jobs **6442465** ZS, **6442466** SICAP-FT. Report separately from Test; never pool.
+
 **Update (2026-11-03 21:13 PST):** Omar wants PANDA R3 ep6 zero-shot and SICAP-FT on all three Test subsets, native raw only. SICAP S1/S2/S3 perslide are done (S3 wF1 0.551). ZS S1 on disk was n=2 smoke; submitted **6392135/36/37**. G5 annotated-area fraction separates G5 vs no-G5 slides (SICAP AUC 0.93/1.00/0.83). Paired bootstrap waits on ZS perslide CSVs. S3 scanner figure: `outputs/evaluation/aggc2022/g5_slide_detect/s3_scanner_wf1.png`. Official GC leaderboard is weighted F1 only; Huo et al. Comm Med GP5 F1 0.44 is their model, not a published Test-set class table.
 
 **Update (2026-11-02 21:31 PST):** S2 raw perslide **6384213** done. Empty-tile skip hits annotated pixels on **16/16** S2 Test cores (median ~0.40% of annotated, max 1.36%). Not zero. S2 per-slide wF1 median **0.646** (IQR 0.519–0.755) vs pooled **0.479**. QC **6384212** failed because the wrapper assigned bash `GROUPS` (logged `groups=23247`); fixed to `AGGC_GROUPS` + `+` separators. Stain-vs-tissue **6384258** (`--no-skip-check`); S1 skip **6384259**; S1 perslide **6384260**. S2 Macenko **6384214** and S3 **6384215** still running. Macenko S2 log has no “too little tissue” abort on the cores scored so far.

@@ -10,6 +10,10 @@ Format per bullet: `- HH:MM TZ | What | Why | Result / next`
 
 ---
 
+## 2026-11-07
+
+- **09:50 PST** | **Subset3 Train native raw, both models** | User: Test is only 67 images; full S3 is on Omar lab | Test 67 = **12 specimens × scanners**. Full S3 is Test 67 + Train **144** (26 cases). Train is still unseen (never fit on AGGC). Not official Test; extra scanner-robustness check. Submitted **6442465** ZS and **6442466** SICAP-FT, native raw, own dirs `zs_r3ep6_s3_train_perslide_raw` / `sicap_ft_e6_s3_train_perslide_raw`. Do not pool with Test.
+
 ## 2026-11-03
 
 - **21:13 PST** | **Omar: both models, all 3 subsets, native raw** | Mohamed: PANDA R3 ep6 zero-shot + SICAP-FT on S1/S2/S3; G5 slide AUC; paired bootstrap; S3 scanner figure; worst Normal overlays; paper G5 F1 | SICAP native raw already done: S1 **45/45** (6384260), S2 **16**, S3 **67/67** wF1 **0.551** (6384215). Old ZS S1 native is only a **2-slide smoke**. Submitted ZS perslide **6392135** S1, **6392136** S2, **6392137** S3 (`epoch_006_cancer_0.3488.pth`). G5 area detector on SICAP: AUC **0.93 / 1.00 / 0.83** (S1/S2/S3); Youden sens/spec S1 0.83/0.88, S2 1.0/1.0 (n=3), S3 1.0/0.76. S3 scanner figure written. Worst Normal S1: Test_18/11/22/12/40 → viz **6392138**. Official leaderboard does not publish per-class G5; organizers’ Comm Med paper reports GP5 F1 **0.44** (their model, not Test leaderboard). S2 G3→G4: ZS **24.5%** vs SICAP **35.2%** (Omar’s read).
