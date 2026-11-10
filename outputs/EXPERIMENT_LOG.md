@@ -1,3 +1,5 @@
+**Update (2026-11-09 19:54 ):** Rerun ZS AGGC Subset3 Train native raw after OOM **6442465** (~93/144, 96G, no CSV). New job **6476097** 192G BATCH_TILES=4 → . SICAP S3 Train already done (wF1 0.627). Extra unseen check only — do not pool with Test.
+
 ## AGGC2022 zero-shot evaluator (2026-10-29 20:40 PDT)
 
 **Update (2026-11-07 10:19 PST):** Per-slide rescores so Omar can have median/IQR + paired bootstrap on Train too. S2 Train old CSVs had only Gleason (**6442736/37**). S1 Train first-time perslide (**6442738/39**, 94 TIFFs). S3 Train already writing per-slide.

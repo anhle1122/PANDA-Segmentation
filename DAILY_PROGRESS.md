@@ -1,3 +1,7 @@
+## 2026-11-09
+
+- **19:54 ** | **Rerun ZS Subset3 Train per-slide** | Sat **6442465** OOM ~93/144 at 96G (no CSV); purpose = extra unseen multi-scanner check, not official Test | Resubmit **6476097** 192G BATCH_TILES=4 → . SICAP S3 Train already complete; do not pool with Test.
+
 # Daily progress — PANDA Gleason project
 
 **For Dr. Omar:** this is the day-by-day log at  
