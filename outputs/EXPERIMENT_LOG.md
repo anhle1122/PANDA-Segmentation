@@ -1,3 +1,5 @@
+**Update (2026-11-11 13:17 ):** S3 G3 median≪pooled explained (bimodal per-slide; pooled mass-weighted). Normal stroma crops job **6499282** (between glands vs on glands) for Omar annotation-granularity check. G5 paper framing locked (pixel Dice 0.03–0.39; slide AUC 0.83–0.94; PANDA+ G5 0.696; one-grade miss still clinical).
+
 **Update (2026-11-11 12:52 ):** **PAPER DECISION (Omar) — LOCKED.** AGGC native-raw: SICAP-FT neither helped nor hurt vs PANDA R3 ep6 zero-shot (S1 ZS did not beat 0.621). **Primary model in paper = zero-shot** `epoch_006_cancer_0.3488.pth` (never saw SICAP/AGGC). **SICAP-FT** `epoch_006_cancer_0.6893.pth` → supplement only. See `outputs/SCORECARD/WHAT_IS_WHAT.md`.
 
 **Update (2026-11-11 12:42 ):** G5 slide detector sens/spec now use Youden threshold locked on pooled Train S1+S2+S3 (n=275), applied to each Test subset. ZS thr=3.87e-3; SICAP thr=3.64e-3. Test sens/spec ≈ 0.92/0.79 (S1), 1.00/0.77 (S2), 1.00/0.76 (S3). AUCs unchanged. Prior Test Youden was in-sample (esp. S2 1.0/1.0).
