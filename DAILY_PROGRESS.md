@@ -1,5 +1,6 @@
 ## 2026-11-11
 
+- **12:52 ** | **PAPER LOCK: ZS primary on AGGC** | Omar: native-raw FT neither helped nor hurt; expected ZS >0.621 on S1 but it didn’t; keep zero-shot as primary because it didn’t see SICAP/AGGC; SICAP-FT → supplement | Primary ckpt `epoch_006_cancer_0.3488.pth` (R3 ep6). SICAP-FT `0.6893` supp only. Written into `outputs/SCORECARD/WHAT_IS_WHAT.md`.
 - **12:42 ** | **G5 detector: Train-locked threshold** | Omar: Test Youden sens/spec are in-sample; pick thr on pooled Train S1+S2+S3, apply once to each Test | ZS thr=0.00387 → Test sens/spec S1 0.92/0.79, S2 1.00/0.77, S3 1.00/0.76 (AUC 0.94/1.00/0.83). SICAP thr=0.00364 → same Test sens/spec. Old S2 1.00/1.00 was in-sample. `scripts/aggc_g5_slide_detect.py --train-csvs/--test-csvs`; `outputs/evaluation/aggc2022/g5_slide_detect/g5_trainthr_test_eval.json`; `outputs/SCORECARD/G5_TRAIN_THRESHOLD.md`.
 
 ## 2026-11-09
