@@ -150,11 +150,114 @@ def summarize(name: str, rows: list[dict]) -> dict:
 
 
 def main() -> None:
-    p = argparse.ArgumentParser()
-    p.add_argument("csvs", nargs="+", type=Path)
-    p.add_argument("--names", default="", help="Comma names aligned with csvs")
+    p = argparse.ArgumentParser(
+        description=(
+            "G5 slide detector. Prefer --train-csvs + --test-csvs: lock Youden "
+            "threshold on pooled Train, then report sens/spec on each Test CSV "
+            "(Omar protocol). Plain positional csvs still print in-sample Youden "
+            "for debugging only."
+        )
+    )
+    p.add_argument("csvs", nargs="*", type=Path, help="Legacy: one report per CSV (in-sample Youden)")
+    p.add_argument("--names", default="", help="Comma names aligned with csvs / test-csvs")
+    p.add_argument(
+        "--train-csvs",
+        nargs="+",
+        type=Path,
+        default=None,
+        help="Pool these for one Youden threshold (e.g. S1+S2+S3 Train)",
+    )
+    p.add_argument(
+        "--test-csvs",
+        nargs="+",
+        type=Path,
+        default=None,
+        help="Apply the train-locked threshold once to each of these",
+    )
     p.add_argument("--out", type=Path, required=True)
     args = p.parse_args()
+
+    if args.train_csvs and args.test_csvs:
+        names = [n.strip() for n in args.names.split(",") if n.strip()]
+        if not names:
+            names = [c.parent.name for c in args.test_csvs]
+        if len(names) != len(args.test_csvs):
+            raise SystemExit("--names must match --test-csvs length")
+        train_rows: list[dict] = []
+        for path in args.train_csvs:
+            train_rows.extend(load_rows(path))
+        y_tr, s_tr, _ = scores(train_rows)
+        thr_info = youden(y_tr, s_tr)
+        thr = float(thr_info["threshold"])
+        se_tr, sp_tr = sens_spec(y_tr, s_tr, thr)
+        payload = {
+            "protocol": "Youden thr locked on pooled --train-csvs; applied to each --test-csvs",
+            "train": {
+                "n": len(y_tr),
+                "n_g5": int(sum(y_tr)),
+                "n_no_g5": int(len(y_tr) - sum(y_tr)),
+                "auc": auc_mann_whitney(y_tr, s_tr),
+                "youden_threshold": thr,
+                "sens": se_tr,
+                "spec": sp_tr,
+                "sources": [str(p) for p in args.train_csvs],
+            },
+            "test": [],
+        }
+        print(
+            f"TRAIN pool n={payload['train']['n']} G5={payload['train']['n_g5']} "
+            f"AUC={payload['train']['auc']} LOCKED thr={thr:.6g} "
+            f"sens={se_tr:.3f} spec={sp_tr:.3f}",
+            flush=True,
+        )
+        for path, name in zip(args.test_csvs, names):
+            rows = load_rows(path)
+            y, s, extra = scores(rows)
+            se, sp = sens_spec(y, s, thr)
+            ins = youden(y, s)
+            rec = summarize(name, rows)
+            entry = {
+                "name": name,
+                "n": len(y),
+                "n_g5": int(sum(y)),
+                "n_no_g5": int(len(y) - sum(y)),
+                "auc": auc_mann_whitney(y, s),
+                "threshold_from_train": thr,
+                "sens": se,
+                "spec": sp,
+                "in_sample_youden_DO_NOT_USE": ins,
+                "pixel_recall_mean_on_g5_slides": rec["pixel_recall_on_g5_slides"]["mean"],
+                "slides": extra,
+            }
+            payload["test"].append(entry)
+            print(
+                f"{name}: n={entry['n']} G5={entry['n_g5']} AUC={entry['auc']} "
+                f"TrainThr sens={se:.3f} spec={sp:.3f} "
+                f"(in-sample Youden {ins['sens']:.3f}/{ins['spec']:.3f} — do not use)",
+                flush=True,
+            )
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(json.dumps(payload, indent=2))
+        flat = args.out.with_suffix(".slides.csv")
+        with flat.open("w", newline="") as f:
+            w = None
+            for entry in payload["test"]:
+                for sl in entry["slides"]:
+                    row = {
+                        "model_subset": entry["name"],
+                        "thr_from_train": thr,
+                        "pred_g5_slide": int(sl["pred_g5_frac_ann"] > thr),
+                        **sl,
+                    }
+                    if w is None:
+                        w = csv.DictWriter(f, fieldnames=list(row.keys()))
+                        w.writeheader()
+                    w.writerow(row)
+        print(f"wrote {args.out} and {flat}", flush=True)
+        return
+
+    if not args.csvs:
+        raise SystemExit("Provide positional csvs, or --train-csvs with --test-csvs")
     names = [n.strip() for n in args.names.split(",") if n.strip()]
     if not names:
         names = [c.parent.parent.name + "/" + c.parent.name for c in args.csvs]
@@ -164,7 +267,8 @@ def main() -> None:
         print(
             f"{name}: n={reports[-1]['n']} G5={reports[-1]['n_g5']} "
             f"AUC={reports[-1]['auc']} Youden thr={reports[-1]['youden']['threshold']:.4g} "
-            f"sens={reports[-1]['youden']['sens']} spec={reports[-1]['youden']['spec']}",
+            f"sens={reports[-1]['youden']['sens']} spec={reports[-1]['youden']['spec']} "
+            f"(IN-SAMPLE — prefer --train-csvs/--test-csvs)",
             flush=True,
         )
     args.out.parent.mkdir(parents=True, exist_ok=True)

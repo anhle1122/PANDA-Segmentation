@@ -1,3 +1,7 @@
+## 2026-11-11
+
+- **12:42 ** | **G5 detector: Train-locked threshold** | Omar: Test Youden sens/spec are in-sample; pick thr on pooled Train S1+S2+S3, apply once to each Test | ZS thr=0.00387 → Test sens/spec S1 0.92/0.79, S2 1.00/0.77, S3 1.00/0.76 (AUC 0.94/1.00/0.83). SICAP thr=0.00364 → same Test sens/spec. Old S2 1.00/1.00 was in-sample. `scripts/aggc_g5_slide_detect.py --train-csvs/--test-csvs`; `outputs/evaluation/aggc2022/g5_slide_detect/g5_trainthr_test_eval.json`; `outputs/SCORECARD/G5_TRAIN_THRESHOLD.md`.
+
 ## 2026-11-09
 
 - **19:54 ** | **Rerun ZS Subset3 Train per-slide** | Sat **6442465** OOM ~93/144 at 96G (no CSV); purpose = extra unseen multi-scanner check, not official Test | Resubmit **6476097** 192G BATCH_TILES=4 → . SICAP S3 Train already complete; do not pool with Test.
