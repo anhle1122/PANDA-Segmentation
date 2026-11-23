@@ -1,3 +1,5 @@
+**Update (2026-11-23 09:06 PST):** Locked ep14 SICAP official **6690546** done. cancer 0.3449, NC 0.6579, G3 0.2865, G4 0.5613, G5 0.1870, nc_to_ca 0.4889, ISUP 12/31. Dir `outputs/evaluation/sicapv2/official_epoch_014_cancer_0.3885`.
+
 **Update (2026-11-23 09:03 PST):** Locked ep14 (`uni2_upernet_raw_opt3_omar6_locked/epoch_014_cancer_0.3885.pth`, original masks) submitted for SICAP official + AGGC S1/S2/S3 Test and Train, native raw, argmax maps. Jobs **6690543–6690547** (S3 Train 192G after the 96G wave). R3 ep6 PANDA+ per-class Dice (benign row) **6690548**. Why: first relabeling effect is locked ep14 vs R2, not ep57 vs locked ep14 (LoRA was already training after the grouped resume). R2 vs R3 is the extra round and was not consistent across subsets. Missed-G5 Dice stays 0 in the comparison table once CSVs land.
 
 **Update (2026-11-11 13:17 ):** S3 G3 median≪pooled explained (bimodal per-slide; pooled mass-weighted). Normal stroma crops job **6499282** (between glands vs on glands) for Omar annotation-granularity check. G5 paper framing locked (pixel Dice 0.03–0.39; slide AUC 0.83–0.94; PANDA+ G5 0.696; one-grade miss still clinical).
