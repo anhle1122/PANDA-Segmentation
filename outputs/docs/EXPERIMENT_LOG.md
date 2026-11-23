@@ -1,3 +1,5 @@
+**Update (2026-11-23 09:08 PST):** Locked ep14 S3 Train left the L40S dependency queue (**6690547** cancelled while still pending) and is **6690549** RUNNING on preemptable H200 `cp096` (192G, ALLOW_H200=1). Same OUT_DIR. No checkpoint inside the eval: preemption restarts from the first slide.
+
 **Update (2026-11-23 09:06 PST):** Locked ep14 SICAP official **6690546** done. cancer 0.3449, NC 0.6579, G3 0.2865, G4 0.5613, G5 0.1870, nc_to_ca 0.4889, ISUP 12/31. Dir `outputs/evaluation/sicapv2/official_epoch_014_cancer_0.3885`.
 
 **Update (2026-11-23 09:03 PST):** Locked ep14 (`uni2_upernet_raw_opt3_omar6_locked/epoch_014_cancer_0.3885.pth`, original masks) submitted for SICAP official + AGGC S1/S2/S3 Test and Train, native raw, argmax maps. Jobs **6690543–6690547** (S3 Train 192G after the 96G wave). R3 ep6 PANDA+ per-class Dice (benign row) **6690548**. Why: first relabeling effect is locked ep14 vs R2, not ep57 vs locked ep14 (LoRA was already training after the grouped resume). R2 vs R3 is the extra round and was not consistent across subsets. Missed-G5 Dice stays 0 in the comparison table once CSVs land.
